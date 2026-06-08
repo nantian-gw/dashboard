@@ -1,0 +1,40 @@
+name: Question
+description: Ask about usage, development, or troubleshooting.
+title: "[Question] "
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Write in English or Chinese.
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      options:
+        - how to build / dev
+        - how to configure
+        - how to deploy
+        - architecture / design
+        - other
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      placeholder: Explain what you are trying to do and what you already tried.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      placeholder: |
+        - Commands run:
+        - Docs checked:
+        - Environment:

@@ -1,0 +1,75 @@
+name: Bug Report
+description: Report a bug in the dashboard UI, API proxy, auth, or other functionality.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Write in English or Chinese.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Select the nearest area this bug belongs to.
+      options:
+        - UI/UX
+        - API proxy
+        - auth
+        - observability
+        - AI chatbot
+        - release / CI
+        - tests
+        - docs
+        - other
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the bug and impact in 1 to 3 sentences.
+      placeholder: e.g. Gateway list page crashes when a backend has no health status.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps To Reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click on ...
+        3. See error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      placeholder: Include error messages or screenshots if applicable.
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      value: |
+        - OS:
+        - Browser:
+        - Node.js version:
+        - Branch / commit:
+    validations:
+      required: true
