@@ -1,0 +1,11 @@
+:root {
+  --ai-primary: hsl(271, 91%, 65%);
+  --ai-primary-foreground: hsl(0, 0%, 100%);
+  --ai-secondary: hsl(271, 91%, 90%);
+  --ai-card: hsl(270, 30%, 98%);
+  --ai-card-foreground: hsl(270, 30%, 10%);
+  --ai-border: hsl(271, 50%, 85%);
+  --ai-accent-openai: hsl(142, 71%, 45%);
+  --ai-accent-anthropic: hsl(30, 80%, 55%);
+  --ai-accent-ollama: hsl(200, 80%, 50%);
+}
