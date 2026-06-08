@@ -44,11 +44,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 });
 
-async function verifyTokenAgainstControlplane(token: string): Promise<boolean> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
+export async function verifyTokenAgainstControlplane(token: string): Promise<boolean> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
 
+  try {
     const response = await fetch(
       `${CONTROLPLANE_ADMIN_URL}/v1/summary`,
       {
@@ -57,12 +57,10 @@ async function verifyTokenAgainstControlplane(token: string): Promise<boolean> {
       }
     );
 
-    clearTimeout(timeout);
-
-    if (response.status === 401) return false;
-
-    return response.ok || response.status === 404 || response.status >= 500;
+    return response.ok;
   } catch {
-    return true;
+    return false;
+  } finally {
+    clearTimeout(timeout);
   }
 }
