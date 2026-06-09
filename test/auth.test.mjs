@@ -10,6 +10,26 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const realRequire = createRequire(import.meta.url);
 const ts = realRequire("typescript");
 
+function loadRateLimitModule() {
+  const source = readFileSync(resolve(root, "src/lib/rate-limit.ts"), "utf8");
+  const { outputText } = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2020,
+      esModuleInterop: true,
+    },
+  });
+
+  const cjsModule = { exports: {} };
+  vm.runInNewContext(outputText, {
+    exports: cjsModule.exports,
+    module: cjsModule,
+    require: realRequire,
+  });
+
+  return cjsModule.exports;
+}
+
 function loadAuth({ fetchImpl }) {
   const source = readFileSync(resolve(root, "src/lib/auth.ts"), "utf8");
   const { outputText } = ts.transpileModule(source, {
@@ -52,6 +72,10 @@ function loadAuth({ fetchImpl }) {
       return {
         CONTROLPLANE_ADMIN_URL: "http://controlplane.test",
       };
+    }
+
+    if (specifier === "./rate-limit") {
+      return loadRateLimitModule();
     }
 
     return realRequire(specifier);
@@ -209,4 +233,118 @@ test("verification sends bearer token to controlplane summary with abort signal"
   assert.equal(call.url, "http://controlplane.test/v1/summary");
   assert.equal(call.init.headers.Authorization, "Bearer secret-token");
   assert.ok(call.init.signal instanceof AbortSignal);
+});
+
+test("authorization rate limit blocks repeated attempts for the same forwarded client", async () => {
+  let fetchCalls = 0;
+  const { credentialsConfig, resetAuthRateLimitForTests } = loadAuth({
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      return { ok: false, status: 401 };
+    },
+  });
+  resetAuthRateLimitForTests();
+
+  const request = new Request("http://dashboard.test/api/auth/callback/credentials", {
+    headers: {
+      "x-forwarded-for": "203.0.113.10, 10.0.0.1",
+    },
+  });
+
+  for (let i = 0; i < 10; i += 1) {
+    assert.equal(await credentialsConfig.authorize({ token: "bad-token" }, request), null);
+  }
+
+  assert.equal(fetchCalls, 10);
+  assert.equal(await credentialsConfig.authorize({ token: "bad-token" }, request), null);
+  assert.equal(fetchCalls, 10);
+});
+
+test("authorization rate limit isolates different forwarded clients", async () => {
+  let fetchCalls = 0;
+  const { credentialsConfig, resetAuthRateLimitForTests } = loadAuth({
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      return { ok: false, status: 401 };
+    },
+  });
+  resetAuthRateLimitForTests();
+
+  const clientA = new Request("http://dashboard.test/api/auth/callback/credentials", {
+    headers: { "x-forwarded-for": "203.0.113.10" },
+  });
+  const clientB = new Request("http://dashboard.test/api/auth/callback/credentials", {
+    headers: { "x-forwarded-for": "203.0.113.11" },
+  });
+
+  for (let i = 0; i < 10; i += 1) {
+    assert.equal(await credentialsConfig.authorize({ token: "bad-token" }, clientA), null);
+  }
+
+  assert.equal(await credentialsConfig.authorize({ token: "bad-token" }, clientA), null);
+  assert.equal(await credentialsConfig.authorize({ token: "bad-token" }, clientB), null);
+  assert.equal(fetchCalls, 11);
+});
+
+test("authorization rate limit uses forwarded, real IP, and Cloudflare headers with fallback order", async () => {
+  const { getAuthRateLimitKey } = loadAuth({
+    fetchImpl: async () => ({ ok: true, status: 200 }),
+  });
+
+  assert.equal(
+    getAuthRateLimitKey(new Request("http://dashboard.test", {
+      headers: { "x-forwarded-for": " 203.0.113.12 , 10.0.0.1" },
+    })),
+    "ip:203.0.113.12"
+  );
+  assert.equal(
+    getAuthRateLimitKey(new Request("http://dashboard.test", {
+      headers: {
+        "x-forwarded-for": " , ",
+        "x-real-ip": "198.51.100.20",
+      },
+    })),
+    "ip:198.51.100.20"
+  );
+  assert.equal(
+    getAuthRateLimitKey(new Request("http://dashboard.test", {
+      headers: {
+        "x-real-ip": "198.51.100.21",
+      },
+    })),
+    "ip:198.51.100.21"
+  );
+  assert.equal(
+    getAuthRateLimitKey(new Request("http://dashboard.test", {
+      headers: {
+        "x-real-ip": " ",
+        "cf-connecting-ip": "198.51.100.22",
+      },
+    })),
+    "ip:198.51.100.22"
+  );
+  assert.equal(getAuthRateLimitKey(), "ip:unknown");
+});
+
+test("empty token does not consume rate-limit budget", async () => {
+  let fetchCalls = 0;
+  const { credentialsConfig, resetAuthRateLimitForTests } = loadAuth({
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      return { ok: true, status: 200 };
+    },
+  });
+  resetAuthRateLimitForTests();
+
+  const request = new Request("http://dashboard.test/api/auth/callback/credentials", {
+    headers: { "x-forwarded-for": "203.0.113.10" },
+  });
+
+  for (let i = 0; i < 20; i += 1) {
+    assert.equal(await credentialsConfig.authorize({ token: " " }, request), null);
+  }
+
+  const user = await credentialsConfig.authorize({ token: "secret-token" }, request);
+  assert.equal(user.id, "admin");
+  assert.equal(fetchCalls, 1);
 });
