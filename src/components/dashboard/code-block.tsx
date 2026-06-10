@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Editor, { loader } from "@monaco-editor/react";
 import { Check, Copy, ZoomIn, ZoomOut, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,28 +31,31 @@ export function CodeBlock({ code, language = "yaml", readOnly = true }: CodeBloc
     setTimeout(() => setCopied(false), 2000);
   }, [code]);
 
-  const editorOptions = {
-    readOnly,
-    minimap: { enabled: false },
-    lineNumbers: "on" as const,
-    scrollBeyondLastLine: false,
-    fontSize,
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-    wordWrap: "on" as const,
-    automaticLayout: true,
-    folding: true,
-    renderLineHighlight: "line" as const,
-    scrollbar: {
-      verticalScrollbarSize: 8,
-      horizontalScrollbarSize: 8,
-    },
-    overviewRulerLanes: 0,
-    hideCursorInOverviewRuler: true,
-    overviewRulerBorder: false,
-    contextmenu: true,
-    quickSuggestions: false,
-    suggestOnTriggerCharacters: false,
-  };
+  const editorOptions = useMemo(
+    () => ({
+      readOnly,
+      minimap: { enabled: false },
+      lineNumbers: "on" as const,
+      scrollBeyondLastLine: false,
+      fontSize,
+      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+      wordWrap: "on" as const,
+      automaticLayout: true,
+      folding: true,
+      renderLineHighlight: "line" as const,
+      scrollbar: {
+        verticalScrollbarSize: 8,
+        horizontalScrollbarSize: 8,
+      },
+      overviewRulerLanes: 0,
+      hideCursorInOverviewRuler: true,
+      overviewRulerBorder: false,
+      contextmenu: true,
+      quickSuggestions: false,
+      suggestOnTriggerCharacters: false,
+    }),
+    [readOnly, fontSize]
+  );
 
   const containerClass = isFullscreen 
     ? "fixed inset-0 z-50 bg-background/95 p-4" 
