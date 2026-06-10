@@ -1,23 +1,22 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import Editor, { loader } from "@monaco-editor/react";
+import dynamic from "next/dynamic";
 import { Check, Copy, ZoomIn, ZoomOut, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTheme } from "next-themes";
-import { MONACO_VS_PATH } from "@/lib/editor-config";
+
+const Editor = dynamic(() => import("./monaco-editor"), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full" />,
+});
 
 interface CodeBlockProps {
   code: string;
   language?: string;
   readOnly?: boolean;
 }
-
-loader.config({
-  paths: {
-    vs: MONACO_VS_PATH,
-  },
-});
 
 export function CodeBlock({ code, language = "yaml", readOnly = true }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
