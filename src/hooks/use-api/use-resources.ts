@@ -4,7 +4,11 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { controlplane, dataplane } from "@/lib/api";
 import { mapDiagnostics, mapNodePayload, type ManagedResource } from "@/lib/admin-models";
 
-const REFETCH_INTERVAL = 30000;
+const REFETCH_INTERVAL = (query: any) => {
+  if (typeof document !== "undefined" && document.hidden) return false;
+  if (query.state.error) return 60000;
+  return 30000 + Math.random() * 5000;
+};
 const STALE_TIME = 300000;
 const GC_TIME = 5 * 60 * 1000;
 
@@ -124,7 +128,7 @@ export function usePrometheusRangeQuery(query: string, hours = 1, enabled = true
       });
       return res;
     },
-    refetchInterval: 30_000,
+    refetchInterval: REFETCH_INTERVAL,
     staleTime: 15_000,
     retry: 1,
     retryDelay: 2000,

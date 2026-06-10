@@ -4,7 +4,11 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { controlplane, dataplane } from "@/lib/api";
 import { hasCompleteListenerHealthCounts, mapControlplaneSummary } from "@/lib/admin-models";
 
-const REFETCH_INTERVAL = 30000;
+const REFETCH_INTERVAL = (query: any) => {
+  if (typeof document !== "undefined" && document.hidden) return false;
+  if (query.state.error) return 60000;
+  return 30000 + Math.random() * 5000;
+};
 const STALE_TIME = 300000;
 const GC_TIME = 5 * 60 * 1000;
 
