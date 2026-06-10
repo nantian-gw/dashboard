@@ -702,7 +702,10 @@
     "manifest": {
       "empty": "尚未生成清单。尝试要求 AI 创建或修改 Gateway API 资源。",
       "valid": "有效 YAML",
-      "apply": "应用变更"
+      "apply": "应用变更",
+      "applying": "正在应用变更…",
+      "applySuccess": "配置已成功应用",
+      "applyFailed": "应用配置失败,请稍后重试"
     },
     "diffir": {
       "empty": "暂无变更或 IR 数据。要求 AI 生成配置变更。",

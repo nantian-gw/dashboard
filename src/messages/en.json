@@ -702,7 +702,10 @@
     "manifest": {
       "empty": "No manifests generated yet. Try asking the AI to create or modify a Gateway API resource.",
       "valid": "Valid YAML",
-      "apply": "Apply Changes"
+      "apply": "Apply Changes",
+      "applying": "Applying changes…",
+      "applySuccess": "Configuration applied successfully",
+      "applyFailed": "Failed to apply configuration, please try again"
     },
     "diffir": {
       "empty": "No changes or IR data available yet. Ask the AI to generate configuration changes.",

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, memo } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -88,7 +89,10 @@ const ManifestTab = memo(function ManifestTab({ manifests }: { manifests?: strin
         body: manifests,
       });
       if (!res.ok) throw new Error(`Apply failed: ${res.status}`);
-    } catch {}
+      toast.success(t("chatbot.manifest.applySuccess"));
+    } catch {
+      toast.error(t("chatbot.manifest.applyFailed"));
+    }
   };
 
   return (
