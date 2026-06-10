@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import type { AITraceSummary } from "@/hooks/use-api";
@@ -8,7 +9,7 @@ interface TraceRowProps {
   trace: AITraceSummary;
 }
 
-export function TraceRow({ trace }: TraceRowProps) {
+export const TraceRow = memo(function TraceRow({ trace }: TraceRowProps) {
   const truncatedId =
     trace.id.length > 12 ? trace.id.slice(0, 8) + "..." + trace.id.slice(-4) : trace.id;
 
@@ -35,4 +36,4 @@ export function TraceRow({ trace }: TraceRowProps) {
       </TableCell>
     </TableRow>
   );
-}
+});

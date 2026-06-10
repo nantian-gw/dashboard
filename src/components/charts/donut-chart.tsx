@@ -1,13 +1,16 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 interface DonutChartProps {
   data: Array<{ name: string; value: number; color: string }>;
 }
 
-export function DonutChart({ data }: DonutChartProps) {
-  const total = data.reduce((sum, d) => sum + d.value, 0);
+export const DonutChart = memo(function DonutChart({ data }: DonutChartProps) {
+  const total = useMemo(() => {
+    return data.reduce((sum, d) => sum + d.value, 0);
+  }, [data]);
 
   return (
     <div className="relative">
@@ -44,4 +47,4 @@ export function DonutChart({ data }: DonutChartProps) {
       </div>
     </div>
   );
-}
+});

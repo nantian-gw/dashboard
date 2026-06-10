@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo, useCallback } from "react";
 import {
   LineChart as RechartsLineChart,
   Line,
@@ -19,11 +20,21 @@ interface LatencyChartProps {
   data: LatencyDatum[];
 }
 
-export function LatencyChart({ data }: LatencyChartProps) {
-  const chartData = data.map((d) => ({
-    ...d,
-    time: new Date(d.timestamp).toISOString(),
-  }));
+export const LatencyChart = memo(function LatencyChart({ data }: LatencyChartProps) {
+  const chartData = useMemo(() => {
+    return data.map((d) => ({
+      ...d,
+      time: new Date(d.timestamp).toISOString(),
+    }));
+  }, [data]);
+
+  const formatXAxis = useCallback((v: any) => {
+    return new Date(v).toLocaleTimeString();
+  }, []);
+
+  const formatTooltipLabel = useCallback((label: any) => {
+    return new Date(label).toLocaleString();
+  }, []);
 
   return (
     <ResponsiveContainer width="100%" height={250}>
@@ -33,7 +44,7 @@ export function LatencyChart({ data }: LatencyChartProps) {
           dataKey="time"
           tick={{ fontSize: 11 }}
           className="text-muted-foreground"
-          tickFormatter={(v) => new Date(v).toLocaleTimeString()}
+          tickFormatter={formatXAxis}
         />
         <YAxis
           tick={{ fontSize: 11 }}
@@ -41,7 +52,7 @@ export function LatencyChart({ data }: LatencyChartProps) {
           unit=" ms"
         />
         <Tooltip
-          labelFormatter={(label) => new Date(label).toLocaleString()}
+          labelFormatter={formatTooltipLabel}
           contentStyle={{
             backgroundColor: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",
@@ -58,4 +69,4 @@ export function LatencyChart({ data }: LatencyChartProps) {
       </RechartsLineChart>
     </ResponsiveContainer>
   );
-}
+});

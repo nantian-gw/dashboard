@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -69,7 +69,7 @@ function uid(): string {
 
 // ─── Components ─────────────────────────────────────────────────────────────
 
-function ManifestTab({ manifests }: { manifests?: string }) {
+const ManifestTab = memo(function ManifestTab({ manifests }: { manifests?: string }) {
   const t = useTranslations();
   if (!manifests) {
     return (
@@ -108,9 +108,9 @@ function ManifestTab({ manifests }: { manifests?: string }) {
       </pre>
     </div>
   );
-}
+});
 
-function DiffIRTab({ diff, ir }: { diff?: string; ir?: string }) {
+const DiffIRTab = memo(function DiffIRTab({ diff, ir }: { diff?: string; ir?: string }) {
   const t = useTranslations();
 
   if (!diff && !ir) {
@@ -152,9 +152,9 @@ function DiffIRTab({ diff, ir }: { diff?: string; ir?: string }) {
       )}
     </div>
   );
-}
+});
 
-function ChatBubble({
+const ChatBubble = memo(function ChatBubble({
   msg,
 }: {
   msg: ChatMessage;
@@ -219,7 +219,7 @@ function ChatBubble({
       </div>
     </div>
   );
-}
+});
 
 // ─── Page ───────────────────────────────────────────────────────────────────
 

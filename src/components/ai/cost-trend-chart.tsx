@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo, useCallback } from "react";
 import {
   LineChart as RechartsLineChart,
   Line,
@@ -21,23 +22,47 @@ interface CostTrendChartProps {
   data: AICostTrend[];
 }
 
-export function CostTrendChart({ data }: CostTrendChartProps) {
-  const models = [...new Set(data.map((d) => d.model))];
+export const CostTrendChart = memo(function CostTrendChart({ data }: CostTrendChartProps) {
+  const { models, chartData } = useMemo(() => {
+    const modelsSet = new Set<string>();
+    const dateMap = new Map<string, Record<string, number>>();
 
-  const dateMap = new Map<string, Record<string, number>>();
-  data.forEach((d) => {
-    if (!dateMap.has(d.date)) {
-      dateMap.set(d.date, {});
-    }
-    dateMap.get(d.date)![d.model] = Number(d.cost.toFixed(6));
-  });
+    data.forEach((d) => {
+      modelsSet.add(d.model);
+      if (!dateMap.has(d.date)) {
+        dateMap.set(d.date, {});
+      }
+      dateMap.get(d.date)![d.model] = Number(d.cost.toFixed(6));
+    });
 
-  const chartData = Array.from(dateMap.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([date, costs]) => ({
-      date,
-      ...costs,
-    }));
+    const sortedChartData = Array.from(dateMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, costs]) => ({
+        date,
+        ...costs,
+      }));
+
+    return {
+      models: Array.from(modelsSet),
+      chartData: sortedChartData,
+    };
+  }, [data]);
+
+  const formatXAxis = useCallback((v: any) => {
+    return new Date(v).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }, []);
+
+  const formatYAxis = useCallback((v: any) => {
+    return `$${Number(v).toFixed(4)}`;
+  }, []);
+
+  const formatTooltipLabel = useCallback((label: any) => {
+    return new Date(label).toLocaleDateString();
+  }, []);
+
+  const formatTooltipValue = useCallback((value: any, name: any) => {
+    return [`$${Number(value).toFixed(6)}`, String(name)];
+  }, []);
 
   return (
     <ResponsiveContainer width="100%" height={320}>
@@ -47,16 +72,16 @@ export function CostTrendChart({ data }: CostTrendChartProps) {
           dataKey="date"
           tick={{ fontSize: 11 }}
           className="text-muted-foreground"
-          tickFormatter={(v) => new Date(v).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+          tickFormatter={formatXAxis}
         />
         <YAxis
           tick={{ fontSize: 11 }}
           className="text-muted-foreground"
-          tickFormatter={(v) => `$${v.toFixed(4)}`}
+          tickFormatter={formatYAxis}
         />
         <Tooltip
-          labelFormatter={(label) => new Date(label).toLocaleDateString()}
-          formatter={(value, name) => [`$${Number(value).toFixed(6)}`, String(name)]}
+          labelFormatter={formatTooltipLabel}
+          formatter={formatTooltipValue}
           contentStyle={{
             backgroundColor: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",
@@ -79,4 +104,4 @@ export function CostTrendChart({ data }: CostTrendChartProps) {
       </RechartsLineChart>
     </ResponsiveContainer>
   );
-}
+});

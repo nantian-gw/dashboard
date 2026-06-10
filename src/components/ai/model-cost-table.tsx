@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import {
@@ -16,12 +17,14 @@ interface ModelCostTableProps {
   data: AICostByModel[];
 }
 
-export function ModelCostTable({ data }: ModelCostTableProps) {
+export const ModelCostTable = memo(function ModelCostTable({ data }: ModelCostTableProps) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
 
-  const sorted = [...data].sort((a, b) => b.cost - a.cost);
+  const sorted = useMemo(() => {
+    return [...data].sort((a, b) => b.cost - a.cost);
+  }, [data]);
 
   return (
     <Table>
@@ -60,4 +63,4 @@ export function ModelCostTable({ data }: ModelCostTableProps) {
       </TableBody>
     </Table>
   );
-}
+});

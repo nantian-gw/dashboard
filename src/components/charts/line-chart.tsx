@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useCallback } from "react";
 import {
   LineChart as RechartsLineChart,
   Line,
@@ -19,13 +20,21 @@ interface LineChartComponentProps {
   yAxisWidth?: number;
 }
 
-export function LineChartComponent({
+export const LineChartComponent = memo(function LineChartComponent({
   data,
   dataKey = "value",
   stroke = "#3b82f6",
   name = dataKey,
   yAxisWidth = 40,
 }: LineChartComponentProps) {
+  const formatTick = useCallback((v: any) => {
+    return new Date(v).toLocaleTimeString();
+  }, []);
+
+  const formatLabel = useCallback((label: any) => {
+    return new Date(label).toLocaleString();
+  }, []);
+
   return (
     <ResponsiveContainer width="100%" height={250}>
       <RechartsLineChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -34,11 +43,11 @@ export function LineChartComponent({
           dataKey="time"
           tick={{ fontSize: 11 }}
           className="text-muted-foreground"
-          tickFormatter={(v) => new Date(v).toLocaleTimeString()}
+          tickFormatter={formatTick}
         />
         <YAxis tick={{ fontSize: 11 }} width={yAxisWidth} className="text-muted-foreground" />
         <Tooltip
-          labelFormatter={(label) => new Date(label).toLocaleString()}
+          labelFormatter={formatLabel}
           contentStyle={{
             backgroundColor: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",
@@ -57,4 +66,4 @@ export function LineChartComponent({
       </RechartsLineChart>
     </ResponsiveContainer>
   );
-}
+});

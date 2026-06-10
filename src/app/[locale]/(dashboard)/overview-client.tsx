@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -53,6 +54,23 @@ export default function OverviewClient() {
   const { data: cpSummary, isLoading: cpLoading } = useControlplaneSummary();
   const { data: dpSummary } = useDataplaneSummary();
 
+  const snapshot = (cpSummary as OverviewSnapshot | undefined) ?? {};
+
+  const listenerHealthData = useMemo(() => {
+    return [
+      { name: t("overview.status_ready"), value: snapshot.readyListenerCount ?? 0, color: "#22c55e" },
+      { name: t("overview.status_warning"), value: snapshot.warningListenerCount ?? 0, color: "#f59e0b" },
+      { name: t("overview.status_failed"), value: snapshot.failedListenerCount ?? 0, color: "#ef4444" },
+    ];
+  }, [snapshot.readyListenerCount, snapshot.warningListenerCount, snapshot.failedListenerCount, t]);
+
+  const nodeStatusData = useMemo(() => {
+    return [
+      { name: t("overview.status_ready"), value: snapshot.currentVersionReadyCount ?? 0, color: "#22c55e" },
+      { name: t("overview.status_drifted"), value: snapshot.driftedNodeCount ?? 0, color: "#f59e0b" },
+    ];
+  }, [snapshot.currentVersionReadyCount, snapshot.driftedNodeCount, t]);
+
   if (cpLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -73,7 +91,6 @@ export default function OverviewClient() {
   const traffic = (dpSummary as DataplaneSummary | undefined)?.trafficOverview?.summary ?? {};
   const trafficCounts = traffic.counts ?? {};
   const trafficStatus = traffic.status ?? {};
-  const snapshot = (cpSummary as OverviewSnapshot | undefined) ?? {};
 
   return (
     <>
@@ -113,13 +130,7 @@ export default function OverviewClient() {
             <CardTitle className="text-base">{t("overview.card_listener_health")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <DonutChart
-              data={[
-                { name: t("overview.status_ready"), value: snapshot.readyListenerCount ?? 0, color: "#22c55e" },
-                { name: t("overview.status_warning"), value: snapshot.warningListenerCount ?? 0, color: "#f59e0b" },
-                { name: t("overview.status_failed"), value: snapshot.failedListenerCount ?? 0, color: "#ef4444" },
-              ]}
-            />
+            <DonutChart data={listenerHealthData} />
           </CardContent>
         </Card>
         <Card>
@@ -127,12 +138,7 @@ export default function OverviewClient() {
             <CardTitle className="text-base">{t("overview.card_node_status")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <DonutChart
-              data={[
-                { name: t("overview.status_ready"), value: snapshot.currentVersionReadyCount ?? 0, color: "#22c55e" },
-                { name: t("overview.status_drifted"), value: snapshot.driftedNodeCount ?? 0, color: "#f59e0b" },
-              ]}
-            />
+            <DonutChart data={nodeStatusData} />
           </CardContent>
         </Card>
       </div>

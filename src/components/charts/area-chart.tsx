@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useCallback } from "react";
 import {
   AreaChart as RechartsAreaChart,
   Area,
@@ -19,7 +20,7 @@ interface AreaChartProps {
   fillOpacity?: number;
 }
 
-export function AreaChart({
+export const AreaChart = memo(function AreaChart({
   data,
   dataKey = "value",
   nameKey = "time",
@@ -27,6 +28,14 @@ export function AreaChart({
   fill = "#3b82f6",
   fillOpacity = 0.2,
 }: AreaChartProps) {
+  const formatTick = useCallback((v: any) => {
+    return new Date(v).toLocaleTimeString();
+  }, []);
+
+  const formatLabel = useCallback((label: any) => {
+    return new Date(label).toLocaleString();
+  }, []);
+
   return (
     <ResponsiveContainer width="100%" height={300}>
       <RechartsAreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
@@ -35,11 +44,11 @@ export function AreaChart({
           dataKey={nameKey}
           tick={{ fontSize: 11 }}
           className="text-muted-foreground"
-          tickFormatter={(v) => new Date(v).toLocaleTimeString()}
+          tickFormatter={formatTick}
         />
         <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" />
         <Tooltip
-          labelFormatter={(label) => new Date(label).toLocaleString()}
+          labelFormatter={formatLabel}
           contentStyle={{
             backgroundColor: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",
@@ -57,4 +66,4 @@ export function AreaChart({
       </RechartsAreaChart>
     </ResponsiveContainer>
   );
-}
+});

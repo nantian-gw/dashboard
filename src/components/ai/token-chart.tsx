@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo, useCallback } from "react";
 import {
   BarChart as RechartsBarChart,
   Bar,
@@ -16,11 +17,21 @@ interface TokenChartProps {
   data: AITokenUsage[];
 }
 
-export function TokenChart({ data }: TokenChartProps) {
-  const chartData = data.map((d) => ({
-    ...d,
-    time: new Date(d.timestamp).toISOString(),
-  }));
+export const TokenChart = memo(function TokenChart({ data }: TokenChartProps) {
+  const chartData = useMemo(() => {
+    return data.map((d) => ({
+      ...d,
+      time: new Date(d.timestamp).toISOString(),
+    }));
+  }, [data]);
+
+  const formatXAxis = useCallback((v: any) => {
+    return new Date(v).toLocaleDateString();
+  }, []);
+
+  const formatTooltipLabel = useCallback((label: any) => {
+    return new Date(label).toLocaleString();
+  }, []);
 
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -30,11 +41,11 @@ export function TokenChart({ data }: TokenChartProps) {
           dataKey="time"
           tick={{ fontSize: 11 }}
           className="text-muted-foreground"
-          tickFormatter={(v) => new Date(v).toLocaleDateString()}
+          tickFormatter={formatXAxis}
         />
         <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" />
         <Tooltip
-          labelFormatter={(label) => new Date(label).toLocaleString()}
+          labelFormatter={formatTooltipLabel}
           contentStyle={{
             backgroundColor: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",
@@ -52,4 +63,4 @@ export function TokenChart({ data }: TokenChartProps) {
       </RechartsBarChart>
     </ResponsiveContainer>
   );
-}
+});

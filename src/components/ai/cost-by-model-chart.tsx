@@ -1,5 +1,6 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import {
   BarChart as RechartsBarChart,
   Bar,
@@ -21,13 +22,15 @@ interface CostByModelChartProps {
   data: AICostByModel[];
 }
 
-export function CostByModelChart({ data }: CostByModelChartProps) {
-  const chartData = [...data]
-    .sort((a, b) => b.cost - a.cost)
-    .map((d) => ({
-      model: d.model,
-      cost: Number(d.cost.toFixed(6)),
-    }));
+export const CostByModelChart = memo(function CostByModelChart({ data }: CostByModelChartProps) {
+  const chartData = useMemo(() => {
+    return [...data]
+      .sort((a, b) => b.cost - a.cost)
+      .map((d) => ({
+        model: d.model,
+        cost: Number(d.cost.toFixed(6)),
+      }));
+  }, [data]);
 
   return (
     <ResponsiveContainer width="100%" height={320}>
@@ -66,4 +69,4 @@ export function CostByModelChart({ data }: CostByModelChartProps) {
       </RechartsBarChart>
     </ResponsiveContainer>
   );
-}
+});
