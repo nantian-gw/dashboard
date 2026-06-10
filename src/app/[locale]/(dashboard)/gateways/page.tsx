@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useGateways } from "@/hooks/use-api";
+import type { GatewayRow } from "@/lib/admin-models";
 import { useAtomValue } from "jotai";
 import { searchAtom } from "@/lib/store";
 import { StatusBadge } from "@/components/dashboard/status-badge";
@@ -115,7 +116,7 @@ function GatewaysContent({ search }: { search: string }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((gateway: any) => (
+              {filtered.map((gateway: GatewayRow) => (
                 <TableRow key={`${gateway.namespace}-${gateway.name}`}>
                   <TableCell>
                     <Link

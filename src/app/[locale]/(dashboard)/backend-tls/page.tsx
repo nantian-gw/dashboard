@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useBackendTls } from "@/hooks/use-api";
+import type { BackendTlsPolicyRow } from "@/lib/admin-models";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,7 +76,7 @@ function BackendTlsContent() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((policy: any, idx: number) => (
+            {rows.map((policy: BackendTlsPolicyRow, idx: number) => (
               <TableRow key={idx}>
                 <TableCell className="font-medium">
                   <Link href={`/backend-tls/${policy.namespace}/${policy.name}`} className="hover:underline text-primary">

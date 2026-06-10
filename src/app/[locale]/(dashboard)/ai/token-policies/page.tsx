@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useTokenPolicies } from "@/hooks/use-api";
+import type { TokenPolicyRow } from "@/lib/admin-models";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,7 +76,7 @@ function TokenPoliciesContent() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((policy: any, idx: number) => (
+            {rows.map((policy: TokenPolicyRow, idx: number) => (
               <TableRow key={idx}>
                 <TableCell className="font-medium">
                   <Link
@@ -88,7 +89,7 @@ function TokenPoliciesContent() {
                 <TableCell>{policy.namespace}</TableCell>
                 <TableCell className="text-sm">
                   {policy.targetRefs && policy.targetRefs.length > 0
-                    ? policy.targetRefs.map((ref: any) => `${ref.kind}/${ref.name}`).join(", ")
+                    ? policy.targetRefs.map((ref) => `${String(ref.kind)}/${String(ref.name)}`).join(", ")
                     : "—"}
                 </TableCell>
                 <TableCell className="text-sm">

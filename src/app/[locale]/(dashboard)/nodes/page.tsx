@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useNodes } from "@/hooks/use-api";
+import type { NodeRow } from "@/lib/admin-models";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -91,7 +92,7 @@ function NodesContent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map((node: any, idx: number) => (
+              {rows.map((node: NodeRow, idx: number) => (
                 <TableRow key={idx}>
                   <TableCell className="font-mono font-medium">{node.name}</TableCell>
                   <TableCell>
