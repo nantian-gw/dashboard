@@ -45,6 +45,11 @@
     "wasm_plugins": "Wasm 插件",
     "settings": "设置"
   },
+  "feature_unavailable": {
+    "title": "功能未启用",
+    "description": "当前 Nantian Gateway 实例未启用该功能。",
+    "back_to_overview": "返回概览"
+  },
   "topbar": {
     "search_placeholder": "搜索网关、路由、后端、节点...",
     "search_label": "全局仪表盘搜索",

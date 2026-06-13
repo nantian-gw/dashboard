@@ -143,6 +143,31 @@ test("dashboard locale layout installs the capability provider", () => {
   );
 });
 
+test("optional dashboard feature groups are gated by dedicated layouts", () => {
+  for (const routePath of [
+    "src/app/[locale]/(dashboard)/ai/overview/layout.tsx",
+    "src/app/[locale]/(dashboard)/ai/services/layout.tsx",
+    "src/app/[locale]/(dashboard)/ai/token-policies/layout.tsx",
+    "src/app/[locale]/(dashboard)/ai/cost/layout.tsx",
+    "src/app/[locale]/(dashboard)/ai/traces/layout.tsx",
+    "src/app/[locale]/(dashboard)/ai/usage/layout.tsx",
+    "src/app/[locale]/(dashboard)/wasm/plugins/layout.tsx",
+    "src/app/[locale]/(dashboard)/chatbot/layout.tsx",
+  ]) {
+    assert.equal(
+      existsSync(resolve(root, routePath)),
+      true,
+      `${routePath} must exist to gate disabled feature routes without 404s`
+    );
+  }
+});
+
+test("feature gate renders a controlled unavailable state", () => {
+  const source = readSource("src/components/dashboard/capability-gate.tsx");
+  assert.match(source, /FeatureUnavailable/, "capability gate must render the shared unavailable view");
+  assert.match(source, /useDashboardCapabilitiesState/, "capability gate must read runtime capabilities");
+});
+
 test("dashboard hooks use the published admin API surface", () => {
   const source = readSource("src/hooks/use-api.ts");
   for (const staleEndpoint of [
