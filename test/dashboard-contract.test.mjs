@@ -118,8 +118,19 @@ test("sidebar navigation is plugin-driven instead of hard-coded optional modules
 });
 
 test("dashboard locale layout installs the capability provider", () => {
-  const source = readSource("src/app/[locale]/(dashboard)/locale-layout-client.tsx");
-  assert.match(source, /DashboardCapabilitiesProvider/, "layout must provide dashboard capabilities");
+  const layoutSource = readSource("src/app/[locale]/(dashboard)/layout.tsx");
+  assert.match(
+    layoutSource,
+    /DashboardCapabilitiesProvider/,
+    "dashboard layout must provide dashboard capabilities"
+  );
+
+  const sharedLocaleClientSource = readSource("src/app/[locale]/(dashboard)/locale-layout-client.tsx");
+  assert.doesNotMatch(
+    sharedLocaleClientSource,
+    /DashboardCapabilitiesProvider/,
+    "shared locale client must not fetch dashboard capabilities for non-dashboard routes"
+  );
 });
 
 test("dashboard hooks use the published admin API surface", () => {

@@ -4,7 +4,6 @@ import { NextIntlClientProvider } from "next-intl";
 import { SessionProvider } from "next-auth/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Provider as JotaiProvider } from "jotai";
-import { DashboardCapabilitiesProvider } from "@/components/dashboard/dashboard-capabilities-provider";
 import { makeQueryClient } from "@/lib/query-client";
 import { DEFAULT_TIME_ZONE } from "@/i18n/time-zone";
 
@@ -38,7 +37,7 @@ export function LocaleLayoutClient({ children, locale, messages }: LocaleLayoutC
             messages={messages}
             timeZone={DEFAULT_TIME_ZONE}
           >
-            <DashboardCapabilitiesProvider>{children}</DashboardCapabilitiesProvider>
+            {children}
           </NextIntlClientProvider>
         </JotaiProvider>
       </QueryClientProvider>
