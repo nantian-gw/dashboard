@@ -3,6 +3,7 @@
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { controlplane, dataplane } from "@/lib/api";
 import { hasCompleteListenerHealthCounts, mapControlplaneSummary } from "@/lib/admin-models";
+import type { DashboardCapabilities } from "@/lib/dashboard-capabilities";
 
 const REFETCH_INTERVAL = (query: any) => {
   if (typeof document !== "undefined" && document.hidden) return false;
@@ -49,4 +50,14 @@ export function useDataplaneSummary() {
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
   }) as UseQueryResult<Record<string, unknown>>;
+}
+
+export function useDashboardCapabilities() {
+  return useQuery({
+    queryKey: ["dashboard", "capabilities"],
+    queryFn: () =>
+      controlplane.get<DashboardCapabilities>("/v1/dashboard/capabilities"),
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  }) as UseQueryResult<DashboardCapabilities>;
 }

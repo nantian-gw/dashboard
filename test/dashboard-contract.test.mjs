@@ -91,6 +91,37 @@ test("legacy controlplane dashboard endpoints are served by compatibility handle
   );
 });
 
+test("dashboard capability hook uses the published controlplane capability endpoint", () => {
+  const hookSource = readSource("src/hooks/use-api/use-summary.ts");
+  assert.match(
+    hookSource,
+    /dashboard\/capabilities/,
+    "dashboard capability hook must use /v1/dashboard/capabilities"
+  );
+  const barrelSource = readSource("src/hooks/use-api.ts");
+  assert.match(
+    barrelSource,
+    /useDashboardCapabilities/,
+    "dashboard capability hook must be exported from the public hook barrel"
+  );
+});
+
+test("sidebar navigation is plugin-driven instead of hard-coded optional modules", () => {
+  const source = readSource("src/components/dashboard/sidebar-nav.tsx");
+  assert.doesNotMatch(
+    source,
+    /const navItems = \[/,
+    "sidebar nav must stop hard-coding optional AI and Wasm entries"
+  );
+  assert.match(source, /getEnabledNavItems/, "sidebar nav must read plugin nav registrations");
+  assert.match(source, /useDashboardCapabilities/, "sidebar nav must filter by runtime capabilities");
+});
+
+test("dashboard locale layout installs the capability provider", () => {
+  const source = readSource("src/app/[locale]/(dashboard)/locale-layout-client.tsx");
+  assert.match(source, /DashboardCapabilitiesProvider/, "layout must provide dashboard capabilities");
+});
+
 test("dashboard hooks use the published admin API surface", () => {
   const source = readSource("src/hooks/use-api.ts");
   for (const staleEndpoint of [

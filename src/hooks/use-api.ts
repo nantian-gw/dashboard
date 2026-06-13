@@ -1,6 +1,11 @@
 "use client";
 
-export { useControlplaneSummary, useNamespaces, useDataplaneSummary } from "./use-api/use-summary";
+export {
+  useControlplaneSummary,
+  useNamespaces,
+  useDataplaneSummary,
+  useDashboardCapabilities,
+} from "./use-api/use-summary";
 export { useGateways, useGateway, useRoutes, useRoute, useBackendTls, useTokenPolicies } from "./use-api/use-gateways";
 export {
   useNodes,
