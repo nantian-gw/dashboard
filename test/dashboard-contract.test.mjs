@@ -166,17 +166,86 @@ test("legacy controlplane dashboard endpoints are served by compatibility handle
   );
 });
 
-test("dashboard hooks use the published admin API surface", () => {
-  const source = readSource("src/hooks/use-api.ts");
-  for (const staleEndpoint of [
-    "/v1/gateways",
-    "/v1/backend-tls",
-    "/v1/diagnostics",
+test("dashboard capability hook uses the published controlplane capability endpoint", () => {
+  const hookSource = readSource("src/hooks/use-api/use-summary.ts");
+  assert.match(
+    hookSource,
+    /dashboard\/capabilities/,
+    "dashboard capability hook must use /v1/dashboard/capabilities"
+  );
+  const barrelSource = readSource("src/hooks/use-api.ts");
+  assert.match(
+    barrelSource,
+    /useDashboardCapabilities/,
+    "dashboard capability hook must be exported from the public hook barrel"
+  );
+});
+
+test("sidebar navigation is plugin-driven instead of hard-coded optional modules", () => {
+  const source = readSource("src/components/dashboard/sidebar-nav.tsx");
+  assert.doesNotMatch(
+    source,
+    /const navItems = \[/,
+    "sidebar nav must stop hard-coding optional AI and Wasm entries"
+  );
+  assert.match(source, /getEnabledNavItems/, "sidebar nav must read plugin nav registrations");
+  assert.match(source, /useDashboardCapabilities/, "sidebar nav must filter by runtime capabilities");
+});
+
+test("dashboard locale layout installs the capability provider", () => {
+  const layoutSource = readSource("src/app/[locale]/(dashboard)/locale-layout-client.tsx");
+  assert.match(
+    layoutSource,
+    /DashboardCapabilitiesProvider/,
+    "dashboard locale layout must provide dashboard capabilities"
+  );
+
+  const providerSource = readSource("src/components/dashboard/dashboard-capabilities-provider.tsx");
+  assert.match(
+    providerSource,
+    /usePathname/,
+    "capability provider must scope capability fetching to dashboard routes"
+  );
+  assert.match(
+    providerSource,
+    /enabled:\s*enabled|useDashboardCapabilities\(isDashboardRoute\)/,
+    "capability provider must avoid fetching capabilities on non-dashboard routes"
+  );
+  assert.match(
+    providerSource,
+    /isDashboardRoute\s*\?\s*query\.data\s*\?\?\s*DEFAULT_DASHBOARD_CAPABILITIES\s*:\s*DEFAULT_DASHBOARD_CAPABILITIES/,
+    "capability provider must fall back to default capabilities outside dashboard routes even if query cache is warm"
+  );
+});
+
+test("optional dashboard feature groups are gated by dedicated layouts", () => {
+  for (const routePath of [
+    "src/app/[locale]/(dashboard)/ai/overview/layout.tsx",
+    "src/app/[locale]/(dashboard)/ai/services/layout.tsx",
+    "src/app/[locale]/(dashboard)/ai/token-policies/layout.tsx",
+    "src/app/[locale]/(dashboard)/ai/cost/layout.tsx",
+    "src/app/[locale]/(dashboard)/ai/traces/layout.tsx",
+    "src/app/[locale]/(dashboard)/ai/usage/layout.tsx",
+    "src/app/[locale]/(dashboard)/wasm/plugins/layout.tsx",
+    "src/app/[locale]/(dashboard)/chatbot/layout.tsx",
   ]) {
-    assert.doesNotMatch(
-      source,
-      new RegExp(JSON.stringify(staleEndpoint).slice(1, -1).replaceAll("/", "\\/")),
-      `${staleEndpoint} is not a published admin endpoint`
+    assert.equal(
+      existsSync(resolve(root, routePath)),
+      true,
+      `${routePath} must exist to gate disabled feature routes without 404s`
     );
   }
+});
+
+test("feature gate renders a controlled unavailable state", () => {
+  const source = readSource("src/components/dashboard/capability-gate.tsx");
+  assert.match(source, /FeatureUnavailable/, "capability gate must render the shared unavailable view");
+  assert.match(source, /useDashboardCapabilitiesState/, "capability gate must read runtime capabilities");
+  assert.match(source, /useDashboardCapabilities/, "capability gate must inspect capability query failures");
+  assert.match(source, /404/, "capability gate must only treat missing capability endpoint as unavailable");
+  assert.match(
+    source,
+    /capabilityQuery\.error\s*&&\s*!capabilityQuery\.data/,
+    "capability gate must only bypass unavailable handling when there is no usable cached capability state"
+  );
 });

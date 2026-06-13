@@ -45,6 +45,11 @@
     "wasm_plugins": "Wasm Plugins",
     "settings": "Settings"
   },
+  "feature_unavailable": {
+    "title": "Feature unavailable",
+    "description": "This feature is not enabled for this Nantian Gateway instance.",
+    "back_to_overview": "Back to overview"
+  },
   "topbar": {
     "search_placeholder": "Search gateway, route, backend, node...",
     "search_label": "Global dashboard search",

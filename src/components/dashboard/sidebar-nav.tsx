@@ -4,52 +4,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { useDashboardCapabilitiesState } from "@/components/dashboard/dashboard-capabilities-provider";
+import { dashboardPlugins } from "@/plugins/registry";
+import { getEnabledNavItems } from "@/plugins/types";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  LayoutDashboard,
-  Globe,
-  Route,
-  ShieldCheck,
-  ShieldAlert,
-  Server,
-  Activity,
-  BarChart3,
-  Menu,
-  Bot,
-  MessageSquareCode,
-  DollarSign,
-  Settings,
-  Puzzle,
-  Cpu,
-  TicketCheck,
-} from "lucide-react";
-
-const navItems = [
-  { href: "/overview", labelKey: "nav.overview", icon: LayoutDashboard },
-  { href: "/gateways", labelKey: "nav.gateways", icon: Globe },
-  { href: "/routes", labelKey: "nav.routes", icon: Route },
-  { href: "/reference-grants", labelKey: "nav.reference_grants", icon: ShieldAlert },
-  { href: "/backend-tls", labelKey: "nav.backend_tls", icon: ShieldCheck },
-  { href: "/nodes", labelKey: "nav.nodes", icon: Server },
-  { href: "/diagnostics", labelKey: "nav.diagnostics", icon: Activity },
-  { href: "/observability", labelKey: "nav.observability", icon: BarChart3 },
-  { href: "/ai/overview", labelKey: "nav.ai_gateway", icon: Bot },
-  { href: "/ai/services", labelKey: "nav.ai_services", icon: Cpu },
-  { href: "/ai/token-policies", labelKey: "nav.token_policies", icon: TicketCheck },
-  { href: "/ai/cost", labelKey: "nav.cost", icon: DollarSign },
-  { href: "/wasm/plugins", labelKey: "nav.wasm_plugins", icon: Puzzle },
-  { href: "/chatbot", labelKey: "nav.chatbot", icon: MessageSquareCode },
-  { href: "/settings", labelKey: "nav.settings", icon: Settings },
-];
+import { Menu } from "lucide-react";
 
 function NavContent() {
   const t = useTranslations();
   const pathname = usePathname();
+  const { capabilities } = useDashboardCapabilitiesState();
+  const navItems = getEnabledNavItems(dashboardPlugins, capabilities);
 
   return (
     <nav className="flex flex-col gap-1 p-4">
