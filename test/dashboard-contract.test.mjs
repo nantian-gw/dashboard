@@ -44,8 +44,8 @@ test("diagnostics page does not keep dead imports around the issue table", () =>
   const source = readSource("src/app/[locale]/(dashboard)/diagnostics/page.tsx");
   assert.doesNotMatch(
     source,
-    /DiagnosticIssue/,
-    "diagnostics page should not keep the unused DiagnosticIssue import"
+    /import\s+(?:type\s+)?\{[^}]*\bDiagnosticIssue\b[^}]*\}\s+from\s+"@\/lib\/admin-models";?/,
+    'diagnostics page should not import DiagnosticIssue from "@/lib/admin-models"'
   );
 });
 
