@@ -118,18 +118,23 @@ test("sidebar navigation is plugin-driven instead of hard-coded optional modules
 });
 
 test("dashboard locale layout installs the capability provider", () => {
-  const layoutSource = readSource("src/app/[locale]/(dashboard)/layout.tsx");
+  const layoutSource = readSource("src/app/[locale]/(dashboard)/locale-layout-client.tsx");
   assert.match(
     layoutSource,
     /DashboardCapabilitiesProvider/,
-    "dashboard layout must provide dashboard capabilities"
+    "dashboard locale layout must provide dashboard capabilities"
   );
 
-  const sharedLocaleClientSource = readSource("src/app/[locale]/(dashboard)/locale-layout-client.tsx");
-  assert.doesNotMatch(
-    sharedLocaleClientSource,
-    /DashboardCapabilitiesProvider/,
-    "shared locale client must not fetch dashboard capabilities for non-dashboard routes"
+  const providerSource = readSource("src/components/dashboard/dashboard-capabilities-provider.tsx");
+  assert.match(
+    providerSource,
+    /usePathname/,
+    "capability provider must scope capability fetching to dashboard routes"
+  );
+  assert.match(
+    providerSource,
+    /enabled:\s*enabled|useDashboardCapabilities\(isDashboardRoute\)/,
+    "capability provider must avoid fetching capabilities on non-dashboard routes"
   );
 });
 

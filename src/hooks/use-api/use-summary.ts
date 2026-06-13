@@ -52,11 +52,12 @@ export function useDataplaneSummary() {
   }) as UseQueryResult<Record<string, unknown>>;
 }
 
-export function useDashboardCapabilities() {
+export function useDashboardCapabilities(enabled = true) {
   return useQuery({
     queryKey: ["dashboard", "capabilities"],
     queryFn: () =>
       controlplane.get<DashboardCapabilities>("/v1/dashboard/capabilities"),
+    enabled,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
   }) as UseQueryResult<DashboardCapabilities>;

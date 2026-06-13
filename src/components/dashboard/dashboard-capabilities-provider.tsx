@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import { useDashboardCapabilities } from "@/hooks/use-api";
 import {
   DEFAULT_DASHBOARD_CAPABILITIES,
@@ -15,18 +16,43 @@ type DashboardCapabilitiesContextValue = {
 const DashboardCapabilitiesContext =
   createContext<DashboardCapabilitiesContextValue | null>(null);
 
+const DASHBOARD_ROUTE_SEGMENTS = new Set([
+  "ai",
+  "backend-tls",
+  "chatbot",
+  "diagnostics",
+  "gateways",
+  "nodes",
+  "observability",
+  "overview",
+  "reference-grants",
+  "routes",
+  "settings",
+  "wasm",
+]);
+
+function isDashboardPathname(pathname: string) {
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length === 1) {
+    return true;
+  }
+  return DASHBOARD_ROUTE_SEGMENTS.has(segments[1] ?? "");
+}
+
 export function DashboardCapabilitiesProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const query = useDashboardCapabilities();
+  const pathname = usePathname();
+  const isDashboardRoute = isDashboardPathname(pathname);
+  const query = useDashboardCapabilities(isDashboardRoute);
   const value = useMemo(
     () => ({
       capabilities: query.data ?? DEFAULT_DASHBOARD_CAPABILITIES,
-      isLoading: query.isLoading,
+      isLoading: isDashboardRoute && query.isLoading,
     }),
-    [query.data, query.isLoading],
+    [isDashboardRoute, query.data, query.isLoading],
   );
 
   return (
