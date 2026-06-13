@@ -83,6 +83,35 @@ test("dashboard API proxy strips response headers made invalid by body rewriting
   }
 });
 
+test("AGENTS documents the current auth and routing behavior", () => {
+  const source = readSource("AGENTS.md");
+  assert.match(
+    source,
+    /src\/proxy\.ts/,
+    "AGENTS must point contributors at the active proxy entry point"
+  );
+  assert.match(
+    source,
+    /Root `\/` redirects to `\/\{defaultLocale\}\/login`\./,
+    "AGENTS must describe the root redirect users actually hit"
+  );
+  assert.match(
+    source,
+    /Network errors during verification deny login after the timeout\./,
+    "AGENTS must describe the current auth verification failure mode"
+  );
+  assert.doesNotMatch(
+    source,
+    /Fail-open/,
+    "AGENTS must not describe auth verification as fail-open anymore"
+  );
+  assert.doesNotMatch(
+    source,
+    /Login page at `\/login` is \*\*outside\*\* the locale layout/,
+    "AGENTS must not describe the login page as non-localized"
+  );
+});
+
 test("legacy dataplane nodes requests are routed to the published nodes endpoint", () => {
   const source = readSource("src/app/api/dataplane/[[...slug]]/route.ts");
   assert.match(

@@ -23,7 +23,7 @@ Browser → Next.js API routes (BFF) → Controlplane (:18081) / Dataplane (:190
 ```
 
 - **`src/lib/api.ts`**: Typed fetch wrappers (`controlplane.get/post/put/delete`, `dataplane.get`). All client data fetching goes through these.
-- **`src/lib/auth.ts`**: NextAuth v5 with credentials provider. Token verified against controlplane `/v1/summary`. **Fail-open**: network errors during verification allow login.
+- **`src/lib/auth.ts`**: NextAuth v5 with credentials provider. Token verified against controlplane `/v1/summary`. Network errors during verification deny login after the timeout.
 - **`src/lib/admin-models.ts`**: Data transformation layer — maps raw API payloads to UI row types (`mapGatewayResource`, `mapRoutesPayload`, `mapControlplaneSummary`, `mapNodePayload`, `mapDiagnostics`).
 - **`src/lib/admin-urls.ts`**: Backend URLs and timeout config. Defaults: `CONTROLPLANE_ADMIN_URL=http://localhost:18081`, `DATAPLANE_ADMIN_URL=http://localhost:19080`.
 - **`src/hooks/use-api/`**: React Query hooks (`useGateways`, `useNodes`, `useDiagnostics`, etc.). All hooks re-exported from `src/hooks/use-api.ts`.
@@ -44,10 +44,10 @@ New hooks should use the canonical `/v1/resources?kind=X` endpoints, not the leg
 ## Routing & i18n
 
 - Locales: `en`, `zh` (default: `en`). Locale prefix always present (`/en/...`, `/zh/...`).
-- Root `/` redirects to `/{defaultLocale}`.
-- Login page at `/login` is **outside** the locale layout — hardcoded English messages.
+- Root `/` redirects to `/{defaultLocale}/login`.
+- Login page lives at `/{locale}/login` and uses locale-specific messages via the locale-specific layout.
 - `next-intl` timezone is fixed to `UTC` everywhere (server + client). This is enforced by `validate-app-router.mjs`.
-- Middleware (`src/proxy.ts`) excludes `/api`, `/healthz`, `/_next`, `/_vercel`, and static files from i18n routing.
+- Proxy (`src/proxy.ts`) excludes `/api`, `/healthz`, `/_next`, `/_vercel`, and static files from i18n routing.
 
 ## State Management
 
