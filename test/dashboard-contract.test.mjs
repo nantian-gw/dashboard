@@ -87,8 +87,8 @@ test("AGENTS documents the current auth and routing behavior", () => {
   const source = readSource("AGENTS.md");
   assert.match(
     source,
-    /src\/proxy\.ts/,
-    "AGENTS must point contributors at the active proxy entry point"
+    /Proxy \(`src\/proxy\.ts`\) excludes `\/api`, `\/healthz`, `\/_next`, `\/_vercel`, and static files from i18n routing\./,
+    "AGENTS must point contributors at the active proxy entry point with the maintained routing guidance"
   );
   assert.match(
     source,
@@ -97,13 +97,28 @@ test("AGENTS documents the current auth and routing behavior", () => {
   );
   assert.match(
     source,
-    /Network errors during verification deny login after the timeout\./,
+    /Network errors or timeouts during verification deny login\./,
     "AGENTS must describe the current auth verification failure mode"
+  );
+  assert.match(
+    source,
+    /Login page lives at `\/\{locale\}\/login` and uses locale-specific messages via the locale-specific layout\./,
+    "AGENTS must describe the localized login route contributors should maintain"
   );
   assert.doesNotMatch(
     source,
     /Fail-open/,
     "AGENTS must not describe auth verification as fail-open anymore"
+  );
+  assert.doesNotMatch(
+    source,
+    /src\/middleware\.ts/,
+    "AGENTS must not refer contributors to the removed middleware entry point"
+  );
+  assert.doesNotMatch(
+    source,
+    /Middleware \(`src\/proxy\.ts`\)/,
+    "AGENTS must use the current proxy wording rather than stale middleware terminology"
   );
   assert.doesNotMatch(
     source,
