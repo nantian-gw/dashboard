@@ -40,6 +40,15 @@ test("localized overview deep link is routable", () => {
   );
 });
 
+test("diagnostics page does not keep dead imports around the issue table", () => {
+  const source = readSource("src/app/[locale]/(dashboard)/diagnostics/page.tsx");
+  assert.doesNotMatch(
+    source,
+    /DiagnosticIssue/,
+    "diagnostics page should not keep the unused DiagnosticIssue import"
+  );
+});
+
 test("dashboard hooks use the published admin API surface", () => {
   const source = readSource("src/hooks/use-api.ts");
   for (const staleEndpoint of [

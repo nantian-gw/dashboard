@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl";
 import { useDiagnostics } from "@/hooks/use-api";
-import type { DiagnosticIssue } from "@/lib/admin-models";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
