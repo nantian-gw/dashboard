@@ -19,16 +19,16 @@ test("root app entrypoint redirects straight to the localized login page", () =>
   );
 });
 
-test("dashboard keeps a single locale-aware provider entry point", () => {
+test("legacy root provider module was removed", () => {
   assert.equal(
     existsSync(resolve(root, "src/app/providers.tsx")),
     false,
-    "provider composition should live only under the locale dashboard layout"
+    "the legacy duplicate root provider module should be removed"
   );
   assert.equal(
     existsSync(resolve(root, "src/app/[locale]/(dashboard)/locale-layout-client.tsx")),
     true,
-    "dashboard locale layout client must remain the shared provider entry point"
+    "the dashboard locale provider module should remain after removing the legacy root provider module"
   );
 });
 
