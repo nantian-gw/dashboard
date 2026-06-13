@@ -10,11 +10,42 @@ function readSource(relativePath) {
   return readFileSync(resolve(root, relativePath), "utf8");
 }
 
+test("root app entrypoint redirects straight to the localized login page", () => {
+  const source = readSource("src/app/page.tsx");
+  assert.match(
+    source,
+    /redirect\(`\/\$\{routing\.defaultLocale\}\/login`\)/,
+    "src/app/page.tsx must redirect directly to the default-locale login page"
+  );
+});
+
+test("legacy root provider module was removed", () => {
+  assert.equal(
+    existsSync(resolve(root, "src/app/providers.tsx")),
+    false,
+    "the legacy duplicate root provider module should be removed"
+  );
+  assert.equal(
+    existsSync(resolve(root, "src/app/[locale]/(dashboard)/locale-layout-client.tsx")),
+    true,
+    "the dashboard locale provider module should remain after removing the legacy root provider module"
+  );
+});
+
 test("localized overview deep link is routable", () => {
   assert.equal(
     existsSync(resolve(root, "src/app/[locale]/(dashboard)/overview/page.tsx")),
     true,
     "/:locale/overview must resolve because dashboard navigation and login link to it"
+  );
+});
+
+test("diagnostics page does not keep dead imports around the issue table", () => {
+  const source = readSource("src/app/[locale]/(dashboard)/diagnostics/page.tsx");
+  assert.doesNotMatch(
+    source,
+    /import\s+(?:type\s+)?\{[^}]*\bDiagnosticIssue\b[^}]*\}\s+from\s+"@\/lib\/admin-models";?/,
+    'diagnostics page should not import DiagnosticIssue from "@/lib/admin-models"'
   );
 });
 
@@ -50,6 +81,50 @@ test("dashboard API proxy strips response headers made invalid by body rewriting
       `${routePath} must not forward upstream response headers blindly`
     );
   }
+});
+
+test("AGENTS documents the current auth and routing behavior", () => {
+  const source = readSource("AGENTS.md");
+  assert.match(
+    source,
+    /Proxy \(`src\/proxy\.ts`\) excludes `\/api`, `\/healthz`, `\/_next`, `\/_vercel`, and static files from i18n routing\./,
+    "AGENTS must point contributors at the active proxy entry point with the maintained routing guidance"
+  );
+  assert.match(
+    source,
+    /Root `\/` redirects to `\/\{defaultLocale\}\/login`\./,
+    "AGENTS must describe the root redirect users actually hit"
+  );
+  assert.match(
+    source,
+    /Network errors or timeouts during verification deny login\./,
+    "AGENTS must describe the current auth verification failure mode"
+  );
+  assert.match(
+    source,
+    /Login page lives at `\/\{locale\}\/login` and uses locale-specific messages via the locale-specific layout\./,
+    "AGENTS must describe the localized login route contributors should maintain"
+  );
+  assert.doesNotMatch(
+    source,
+    /Fail-open/,
+    "AGENTS must not describe auth verification as fail-open anymore"
+  );
+  assert.doesNotMatch(
+    source,
+    /src\/middleware\.ts/,
+    "AGENTS must not refer contributors to the removed middleware entry point"
+  );
+  assert.doesNotMatch(
+    source,
+    /Middleware \(`src\/proxy\.ts`\)/,
+    "AGENTS must use the current proxy wording rather than stale middleware terminology"
+  );
+  assert.doesNotMatch(
+    source,
+    /Login page at `\/login` is \*\*outside\*\* the locale layout/,
+    "AGENTS must not describe the login page as non-localized"
+  );
 });
 
 test("legacy dataplane nodes requests are routed to the published nodes endpoint", () => {

@@ -47,8 +47,8 @@ function loadNextConfig(env = {}) {
   return cjsModule.exports.default ?? cjsModule.exports;
 }
 
-function loadMiddleware({ parentEnv = {}, env = {}, authImpl = async () => null } = {}) {
-  const source = readFileSync(resolve(root, "src/middleware.ts"), "utf8");
+function loadProxy({ parentEnv = {}, env = {}, authImpl = async () => null } = {}) {
+  const source = readFileSync(resolve(root, "src/proxy.ts"), "utf8");
   const { outputText } = ts.transpileModule(source, {
     compilerOptions: {
       module: ts.ModuleKind.CommonJS,
@@ -111,7 +111,7 @@ function loadMiddleware({ parentEnv = {}, env = {}, authImpl = async () => null 
   });
 
   return {
-    middleware: cjsModule.exports.default,
+    proxy: cjsModule.exports.default,
     createRequest(pathname) {
       const url = new URL(pathname, "http://dashboard.test");
       return {
@@ -172,26 +172,34 @@ test("dashboard config does not bake HSTS into build-time headers", async () => 
   assert.equal(hstsHeaders.has("Strict-Transport-Security"), false);
 });
 
-test("dashboard middleware runtime HSTS defaults off even when parent env is set", async () => {
-  const { middleware, createRequest } = loadMiddleware({
+test("dashboard proxy runtime HSTS defaults off even when parent env is set", async () => {
+  const { proxy, createRequest } = loadProxy({
     parentEnv: { DASHBOARD_ENABLE_HSTS: "true" },
     env: {},
   });
 
-  const response = await middleware(createRequest("/en/login"));
+  const response = await proxy(createRequest("/en/login"));
   assert.equal(response.headers.get("Strict-Transport-Security"), null);
 });
 
-test("dashboard middleware runtime HSTS is opt-in", async () => {
-  const { middleware, createRequest } = loadMiddleware({
+test("dashboard proxy runtime HSTS is opt-in", async () => {
+  const { proxy, createRequest } = loadProxy({
     env: { DASHBOARD_ENABLE_HSTS: "true" },
   });
 
-  const response = await middleware(createRequest("/en/login"));
+  const response = await proxy(createRequest("/en/login"));
   assert.equal(
     response.headers.get("Strict-Transport-Security"),
     "max-age=31536000; includeSubDomains"
   );
+});
+
+test("dashboard proxy redirects bare root requests to the localized login page", async () => {
+  const { proxy, createRequest } = loadProxy();
+
+  const response = await proxy(createRequest("/"));
+  assert.equal(response.type, "redirect");
+  assert.equal(response.url, "http://dashboard.test/en/login");
 });
 
 test("dashboard keeps existing Next config behavior", () => {
