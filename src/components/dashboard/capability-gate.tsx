@@ -23,10 +23,10 @@ export function CapabilityGate({
   if (isLoading || capabilityQuery.isLoading) {
     return <PageSkeleton />;
   }
-  if (isMissingCapabilityEndpoint) {
+  if (isMissingCapabilityEndpoint && !capabilityQuery.data) {
     return <FeatureUnavailable />;
   }
-  if (capabilityQuery.error) {
+  if (capabilityQuery.error && !capabilityQuery.data) {
     return <>{children}</>;
   }
   if (!capabilities[capability]) {

@@ -168,4 +168,9 @@ test("feature gate renders a controlled unavailable state", () => {
   assert.match(source, /useDashboardCapabilitiesState/, "capability gate must read runtime capabilities");
   assert.match(source, /useDashboardCapabilities/, "capability gate must inspect capability query failures");
   assert.match(source, /404/, "capability gate must only treat missing capability endpoint as unavailable");
+  assert.match(
+    source,
+    /capabilityQuery\.error\s*&&\s*!capabilityQuery\.data/,
+    "capability gate must only bypass unavailable handling when there is no usable cached capability state"
+  );
 });
