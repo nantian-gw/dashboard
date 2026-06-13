@@ -31,8 +31,8 @@ if (!/\btimeZone\s*:/.test(readSource(requestConfigPath))) {
 }
 
 for (const providerPath of [
-  "src/app/providers.tsx",
   "src/app/[locale]/(dashboard)/locale-layout-client.tsx",
+  "src/app/[locale]/login/layout.tsx",
 ]) {
   if (!/\btimeZone\s*=/.test(readSource(providerPath))) {
     failures.push(

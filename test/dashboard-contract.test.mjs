@@ -10,6 +10,28 @@ function readSource(relativePath) {
   return readFileSync(resolve(root, relativePath), "utf8");
 }
 
+test("root app entrypoint redirects straight to the localized login page", () => {
+  const source = readSource("src/app/page.tsx");
+  assert.match(
+    source,
+    /redirect\(`\/\$\{routing\.defaultLocale\}\/login`\)/,
+    "src/app/page.tsx must redirect directly to the default-locale login page"
+  );
+});
+
+test("dashboard keeps a single locale-aware provider entry point", () => {
+  assert.equal(
+    existsSync(resolve(root, "src/app/providers.tsx")),
+    false,
+    "provider composition should live only under the locale dashboard layout"
+  );
+  assert.equal(
+    existsSync(resolve(root, "src/app/[locale]/(dashboard)/locale-layout-client.tsx")),
+    true,
+    "dashboard locale layout client must remain the shared provider entry point"
+  );
+});
+
 test("localized overview deep link is routable", () => {
   assert.equal(
     existsSync(resolve(root, "src/app/[locale]/(dashboard)/overview/page.tsx")),
