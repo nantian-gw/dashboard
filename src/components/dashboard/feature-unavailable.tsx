@@ -24,9 +24,11 @@ export function FeatureUnavailable() {
         <p className="text-sm text-muted-foreground">
           {t("feature_unavailable.description")}
         </p>
-        <Link href={`/${locale}/overview`}>
-          <Button size="sm">{t("feature_unavailable.back_to_overview")}</Button>
-        </Link>
+        <Button asChild size="sm">
+          <Link href={`/${locale}/overview`}>
+            {t("feature_unavailable.back_to_overview")}
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   );

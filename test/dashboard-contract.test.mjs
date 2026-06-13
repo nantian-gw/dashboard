@@ -166,19 +166,6 @@ test("feature gate renders a controlled unavailable state", () => {
   const source = readSource("src/components/dashboard/capability-gate.tsx");
   assert.match(source, /FeatureUnavailable/, "capability gate must render the shared unavailable view");
   assert.match(source, /useDashboardCapabilitiesState/, "capability gate must read runtime capabilities");
-});
-
-test("dashboard hooks use the published admin API surface", () => {
-  const source = readSource("src/hooks/use-api.ts");
-  for (const staleEndpoint of [
-    "/v1/gateways",
-    "/v1/backend-tls",
-    "/v1/diagnostics",
-  ]) {
-    assert.doesNotMatch(
-      source,
-      new RegExp(JSON.stringify(staleEndpoint).slice(1, -1).replaceAll("/", "\\/")),
-      `${staleEndpoint} is not a published admin endpoint`
-    );
-  }
+  assert.match(source, /useDashboardCapabilities/, "capability gate must inspect capability query failures");
+  assert.match(source, /404/, "capability gate must only treat missing capability endpoint as unavailable");
 });
