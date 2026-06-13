@@ -136,6 +136,11 @@ test("dashboard locale layout installs the capability provider", () => {
     /enabled:\s*enabled|useDashboardCapabilities\(isDashboardRoute\)/,
     "capability provider must avoid fetching capabilities on non-dashboard routes"
   );
+  assert.match(
+    providerSource,
+    /isDashboardRoute\s*\?\s*query\.data\s*\?\?\s*DEFAULT_DASHBOARD_CAPABILITIES\s*:\s*DEFAULT_DASHBOARD_CAPABILITIES/,
+    "capability provider must fall back to default capabilities outside dashboard routes even if query cache is warm"
+  );
 });
 
 test("dashboard hooks use the published admin API surface", () => {

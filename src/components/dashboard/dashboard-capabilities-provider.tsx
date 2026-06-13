@@ -49,7 +49,9 @@ export function DashboardCapabilitiesProvider({
   const query = useDashboardCapabilities(isDashboardRoute);
   const value = useMemo(
     () => ({
-      capabilities: query.data ?? DEFAULT_DASHBOARD_CAPABILITIES,
+      capabilities: isDashboardRoute
+        ? query.data ?? DEFAULT_DASHBOARD_CAPABILITIES
+        : DEFAULT_DASHBOARD_CAPABILITIES,
       isLoading: isDashboardRoute && query.isLoading,
     }),
     [isDashboardRoute, query.data, query.isLoading],
