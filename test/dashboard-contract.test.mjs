@@ -249,3 +249,40 @@ test("feature gate renders a controlled unavailable state", () => {
     "capability gate must only bypass unavailable handling when there is no usable cached capability state"
   );
 });
+
+test("code block keeps Monaco behind explicit operator activation", () => {
+  const source = readSource("src/components/dashboard/code-block.tsx");
+  const monacoSource = readSource("src/components/dashboard/monaco-editor.tsx");
+  const gatewayPage = readSource("src/app/[locale]/(dashboard)/gateways/[namespace]/[name]/page.tsx");
+  const routePage = readSource("src/app/[locale]/(dashboard)/routes/[kind]/[namespace]/[name]/page.tsx");
+
+  assert.match(
+    source,
+    /editorEnabled/,
+    "CodeBlock must use explicit activation state before mounting Monaco"
+  );
+  assert.match(
+    source,
+    /dynamic\(\(\) => import\("\.\/monaco-editor"\)/,
+    "CodeBlock must keep Monaco behind a dynamic client-only import"
+  );
+  assert.match(
+    source,
+    /editorEnabled\s*\?/,
+    "CodeBlock must branch between preview mode and editor mode"
+  );
+  assert.match(
+    source,
+    /setEditorEnabled\(true\)/,
+    "CodeBlock must expose an explicit activation path"
+  );
+  assert.match(
+    monacoSource,
+    /@monaco-editor\/react/,
+    "monaco-editor.tsx must remain the Monaco import boundary"
+  );
+  assert.match(gatewayPage, /CodeBlock/, "gateway detail page must continue to consume CodeBlock");
+  assert.match(routePage, /CodeBlock/, "route detail page must continue to consume CodeBlock");
+  assert.doesNotMatch(gatewayPage, /MonacoEditor/, "gateway detail page must not import Monaco directly");
+  assert.doesNotMatch(routePage, /MonacoEditor/, "route detail page must not import Monaco directly");
+});
