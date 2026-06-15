@@ -807,5 +807,62 @@
     "24h": "24h",
     "7d": "7d",
     "30d": "30d"
+  },
+  "export": {
+    "title": "Export Config",
+    "description": "Export resources as YAML or JSON",
+    "format": "Format",
+    "resource_type": "Resource Type",
+    "all_resources": "All Resources",
+    "gateways": "Gateways",
+    "http_routes": "HTTP Routes",
+    "backend_tls": "Backend TLS Policies",
+    "reference_grants": "Reference Grants",
+    "token_policies": "Token Policies",
+    "wasm_plugins": "WASM Plugins",
+    "export": "Export",
+    "export_success": "Export completed successfully",
+    "export_failed": "Export failed"
+  },
+  "import": {
+    "title": "Import Config",
+    "description": "Import resources from YAML or JSON",
+    "file": "File",
+    "paste": "Paste",
+    "select_file": "Select a YAML or JSON file",
+    "file_loaded": "File loaded successfully",
+    "paste_content": "Paste YAML or JSON content",
+    "paste_placeholder": "Paste your YAML or JSON configuration here...",
+    "import": "Import",
+    "import_success": "Successfully imported {count} resource(s)",
+    "import_partial": "Imported {created}, {failed} failed",
+    "empty_content": "Please provide content to import",
+    "parse_error": "Unable to parse the provided content",
+    "result": "Created: {created}, Failed: {failed}"
+  },
+  "batch": {
+    "selected_count": "{count} selected",
+    "delete": "Delete",
+    "clear": "Clear selection",
+    "confirm_delete": "Delete {count} resource(s)?",
+    "confirm_message": "This action cannot be undone.",
+    "delete_success": "Deleted {count} resource(s)",
+    "delete_failed": "Failed to delete some resources"
+  },
+  "onboarding": {
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Get Started",
+    "step1_title": "Welcome to Nantian Gateway",
+    "step1_desc": "Your unified API gateway management dashboard. Monitor, configure, and manage all your gateways from one place.",
+    "step2_title": "Manage Gateways",
+    "step2_desc": "Create and configure API gateways with support for HTTP, gRPC, TCP, UDP, and TLS routes.",
+    "step3_title": "Route Traffic",
+    "step3_desc": "Define routing rules to direct traffic to your backend services with advanced matching and filtering.",
+    "step4_title": "Monitor Performance",
+    "step4_desc": "Track request rates, latency, and success rates with built-in Prometheus integration and customizable dashboards.",
+    "step5_title": "AI Gateway & More",
+    "step5_desc": "Manage AI service proxies, track token usage and costs, and use the chatbot assistant for configuration help."
   }
 }

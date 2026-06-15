@@ -1,13 +1,16 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useGateways } from "@/hooks/use-api";
 import type { GatewayRow } from "@/lib/admin-models";
 import { useAtomValue } from "jotai";
 import { searchAtom } from "@/lib/store";
+import { deleteResource } from "@/lib/api";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ClampText } from "@/components/dashboard/clamp-text";
+import { BatchActionBar } from "@/components/dashboard/batch-action-bar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -19,7 +22,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import Link from "next/link";
 
 export default function GatewaysPage() {
@@ -40,6 +45,7 @@ export default function GatewaysPage() {
 function GatewaysContent({ search }: { search: string }) {
   const t = useTranslations();
   const { data, isLoading, error } = useGateways();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const rows = Array.isArray(data) ? data : data?.gateways || [];
 
@@ -51,6 +57,41 @@ function GatewaysContent({ search }: { search: string }) {
             .includes(search.toLowerCase())
       )
     : rows;
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map((r) => `${r.namespace}-${r.name}`)));
+    }
+  }, [selectedIds.size, filtered]);
+
+  const handleBatchDelete = useCallback(async () => {
+    const ids = Array.from(selectedIds);
+    let deleted = 0;
+    let failed = 0;
+    for (const id of ids) {
+      try {
+        const [namespace, name] = id.split("-");
+        const res = await deleteResource(`/v1/resources/gateway/${namespace}/${name}`);
+        if (res.ok) deleted++; else failed++;
+      } catch { failed++; }
+    }
+    if (failed === 0) {
+      toast.success(t("batch.delete_success", { count: deleted }));
+    } else {
+      toast.warning(t("batch.delete_failed"));
+    }
+    setSelectedIds(new Set());
+  }, [selectedIds, t]);
 
   if (isLoading) {
     return (
@@ -96,17 +137,30 @@ function GatewaysContent({ search }: { search: string }) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">{t("labels.gateways")}</CardTitle>
-          <Link href="/gateways/create">
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              {t("actions.create_gateway")}
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <BatchActionBar
+              selectedCount={selectedIds.size}
+              onDelete={handleBatchDelete}
+              onClear={() => setSelectedIds(new Set())}
+            />
+            <Link href="/gateways/create">
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-1" />
+                {t("actions.create_gateway")}
+              </Button>
+            </Link>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </TableHead>
                 <TableHead>{t("labels.name")}</TableHead>
                 <TableHead>{t("labels.gatewayclass")}</TableHead>
                 <TableHead>{t("labels.status")}</TableHead>
@@ -118,6 +172,12 @@ function GatewaysContent({ search }: { search: string }) {
             <TableBody>
               {filtered.map((gateway: GatewayRow) => (
                 <TableRow key={`${gateway.namespace}-${gateway.name}`}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.has(`${gateway.namespace}-${gateway.name}`)}
+                      onCheckedChange={() => toggleSelect(`${gateway.namespace}-${gateway.name}`)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <Link
                       href={`/gateways/${gateway.namespace}/${gateway.name}`}
@@ -140,7 +200,7 @@ function GatewaysContent({ search }: { search: string }) {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No gateways found
                   </TableCell>
                 </TableRow>

@@ -5,6 +5,7 @@ import { routing } from "@/i18n/routing";
 import { LocaleLayoutClient } from "./locale-layout-client";
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
 import { TopBar } from "@/components/dashboard/top-bar";
+import { OnboardingWizard } from "@/components/dashboard/onboarding-wizard";
 import PageSkeleton from "@/components/dashboard/page-skeleton";
 
 interface DashboardLayoutProps {
@@ -28,6 +29,7 @@ export default async function DashboardLayout({
     <LocaleLayoutClient locale={locale} messages={messages}>
       <link rel="preconnect" href="/api/controlplane" />
       <link rel="preconnect" href="/api/dataplane" />
+      <OnboardingWizard />
       <div className="flex h-full">
         <SidebarNav />
         <div className="flex flex-1 flex-col overflow-hidden">
