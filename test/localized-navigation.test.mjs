@@ -61,6 +61,13 @@ test("localizeDashboardPath preserves already localized paths", () => {
   assert.equal(localizeDashboardPath("zh", "/zh/ai/services"), "/zh/ai/services");
 });
 
+test("localizeDashboardPath preserves already localized root paths with query strings or hashes", () => {
+  const { localizeDashboardPath } = loadDashboardNavigation();
+
+  assert.equal(localizeDashboardPath("zh", "/en?tab=1"), "/en?tab=1");
+  assert.equal(localizeDashboardPath("en", "/zh#top"), "/zh#top");
+});
+
 test("localizeDashboardPath falls back to the default locale for unknown locale inputs", () => {
   const { localizeDashboardPath } = loadDashboardNavigation();
 
