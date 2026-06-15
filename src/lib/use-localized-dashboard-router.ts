@@ -15,8 +15,8 @@ export function useLocalizedDashboardRouter() {
     replace(href: string, options?: Parameters<typeof router.replace>[1]) {
       router.replace(localizeDashboardPath(locale, href), options);
     },
-    prefetch(href: string) {
-      return router.prefetch(localizeDashboardPath(locale, href));
+    prefetch(href: string, options?: Parameters<typeof router.prefetch>[1]) {
+      return router.prefetch(localizeDashboardPath(locale, href), options);
     },
   };
 }

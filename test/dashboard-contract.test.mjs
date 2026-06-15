@@ -335,6 +335,11 @@ test("dashboard shared navigation wrappers localize in-app routes", () => {
     "useLocalizedDashboardRouter must localize replace targets"
   );
   assert.match(
+    routerSource,
+    /router\.prefetch\(localizeDashboardPath\(locale, href\), options\)/,
+    "useLocalizedDashboardRouter must localize prefetch targets and forward options"
+  );
+  assert.match(
     sidebarSource,
     /LocalizedLink/,
     "sidebar nav must render localized dashboard links"
