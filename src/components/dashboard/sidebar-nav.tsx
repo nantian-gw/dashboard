@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { cn } from "@/lib/utils";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { useDashboardCapabilitiesState } from "@/components/dashboard/dashboard-capabilities-provider";
+import { cn } from "@/lib/utils";
 import { dashboardPlugins } from "@/plugins/registry";
 import { getEnabledNavItems } from "@/plugins/types";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ function NavContent() {
         const Icon = item.icon;
         const isActive = pathname.includes(item.href);
         return (
-          <Link key={item.href} href={item.href}>
+          <LocalizedLink key={item.href} href={item.href}>
             <Button
               variant={isActive ? "secondary" : "ghost"}
               className={cn(
@@ -42,7 +42,7 @@ function NavContent() {
               <Icon className="h-4 w-4" />
               {t(item.labelKey)}
             </Button>
-          </Link>
+          </LocalizedLink>
         );
       })}
     </nav>

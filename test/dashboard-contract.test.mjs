@@ -311,3 +311,52 @@ test("code block keeps Monaco behind explicit operator activation", () => {
   assert.doesNotMatch(gatewayPage, /MonacoEditor/, "gateway detail page must not import Monaco directly");
   assert.doesNotMatch(routePage, /MonacoEditor/, "route detail page must not import Monaco directly");
 });
+
+test("dashboard shared navigation wrappers localize in-app routes", () => {
+  const linkSource = readSource("src/components/dashboard/localized-link.tsx");
+  const routerSource = readSource("src/lib/use-localized-dashboard-router.ts");
+  const sidebarSource = readSource("src/components/dashboard/sidebar-nav.tsx");
+  const dialogSource = readSource("src/components/dashboard/select-route-type-dialog.tsx");
+  const searchSource = readSource("src/components/dashboard/global-search.tsx");
+
+  assert.match(
+    linkSource,
+    /localizeDashboardPath/,
+    "LocalizedLink must localize dashboard hrefs before rendering next/link"
+  );
+  assert.match(
+    routerSource,
+    /router\.push\(localizeDashboardPath\(locale, href\)/,
+    "useLocalizedDashboardRouter must localize push targets"
+  );
+  assert.match(
+    routerSource,
+    /router\.replace\(localizeDashboardPath\(locale, href\)/,
+    "useLocalizedDashboardRouter must localize replace targets"
+  );
+  assert.match(
+    sidebarSource,
+    /LocalizedLink/,
+    "sidebar nav must render localized dashboard links"
+  );
+  assert.doesNotMatch(
+    sidebarSource,
+    /<Link key=\{item\.href\} href=\{item\.href\}>/,
+    "sidebar nav must not forward locale-neutral plugin hrefs directly into next/link"
+  );
+  assert.match(
+    dialogSource,
+    /LocalizedLink/,
+    "route-type dialog must render localized create-route links"
+  );
+  assert.match(
+    searchSource,
+    /useLocalizedDashboardRouter/,
+    "global search must use the localized dashboard router wrapper"
+  );
+  assert.doesNotMatch(
+    searchSource,
+    /router\.push\(href\)/,
+    "global search must not push locale-neutral hrefs directly"
+  );
+});

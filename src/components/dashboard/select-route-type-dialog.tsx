@@ -1,6 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { ArrowRight } from "lucide-react";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,9 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
 
 const ROUTE_KINDS = ["HTTPRoute", "GRPCRoute", "TCPRoute", "UDPRoute", "TLSRoute"];
 
@@ -33,7 +33,7 @@ export function SelectRouteTypeDialog({ open, onOpenChange }: SelectRouteTypeDia
         </DialogHeader>
         <div className="grid gap-3 py-4">
           {ROUTE_KINDS.map((kind) => (
-            <Link
+            <LocalizedLink
               key={kind}
               href={`/routes/create/${kind.toLowerCase()}`}
               className="block"
@@ -48,7 +48,7 @@ export function SelectRouteTypeDialog({ open, onOpenChange }: SelectRouteTypeDia
                 </div>
                 <ArrowRight className="h-4 w-4 text-muted-foreground" />
               </Button>
-            </Link>
+            </LocalizedLink>
           ))}
         </div>
       </DialogContent>

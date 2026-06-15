@@ -3,11 +3,11 @@
 import { useId, useMemo, useState, type KeyboardEvent } from "react";
 import { useAtom } from "jotai";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { useGlobalSearch } from "@/hooks/use-api/use-global-search";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { useLocalizedDashboardRouter } from "@/lib/use-localized-dashboard-router";
 import { searchAtom } from "@/lib/store";
 import {
   type GlobalSearchItem,
@@ -47,7 +47,7 @@ function groupResults(items: IndexedSearchItem[]): Record<GlobalSearchKind, Inde
 
 export function GlobalSearch() {
   const t = useTranslations();
-  const router = useRouter();
+  const { push } = useLocalizedDashboardRouter();
   const listboxId = useId();
   const [search, setSearch] = useAtom(searchAtom);
   const [open, setOpen] = useState(false);
@@ -68,7 +68,7 @@ export function GlobalSearch() {
   function openResult(href: string) {
     setOpen(false);
     setSearch("");
-    router.push(href);
+    push(href);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
