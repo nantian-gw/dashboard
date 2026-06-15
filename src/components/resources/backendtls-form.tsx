@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,7 +18,6 @@ import { applyResource } from "@/lib/api";
 import { useNamespaces } from "@/hooks/use-api";
 import { ManagedResource, KubernetesResource, unwrapResource } from "@/lib/admin-models";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-import Link from "next/link";
 
 interface CertRef {
   name: string;
@@ -170,11 +170,11 @@ ${caRefsYaml}` : ""}`;
     <div className="flex justify-center py-8">
       <div className="w-full max-w-3xl px-4">
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/backend-tls">
+          <LocalizedLink href="/backend-tls">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-          </Link>
+          </LocalizedLink>
           <div>
             <h1 className="text-3xl font-bold">{isEdit ? t("backendtls.edit.title") : t("backendtls.create.title")}</h1>
             <p className="text-muted-foreground">{isEdit ? t("backendtls.edit.description") : t("backendtls.create.description")}</p>
@@ -331,9 +331,9 @@ ${caRefsYaml}` : ""}`;
             )}
 
             <div className="flex justify-end gap-4">
-              <Link href="/backend-tls">
+              <LocalizedLink href="/backend-tls">
                 <Button type="button" variant="outline">{t("backendtls.create.cancel")}</Button>
-              </Link>
+              </LocalizedLink>
               <Button type="submit" disabled={isLoading}>
                 {isLoading
                   ? (isEdit ? t("backendtls.edit.saving") : t("backendtls.create.creating"))

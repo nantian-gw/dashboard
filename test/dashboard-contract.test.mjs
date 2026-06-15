@@ -488,3 +488,16 @@ test("dashboard shared navigation wrappers localize in-app routes", () => {
     "global search must not push locale-neutral hrefs directly"
   );
 });
+
+test("resource forms use localized dashboard links for operator back navigation", () => {
+  for (const routePath of [
+    "src/components/resources/aiservice-form.tsx",
+    "src/components/resources/backendtls-form.tsx",
+    "src/components/resources/referencegrant-form.tsx",
+    "src/components/resources/tokenpolicy-form.tsx",
+  ]) {
+    const source = readSource(routePath);
+    assert.match(source, /LocalizedLink/, `${routePath} must use LocalizedLink for in-app back navigation`);
+    assert.doesNotMatch(source, /<Link href="\/(ai\/services|backend-tls|reference-grants|ai\/token-policies)"/, `${routePath} must not point at bare dashboard hrefs`);
+  }
+});

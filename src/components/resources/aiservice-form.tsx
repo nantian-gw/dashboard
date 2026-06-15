@@ -13,11 +13,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { applyResource } from "@/lib/api";
 import { useNamespaces } from "@/hooks/use-api";
 import { ManagedResource, KubernetesResource, unwrapResource } from "@/lib/admin-models";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import Link from "next/link";
 
 export interface AIServiceFormData {
   name: string;
@@ -204,11 +204,11 @@ spec:
     <div className="flex justify-center py-8">
       <div className="w-full max-w-3xl px-4">
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/ai/services">
+          <LocalizedLink href="/ai/services">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-          </Link>
+          </LocalizedLink>
           <div>
             <h1 className="text-3xl font-bold">{isEdit ? t("aiservice.edit.title") : t("aiservice.create.title")}</h1>
             <p className="text-muted-foreground">{isEdit ? t("aiservice.edit.description") : t("aiservice.create.description")}</p>
@@ -439,9 +439,9 @@ spec:
             )}
 
             <div className="flex justify-end gap-4">
-              <Link href="/ai/services">
+              <LocalizedLink href="/ai/services">
                 <Button type="button" variant="outline">{t("aiservice.create.cancel")}</Button>
-              </Link>
+              </LocalizedLink>
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {isLoading

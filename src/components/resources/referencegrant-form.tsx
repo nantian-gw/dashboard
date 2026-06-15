@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +18,6 @@ import { applyResource } from "@/lib/api";
 import { useNamespaces } from "@/hooks/use-api";
 import { ManagedResource, KubernetesResource, unwrapResource } from "@/lib/admin-models";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-import Link from "next/link";
 
 interface FromItem {
   group: string;
@@ -172,11 +172,11 @@ ${toYaml}`;
     <div className="flex justify-center py-8">
       <div className="w-full max-w-3xl px-4">
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/reference-grants">
+          <LocalizedLink href="/reference-grants">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-          </Link>
+          </LocalizedLink>
           <div>
             <h1 className="text-3xl font-bold">{isEdit ? t("referencegrant.edit.title") : t("referencegrant.create.title")}</h1>
             <p className="text-muted-foreground">{isEdit ? t("referencegrant.edit.description") : t("referencegrant.create.description")}</p>
@@ -378,11 +378,11 @@ ${toYaml}`;
             )}
 
             <div className="flex gap-4">
-              <Link href="/reference-grants">
+              <LocalizedLink href="/reference-grants">
                 <Button variant="outline" type="button">
                   {t("referencegrant.create.cancel")}
                 </Button>
-              </Link>
+              </LocalizedLink>
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? (isEdit ? t("referencegrant.edit.saving") : t("referencegrant.create.creating")) : (isEdit ? t("referencegrant.edit.submit") : t("referencegrant.create.submit"))}
               </Button>

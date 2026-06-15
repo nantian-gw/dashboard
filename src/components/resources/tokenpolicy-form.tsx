@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +18,6 @@ import { applyResource } from "@/lib/api";
 import { useNamespaces } from "@/hooks/use-api";
 import { ManagedResource, KubernetesResource, unwrapResource } from "@/lib/admin-models";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-import Link from "next/link";
 
 interface TargetRef {
   group: string;
@@ -191,11 +191,11 @@ ${targetRefsYaml}${limitsYaml}
     <div className="flex justify-center py-8">
       <div className="w-full max-w-3xl px-4">
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/ai/token-policies">
+          <LocalizedLink href="/ai/token-policies">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-          </Link>
+          </LocalizedLink>
           <div>
             <h1 className="text-3xl font-bold">
               {isEdit
@@ -391,9 +391,9 @@ ${targetRefsYaml}${limitsYaml}
             )}
 
             <div className="flex justify-end gap-4">
-              <Link href="/ai/token-policies">
+              <LocalizedLink href="/ai/token-policies">
                 <Button type="button" variant="outline">{t("pages.ai.tokenPolicies.form.cancel")}</Button>
-              </Link>
+              </LocalizedLink>
               <Button type="submit" disabled={isLoading}>
                 {isLoading
                   ? (isEdit ? t("pages.ai.tokenPolicies.edit.saving") : t("pages.ai.tokenPolicies.create.creating"))
