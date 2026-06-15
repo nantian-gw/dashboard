@@ -54,7 +54,9 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError(t("error_invalid"));
+        setError(
+          result.code === "network" ? t("error_network") : t("error_invalid")
+        );
       } else {
         router.push(`/${locale}/overview`);
       }

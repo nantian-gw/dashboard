@@ -501,6 +501,17 @@ export function mapDiagnostics(
     });
   }
 
+  const dataplaneAvailability = asObject(asObject(dataplaneSummary).availability);
+  if (asString(dataplaneAvailability.state) === "degraded") {
+    issues.push({
+      severity: "warning",
+      title: "Dataplane summary unavailable",
+      description:
+        "Traffic and dataplane diagnostics are limited because the current dashboard session cannot access dataplane /v1/summary.",
+      source: "dataplane",
+    });
+  }
+
   const warningOverview = asObject(asObject(dataplaneSummary).warningOverview);
   for (const warning of asArray(warningOverview.messages)) {
     issues.push({
@@ -512,7 +523,6 @@ export function mapDiagnostics(
 
   return issues;
 }
-
 
 
 

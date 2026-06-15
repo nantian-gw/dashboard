@@ -30,7 +30,7 @@ function loadRateLimitModule() {
   return cjsModule.exports;
 }
 
-function loadAuth({ fetchImpl }) {
+function loadAuth({ fetchImpl, consoleImpl = console }) {
   const source = readFileSync(resolve(root, "src/lib/auth.ts"), "utf8");
   const { outputText } = ts.transpileModule(source, {
     compilerOptions: {
@@ -46,6 +46,14 @@ function loadAuth({ fetchImpl }) {
     if (specifier === "next-auth") {
       return {
         __esModule: true,
+        CredentialsSignin: class CredentialsSignin extends Error {
+          constructor(message, errorOptions) {
+            super(message, errorOptions);
+            this.name = "CredentialsSignin";
+            this.type = "CredentialsSignin";
+            this.code = "credentials";
+          }
+        },
         default: (config) => {
           authConfig = config;
           return {
@@ -90,6 +98,7 @@ function loadAuth({ fetchImpl }) {
       clearTimeout(timer);
     },
     exports: cjsModule.exports,
+    console: consoleImpl,
     fetch: fetchImpl,
     module: cjsModule,
     process: {
@@ -133,7 +142,7 @@ test("200 allows authentication", async () => {
 
   assert.equal(
     await verifyTokenAgainstControlplane("secret-token"),
-    true
+    "valid"
   );
 
   const user = await credentialsConfig.authorize({ token: "secret-token" });
@@ -148,7 +157,7 @@ test("204 allows authentication", async () => {
 
   assert.equal(
     await verifyTokenAgainstControlplane("secret-token"),
-    true
+    "valid"
   );
 });
 
@@ -158,9 +167,12 @@ test("401 denies authentication", async () => {
 
   assert.equal(
     await verifyTokenAgainstControlplane("secret-token"),
-    false
+    "invalid"
   );
-  assert.equal(await credentialsConfig.authorize({ token: "secret-token" }), null);
+  await assert.rejects(
+    credentialsConfig.authorize({ token: "secret-token" }),
+    (error) => error.code === "invalid"
+  );
 });
 
 test("403 denies authentication", async () => {
@@ -168,7 +180,7 @@ test("403 denies authentication", async () => {
 
   assert.equal(
     await verifyTokenAgainstControlplane("secret-token"),
-    false
+    "invalid"
   );
 });
 
@@ -177,7 +189,7 @@ test("404 denies authentication", async () => {
 
   assert.equal(
     await verifyTokenAgainstControlplane("secret-token"),
-    false
+    "network_error"
   );
 });
 
@@ -186,7 +198,7 @@ test("500 denies authentication", async () => {
 
   assert.equal(
     await verifyTokenAgainstControlplane("secret-token"),
-    false
+    "network_error"
   );
 });
 
@@ -199,7 +211,7 @@ test("thrown fetch error denies authentication", async () => {
 
   assert.equal(
     await verifyTokenAgainstControlplane("secret-token"),
-    false
+    "network_error"
   );
 });
 
@@ -212,7 +224,7 @@ test("AbortError-style thrown error denies authentication", async () => {
 
   assert.equal(
     await verifyTokenAgainstControlplane("secret-token"),
-    false
+    "network_error"
   );
 });
 
@@ -227,7 +239,7 @@ test("verification sends bearer token to controlplane summary with abort signal"
 
   assert.equal(
     await verifyTokenAgainstControlplane("secret-token"),
-    true
+    "valid"
   );
 
   assert.equal(call.url, "http://controlplane.test/v1/summary");
@@ -252,11 +264,17 @@ test("authorization rate limit blocks repeated attempts for the same forwarded c
   });
 
   for (let i = 0; i < 10; i += 1) {
-    assert.equal(await credentialsConfig.authorize({ token: "bad-token" }, request), null);
+    await assert.rejects(
+      credentialsConfig.authorize({ token: "bad-token" }, request),
+      (error) => error.code === "invalid"
+    );
   }
 
   assert.equal(fetchCalls, 10);
-  assert.equal(await credentialsConfig.authorize({ token: "bad-token" }, request), null);
+  await assert.rejects(
+    credentialsConfig.authorize({ token: "bad-token" }, request),
+    (error) => error.code === "rate_limited"
+  );
   assert.equal(fetchCalls, 10);
 });
 
@@ -278,11 +296,20 @@ test("authorization rate limit isolates different forwarded clients", async () =
   });
 
   for (let i = 0; i < 10; i += 1) {
-    assert.equal(await credentialsConfig.authorize({ token: "bad-token" }, clientA), null);
+    await assert.rejects(
+      credentialsConfig.authorize({ token: "bad-token" }, clientA),
+      (error) => error.code === "invalid"
+    );
   }
 
-  assert.equal(await credentialsConfig.authorize({ token: "bad-token" }, clientA), null);
-  assert.equal(await credentialsConfig.authorize({ token: "bad-token" }, clientB), null);
+  await assert.rejects(
+    credentialsConfig.authorize({ token: "bad-token" }, clientA),
+    (error) => error.code === "rate_limited"
+  );
+  await assert.rejects(
+    credentialsConfig.authorize({ token: "bad-token" }, clientB),
+    (error) => error.code === "invalid"
+  );
   assert.equal(fetchCalls, 11);
 });
 
@@ -347,4 +374,77 @@ test("empty token does not consume rate-limit budget", async () => {
   const user = await credentialsConfig.authorize({ token: "secret-token" }, request);
   assert.equal(user.id, "admin");
   assert.equal(fetchCalls, 1);
+});
+
+test("auth logger suppresses expected credential failures but keeps network and plain errors", async () => {
+  const invalidLogs = [];
+  const invalidConsole = {
+    debug: () => {},
+    error: (...args) => invalidLogs.push(args),
+    log: () => {},
+    warn: () => {},
+  };
+  const {
+    authConfig: invalidAuthConfig,
+    credentialsConfig: invalidCredentialsConfig,
+  } = loadAuth({
+    consoleImpl: invalidConsole,
+    fetchImpl: async () => ({
+      ok: false,
+      status: 401,
+    }),
+  });
+
+  await assert.rejects(
+    invalidCredentialsConfig.authorize({ token: "bad-token" }),
+    (error) => {
+      invalidAuthConfig.logger.error(error);
+      return error.code === "invalid";
+    }
+  );
+  assert.equal(invalidLogs.length, 0);
+
+  const networkLogs = [];
+  const networkConsole = {
+    debug: () => {},
+    error: (...args) => networkLogs.push(args),
+    log: () => {},
+    warn: () => {},
+  };
+  const {
+    authConfig: networkAuthConfig,
+    credentialsConfig: networkCredentialsConfig,
+  } = loadAuth({
+    consoleImpl: networkConsole,
+    fetchImpl: async () => {
+      throw new Error("upstream unavailable");
+    },
+  });
+
+  await assert.rejects(
+    networkCredentialsConfig.authorize({ token: "secret-token" }),
+    (error) => {
+      networkAuthConfig.logger.error(error);
+      return error.code === "network";
+    }
+  );
+  assert.ok(networkLogs.length > 0);
+
+  const plainLogs = [];
+  const plainConsole = {
+    debug: () => {},
+    error: (...args) => plainLogs.push(args),
+    log: () => {},
+    warn: () => {},
+  };
+  const { authConfig: plainAuthConfig } = loadAuth({
+    consoleImpl: plainConsole,
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+    }),
+  });
+
+  plainAuthConfig.logger.error(new Error("plain failure"));
+  assert.ok(plainLogs.length > 0);
 });

@@ -100,3 +100,30 @@ test("node payload does not report disconnected dataplanes as ready", () => {
   assert.equal(rows[1].ready, true);
   assert.equal(rows[1].status, "Ready");
 });
+
+test("degraded dataplane summary adds a diagnostics warning", () => {
+  const { mapDiagnostics } = loadAdminModels();
+
+  const issues = mapDiagnostics(
+    {},
+    {},
+    {
+      availability: {
+        state: "degraded",
+        reason: "unauthorized",
+      },
+    }
+  );
+
+  assert.equal(issues.length, 1);
+  assert.equal(issues[0].severity, "warning");
+  assert.equal(issues[0].source, "dataplane");
+  assert.match(issues[0].title, /Dataplane summary unavailable/);
+});
+
+test("empty dataplane summary stays quiet", () => {
+  const { mapDiagnostics } = loadAdminModels();
+
+  const issues = mapDiagnostics({}, {}, {});
+  assert.equal(issues.length, 0);
+});
