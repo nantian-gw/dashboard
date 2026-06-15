@@ -249,73 +249,121 @@ test("representative dashboard pages stop using raw non-localized navigation tar
     "src/app/[locale]/(dashboard)/gateways/[namespace]/[name]/page.tsx"
   );
   const routesSource = readSource("src/app/[locale]/(dashboard)/routes/page.tsx");
-  const routeCreateSource = readSource("src/app/[locale]/(dashboard)/routes/create/grpcroute/page.tsx");
+  const routeDetailSource = readSource(
+    "src/app/[locale]/(dashboard)/routes/[kind]/[namespace]/[name]/page.tsx"
+  );
+  const referenceGrantsSource = readSource("src/app/[locale]/(dashboard)/reference-grants/page.tsx");
+  const referenceGrantDetailSource = readSource(
+    "src/app/[locale]/(dashboard)/reference-grants/[namespace]/[name]/page.tsx"
+  );
+  const backendTlsSource = readSource("src/app/[locale]/(dashboard)/backend-tls/page.tsx");
   const backendTlsDetailSource = readSource(
     "src/app/[locale]/(dashboard)/backend-tls/[namespace]/[name]/page.tsx"
   );
-
-  assert.match(gatewayListSource, /LocalizedLink/, "gateway list must use LocalizedLink");
-  assert.doesNotMatch(
-    gatewayListSource,
-    /<Link href="\/gateways\/create">/,
-    "gateway list must not link to a bare /gateways/create path"
+  const observabilitySource = readSource("src/app/[locale]/(dashboard)/observability/page.tsx");
+  const aiServicesSource = readSource("src/app/[locale]/(dashboard)/ai/services/page.tsx");
+  const aiTokenPoliciesSource = readSource("src/app/[locale]/(dashboard)/ai/token-policies/page.tsx");
+  const grpcRouteCreateSource = readSource(
+    "src/app/[locale]/(dashboard)/routes/create/grpcroute/page.tsx"
+  );
+  const tcpRouteCreateSource = readSource(
+    "src/app/[locale]/(dashboard)/routes/create/tcproute/page.tsx"
+  );
+  const tlsRouteCreateSource = readSource(
+    "src/app/[locale]/(dashboard)/routes/create/tlsroute/page.tsx"
+  );
+  const udpRouteCreateSource = readSource(
+    "src/app/[locale]/(dashboard)/routes/create/udproute/page.tsx"
   );
 
-  assert.match(
+  function assertUsesLocalizedLink(source, label) {
+    assert.match(source, /LocalizedLink/, `${label} must use LocalizedLink`);
+    assert.doesNotMatch(
+      source,
+      /import\s+Link\s+from\s+"next\/link";?/,
+      `${label} must not import raw next/link`
+    );
+  }
+
+  function assertUsesLocalizedRouter(source, label, barePushPattern, barePushMessage) {
+    assert.match(
+      source,
+      /useLocalizedDashboardRouter/,
+      `${label} must use the localized router wrapper`
+    );
+    assert.match(
+      source,
+      /const \{ push \} = useLocalizedDashboardRouter\(\)/,
+      `${label} must destructure push from the localized router wrapper`
+    );
+    assert.doesNotMatch(source, barePushPattern, barePushMessage);
+  }
+
+  assertUsesLocalizedLink(gatewayListSource, "gateway list");
+  assertUsesLocalizedLink(gatewayDetailSource, "gateway detail page");
+  assertUsesLocalizedRouter(
     gatewayDetailSource,
-    /useLocalizedDashboardRouter/,
-    "gateway detail must use the localized router wrapper"
-  );
-  assert.match(
-    gatewayDetailSource,
-    /const \{ push \} = useLocalizedDashboardRouter\(\)/,
-    "gateway detail must destructure push from the localized router wrapper"
-  );
-  assert.doesNotMatch(
-    gatewayDetailSource,
+    "gateway detail page",
     /router\.push\("\/gateways"\)/,
     "gateway delete flow must not push a bare /gateways path"
   );
-  assert.doesNotMatch(
-    gatewayDetailSource,
-    /<Link href="\/gateways">/,
-    "gateway detail back link must not point at bare /gateways"
+
+  assertUsesLocalizedLink(routesSource, "routes list");
+  assertUsesLocalizedLink(routeDetailSource, "route detail page");
+  assertUsesLocalizedRouter(
+    routeDetailSource,
+    "route detail page",
+    /router\.push\("\/routes"\)/,
+    "route delete flow must not push a bare /routes path"
   );
 
-  assert.match(routesSource, /LocalizedLink/, "routes list must use LocalizedLink for route detail links");
-  assert.doesNotMatch(
-    routesSource,
-    /href=\{`\/routes\//,
-    "routes list must not emit bare /routes/... hrefs"
+  assertUsesLocalizedLink(referenceGrantsSource, "reference grants list");
+  assertUsesLocalizedLink(referenceGrantDetailSource, "reference grant detail page");
+  assertUsesLocalizedRouter(
+    referenceGrantDetailSource,
+    "reference grant detail page",
+    /router\.push\("\/reference-grants"\)/,
+    "reference grant delete flow must not push a bare /reference-grants path"
   );
 
-  assert.match(
-    routeCreateSource,
-    /useLocalizedDashboardRouter/,
-    "gRPC route creation must use the localized router wrapper"
-  );
-  assert.match(
-    routeCreateSource,
-    /const \{ push \} = useLocalizedDashboardRouter\(\)/,
-    "gRPC route creation must destructure push from the localized router wrapper"
-  );
-  assert.doesNotMatch(
-    routeCreateSource,
-    /router\.push\(`\/routes\/GRPCRoute/,
-    "gRPC route creation must not push a bare /routes/... path"
-  );
-
-  assert.match(backendTlsDetailSource, /LocalizedLink/, "backend TLS detail page must use LocalizedLink");
-  assert.match(
+  assertUsesLocalizedLink(backendTlsSource, "backend TLS list");
+  assertUsesLocalizedLink(backendTlsDetailSource, "backend TLS detail page");
+  assertUsesLocalizedRouter(
     backendTlsDetailSource,
-    /const \{ push \} = useLocalizedDashboardRouter\(\)/,
-    "backend TLS detail page must destructure push from the localized router wrapper"
-  );
-  assert.doesNotMatch(
-    backendTlsDetailSource,
+    "backend TLS detail page",
     /router\.push\("\/backend-tls"\)/,
     "backend TLS delete flow must not push a bare /backend-tls path"
   );
+
+  assertUsesLocalizedLink(observabilitySource, "observability page");
+  assert.match(
+    observabilitySource,
+    /<a href="\/grafana-dashboard\.json" download>/,
+    "observability page must keep the plain /grafana-dashboard.json download anchor"
+  );
+  assert.doesNotMatch(
+    observabilitySource,
+    /LocalizedLink href="\/grafana-dashboard\.json"/,
+    "observability page must not localize the Grafana dashboard download anchor"
+  );
+
+  assertUsesLocalizedLink(aiServicesSource, "AI services page");
+  assertUsesLocalizedLink(aiTokenPoliciesSource, "AI token policies page");
+
+  for (const [label, source, routeKind] of [
+    ["gRPC route creation", grpcRouteCreateSource, "GRPCRoute"],
+    ["TCP route creation", tcpRouteCreateSource, "TCPRoute"],
+    ["TLS route creation", tlsRouteCreateSource, "TLSRoute"],
+    ["UDP route creation", udpRouteCreateSource, "UDPRoute"],
+  ]) {
+    assertUsesLocalizedLink(source, label);
+    assertUsesLocalizedRouter(
+      source,
+      label,
+      new RegExp("router\\.push\\(\\`\\/routes\\/" + routeKind),
+      `${label} must not push a bare /routes/... path`
+    );
+  }
 });
 
 test("optional dashboard feature groups are gated by dedicated layouts", () => {
