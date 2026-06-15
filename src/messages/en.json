@@ -864,5 +864,51 @@
     "step4_desc": "Track request rates, latency, and success rates with built-in Prometheus integration and customizable dashboards.",
     "step5_title": "AI Gateway & More",
     "step5_desc": "Manage AI service proxies, track token usage and costs, and use the chatbot assistant for configuration help."
+  },
+  "alerts": {
+    "title": "Alert Rules",
+    "subtitle": "Configure alert rules for monitoring metrics",
+    "create": "Create Rule",
+    "create_first": "Create your first rule",
+    "create_rule": "Create Alert Rule",
+    "create_rule_desc": "Define conditions that trigger alerts when metrics exceed thresholds.",
+    "rule_name": "Rule Name",
+    "rule_name_placeholder": "e.g. High Error Rate",
+    "metric": "Metric",
+    "condition": "Condition",
+    "threshold": "Threshold",
+    "duration": "Duration",
+    "severity_label": "Severity",
+    "enable": "Enable",
+    "disable": "Disable",
+    "deleted": "Rule deleted",
+    "created": "Rule created",
+    "empty": "No alert rules configured",
+    "metrics": {
+      "error_rate": "Error Rate",
+      "latency_p95": "Latency P95",
+      "latency_p99": "Latency P99",
+      "request_rate": "Request Rate",
+      "success_rate": "Success Rate",
+      "cpu_usage": "CPU Usage",
+      "memory_usage": "Memory Usage"
+    },
+    "conditions": {
+      "gt": "Greater than",
+      "lt": "Less than",
+      "eq": "Equals"
+    },
+    "severity": {
+      "critical": "Critical",
+      "warning": "Warning",
+      "info": "Info"
+    },
+    "durations": {
+      "1m": "1 min",
+      "5m": "5 min",
+      "15m": "15 min",
+      "30m": "30 min",
+      "1h": "1 hour"
+    }
   }
 }

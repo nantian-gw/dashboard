@@ -12,6 +12,14 @@ import {
   DATAPLANE_ADMIN_URL,
   ADMIN_API_TIMEOUT_MS,
 } from "@/lib/admin-urls";
+import { buildProxyHeaders, proxyResponseHeaders } from "@/lib/proxy-headers";
+import {
+  validateCsrfToken,
+  getCsrfTokenFromCookies,
+  CSRF_HEADER_NAME,
+} from "@/lib/csrf";
+
+const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 const DEFAULT_TARGET = CONTROLPLANE_ADMIN_URL;
 const DATAPLANE_TARGET = DATAPLANE_ADMIN_URL;
@@ -20,15 +28,6 @@ const TIMEOUT_MS = ADMIN_API_TIMEOUT_MS;
 type LegacyPayload =
   | { matched: false }
   | { matched: true; payload: unknown };
-
-function proxyResponseHeaders(response: Response): Headers {
-  const headers = new Headers(response.headers);
-  headers.delete("connection");
-  headers.delete("content-encoding");
-  headers.delete("content-length");
-  headers.delete("transfer-encoding");
-  return headers;
-}
 
 function asObject(value: unknown): Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -141,6 +140,19 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
       { status: 401 }
     );
   }
+
+  // CSRF validation for state-changing methods
+  if (!SAFE_METHODS.has(request.method)) {
+    const cookieToken = getCsrfTokenFromCookies(request.headers.get("cookie"));
+    const headerToken = request.headers.get(CSRF_HEADER_NAME);
+    if (!validateCsrfToken(cookieToken, headerToken)) {
+      return NextResponse.json(
+        { error: "csrf_invalid", message: "Invalid or missing CSRF token" },
+        { status: 403 }
+      );
+    }
+  }
+
   const token = session.user.token;
 
   const pathname = request.nextUrl.pathname;
@@ -153,15 +165,7 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
   }
   targetUrl.search = request.nextUrl.search;
 
-  const headers: Record<string, string> = {};
-  request.headers.forEach((value, key) => {
-    if (!["host", "connection", "content-length", "transfer-encoding"].includes(key.toLowerCase())) {
-      headers[key] = value;
-    }
-  });
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+  const headers = buildProxyHeaders(request.headers, token ? { Authorization: `Bearer ${token}` } : {});
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);

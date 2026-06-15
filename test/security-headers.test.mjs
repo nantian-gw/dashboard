@@ -77,6 +77,12 @@ function loadProxy({ parentEnv = {}, env = {}, authImpl = async () => null } = {
     if (specifier === "@/lib/auth") {
       return { auth: authImpl };
     }
+    if (specifier === "@/lib/csrf") {
+      return {
+        generateCsrfToken: () => "test-csrf-token",
+        getCsrfCookieHeader: () => "x-csrf-token=test-csrf-token; Path=/; SameSite=Strict; HttpOnly; Secure",
+      };
+    }
     if (specifier === "next-intl/middleware") {
       return {
         __esModule: true,

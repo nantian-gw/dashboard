@@ -864,5 +864,51 @@
     "step4_desc": "通过内置 Prometheus 集成和可定制仪表盘，跟踪请求速率、延迟和成功率。",
     "step5_title": "AI 网关及更多",
     "step5_desc": "管理 AI 服务代理，跟踪令牌使用和成本，使用聊天助手获取配置帮助。"
+  },
+  "alerts": {
+    "title": "告警规则",
+    "subtitle": "配置监控指标的告警规则",
+    "create": "创建规则",
+    "create_first": "创建第一条规则",
+    "create_rule": "创建告警规则",
+    "create_rule_desc": "定义当指标超过阈值时触发告警的条件。",
+    "rule_name": "规则名称",
+    "rule_name_placeholder": "例如：高错误率",
+    "metric": "指标",
+    "condition": "条件",
+    "threshold": "阈值",
+    "duration": "持续时间",
+    "severity_label": "严重度",
+    "enable": "启用",
+    "disable": "禁用",
+    "deleted": "规则已删除",
+    "created": "规则已创建",
+    "empty": "暂无告警规则",
+    "metrics": {
+      "error_rate": "错误率",
+      "latency_p95": "延迟 P95",
+      "latency_p99": "延迟 P99",
+      "request_rate": "请求速率",
+      "success_rate": "成功率",
+      "cpu_usage": "CPU 使用率",
+      "memory_usage": "内存使用率"
+    },
+    "conditions": {
+      "gt": "大于",
+      "lt": "小于",
+      "eq": "等于"
+    },
+    "severity": {
+      "critical": "严重",
+      "warning": "警告",
+      "info": "信息"
+    },
+    "durations": {
+      "1m": "1 分钟",
+      "5m": "5 分钟",
+      "15m": "15 分钟",
+      "30m": "30 分钟",
+      "1h": "1 小时"
+    }
   }
 }

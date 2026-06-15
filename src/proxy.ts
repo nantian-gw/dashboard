@@ -3,6 +3,7 @@ import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
+import { generateCsrfToken, getCsrfCookieHeader } from "@/lib/csrf";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
@@ -27,7 +28,7 @@ function cspWithNonce(nonce: string): string {
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
     "style-src 'self' 'unsafe-inline'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
     "worker-src 'self' blob:",
     "connect-src 'self'",
   ].join("; ");
@@ -37,6 +38,10 @@ function withRuntimeSecurityHeaders(response: NextResponse, nonce?: string): Nex
   if (nonce) {
     response.headers.set("Content-Security-Policy", cspWithNonce(nonce));
   }
+
+  // Set CSRF token cookie on page responses (not API routes)
+  const csrfToken = generateCsrfToken();
+  response.headers.set("Set-Cookie", getCsrfCookieHeader(csrfToken));
 
   if (process.env.DASHBOARD_ENABLE_HSTS === "true") {
     response.headers.set("Strict-Transport-Security", HSTS_HEADER_VALUE);

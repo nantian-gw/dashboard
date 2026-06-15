@@ -1,2 +1,6 @@
-export const MONACO_VS_PATH =
-  "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs";
+/**
+ * Monaco Editor is bundled locally via @monaco-editor/react.
+ * The loader will resolve workers from the local node_modules bundle
+ * instead of the CDN, eliminating the jsdelivr CSP dependency.
+ */
+export const MONACO_VS_PATH = "";

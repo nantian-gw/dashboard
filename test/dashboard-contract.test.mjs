@@ -65,22 +65,23 @@ test("dashboard hooks use the published admin API surface", () => {
 });
 
 test("dashboard API proxy strips response headers made invalid by body rewriting", () => {
-  for (const routePath of [
-    "src/app/api/controlplane/[[...slug]]/route.ts",
-    "src/app/api/dataplane/[[...slug]]/route.ts",
-  ]) {
-    const source = readSource(routePath);
-    assert.match(
-      source,
-      /content-length/i,
-      `${routePath} must explicitly handle content-length`
-    );
-    assert.doesNotMatch(
-      source,
-      /Object\.fromEntries\(response\.headers\.entries\(\)\)/,
-      `${routePath} must not forward upstream response headers blindly`
-    );
-  }
+  // Proxy header stripping is now centralized in src/lib/proxy-headers.ts
+  const source = readSource("src/lib/proxy-headers.ts");
+  assert.match(
+    source,
+    /content-length/i,
+    "proxy-headers.ts must explicitly handle content-length"
+  );
+  assert.match(
+    source,
+    /PROXY_STRIP_HEADERS/,
+    "proxy-headers.ts must define a strip list"
+  );
+  assert.match(
+    source,
+    /PROXY_FORWARD_HEADERS/,
+    "proxy-headers.ts must define a forward whitelist"
+  );
 });
 
 test("AGENTS documents the current auth and routing behavior", () => {
