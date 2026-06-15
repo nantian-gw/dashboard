@@ -1,20 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
-import Link from "next/link";
 import { useBackendTls } from "@/hooks/use-api";
 import { deleteResource } from "@/lib/api";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
+import { useLocalizedDashboardRouter } from "@/lib/use-localized-dashboard-router";
 
 export default function BackendTlsDetailPage() {
-  const router = useRouter();
+  const { push } = useLocalizedDashboardRouter();
   const params = useParams();
   const namespace = String(params.namespace || "");
   const name = String(params.name || "");
@@ -25,7 +26,7 @@ export default function BackendTlsDetailPage() {
     setDeleteLoading(true);
     try {
       await deleteResource(`/v1/resources/backendtlspolicy/${namespace}/${name}`);
-      router.push("/backend-tls");
+      push("/backend-tls");
     } catch (err) {
       alert("Failed to delete: " + ((err as Error).message || "unknown error"));
       setDeleteLoading(false);
@@ -63,11 +64,11 @@ export default function BackendTlsDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/backend-tls">
+        <LocalizedLink href="/backend-tls">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-        </Link>
+        </LocalizedLink>
         <div>
           <h1 className="text-3xl font-bold">{policy.name}</h1>
           <p className="text-muted-foreground">
@@ -76,11 +77,11 @@ export default function BackendTlsDetailPage() {
         </div>
         <div className="ml-auto flex items-center gap-2">
           <StatusBadge status={policy.status || "Unknown"} />
-          <Link href={`/backend-tls/${namespace}/${name}/edit`}>
+          <LocalizedLink href={`/backend-tls/${namespace}/${name}/edit`}>
             <Button variant="outline" size="sm">
               <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
             </Button>
-          </Link>
+          </LocalizedLink>
           <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
           </Button>

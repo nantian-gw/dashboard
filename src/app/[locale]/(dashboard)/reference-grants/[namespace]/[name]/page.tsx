@@ -1,20 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useReferenceGrant } from "@/hooks/use-api";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
-import Link from "next/link";
 import { toYaml } from "@/lib/admin-models";
 import { deleteResource } from "@/lib/api";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
+import { useLocalizedDashboardRouter } from "@/lib/use-localized-dashboard-router";
 
 export default function ReferenceGrantDetailPage() {
-  const router = useRouter();
+  const { push } = useLocalizedDashboardRouter();
   const params = useParams();
   const namespace = params.namespace as string;
   const name = params.name as string;
@@ -25,7 +26,7 @@ export default function ReferenceGrantDetailPage() {
     setDeleteLoading(true);
     try {
       await deleteResource(`/v1/resources/referencegrant/${namespace}/${name}`);
-      router.push("/reference-grants");
+      push("/reference-grants");
     } catch (err) {
       alert("Failed to delete: " + ((err as Error).message || "unknown error"));
       setDeleteLoading(false);
@@ -60,11 +61,11 @@ export default function ReferenceGrantDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/reference-grants">
+        <LocalizedLink href="/reference-grants">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-        </Link>
+        </LocalizedLink>
         <div>
           <h1 className="text-3xl font-bold">{grant.name}</h1>
           <p className="text-muted-foreground">
@@ -72,11 +73,11 @@ export default function ReferenceGrantDetailPage() {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <Link href={`/reference-grants/${namespace}/${name}/edit`}>
+          <LocalizedLink href={`/reference-grants/${namespace}/${name}/edit`}>
             <Button variant="outline" size="sm">
               <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
             </Button>
-          </Link>
+          </LocalizedLink>
           <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
           </Button>

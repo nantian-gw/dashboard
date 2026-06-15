@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useReferenceGrants } from "@/hooks/use-api";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -15,7 +16,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import Link from "next/link";
 
 function formatFrom(spec: any): string {
   const froms: any[] = spec?.from || [];
@@ -70,12 +70,12 @@ function ReferenceGrantsContent() {
         <CardTitle className="text-base">
           Reference Grants ({rows.length})
         </CardTitle>
-        <Link href="/reference-grants/create">
+        <LocalizedLink href="/reference-grants/create">
           <Button size="sm">
             <Plus className="h-4 w-4 mr-1" />
             {t("actions.create_reference_grant")}
           </Button>
-        </Link>
+        </LocalizedLink>
       </CardHeader>
       <CardContent>
         <Table>
@@ -93,12 +93,12 @@ function ReferenceGrantsContent() {
               return (
                 <TableRow key={idx}>
                   <TableCell className="font-medium">
-                    <Link
+                    <LocalizedLink
                       href={`/reference-grants/${grant.namespace}/${grant.name}`}
                       className="hover:underline"
                     >
                       {grant.name}
-                    </Link>
+                    </LocalizedLink>
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{grant.namespace}</Badge>

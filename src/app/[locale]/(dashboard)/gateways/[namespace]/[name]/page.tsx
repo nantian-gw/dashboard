@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useGateway } from "@/hooks/use-api";
 import type { ListenerRow, RouteRow } from "@/lib/admin-models";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { ClampText } from "@/components/dashboard/clamp-text";
 import { Button } from "@/components/ui/button";
@@ -20,13 +21,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ArrowLeft, ChevronDown, ChevronRight, Pencil, Trash2 } from "lucide-react";
-import Link from "next/link";
 import { CodeBlock } from "@/components/dashboard/code-block";
 import { deleteResource } from "@/lib/api";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
+import { useLocalizedDashboardRouter } from "@/lib/use-localized-dashboard-router";
 
 export default function GatewayDetailPage() {
-  const router = useRouter();
+  const { push } = useLocalizedDashboardRouter();
   const t = useTranslations();
   const params = useParams();
   const namespace = String(params.namespace || "");
@@ -38,7 +39,7 @@ export default function GatewayDetailPage() {
     setDeleteLoading(true);
     try {
       await deleteResource(`/v1/resources/gateway/${namespace}/${name}`);
-      router.push("/gateways");
+      push("/gateways");
     } catch (err) {
       alert("Failed to delete: " + ((err as Error).message || "unknown error"));
       setDeleteLoading(false);
@@ -84,22 +85,22 @@ export default function GatewayDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/gateways">
+        <LocalizedLink href="/gateways">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-        </Link>
+        </LocalizedLink>
         <div>
           <h1 className="text-3xl font-bold">{gateway.name}</h1>
           <p className="text-muted-foreground">{gateway.namespace}</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <StatusBadge status={gateway.status || "Unknown"} />
-          <Link href={`/gateways/${namespace}/${name}/edit`}>
+          <LocalizedLink href={`/gateways/${namespace}/${name}/edit`}>
             <Button variant="outline" size="sm">
               <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
             </Button>
-          </Link>
+          </LocalizedLink>
           <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
           </Button>
@@ -284,12 +285,12 @@ export default function GatewayDetailPage() {
               {routes.map((route: any, idx: number) => (
                 <TableRow key={idx}>
                   <TableCell className="font-medium">
-                    <Link
+                    <LocalizedLink
                       href={`/routes/${route.kind}/${route.namespace}/${route.name}`}
                       className="hover:underline"
                     >
                       <ClampText value={route.name || "—"} head={18} tail={8} />
-                    </Link>
+                    </LocalizedLink>
                   </TableCell>
                   <TableCell>{route.kind}</TableCell>
                   <TableCell>{route.namespace}</TableCell>

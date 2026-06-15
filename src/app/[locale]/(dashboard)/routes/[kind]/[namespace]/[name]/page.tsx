@@ -3,17 +3,18 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useRoute } from "@/hooks/use-api";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Server, Network, Clock, Filter, Hash, Pencil, Trash2 } from "lucide-react";
-import Link from "next/link";
 import { CodeBlock } from "@/components/dashboard/code-block";
 import { deleteResource } from "@/lib/api";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
+import { useLocalizedDashboardRouter } from "@/lib/use-localized-dashboard-router";
 import {
   Table,
   TableBody,
@@ -37,7 +38,7 @@ type RouteDetail = {
 };
 
 export default function RouteDetailPage() {
-  const router = useRouter();
+  const { push } = useLocalizedDashboardRouter();
   const t = useTranslations();
   const params = useParams();
   const namespace = String(params.namespace || "");
@@ -50,7 +51,7 @@ export default function RouteDetailPage() {
     setDeleteLoading(true);
     try {
       await deleteResource(`/v1/resources/${kind.toLowerCase()}/${namespace}/${name}`);
-      router.push("/routes");
+      push("/routes");
     } catch (err) {
       alert("Failed to delete: " + ((err as Error).message || "unknown error"));
       setDeleteLoading(false);
@@ -122,11 +123,11 @@ export default function RouteDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/routes">
+        <LocalizedLink href="/routes">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-        </Link>
+        </LocalizedLink>
         <div>
           <h1 className="text-3xl font-bold">{route.name}</h1>
           <p className="text-muted-foreground">{route.namespace}</p>
@@ -134,11 +135,11 @@ export default function RouteDetailPage() {
         <span className="rounded bg-muted px-2 py-1 text-sm font-mono">{route.kind}</span>
         <div className="ml-auto flex items-center gap-2">
           <StatusBadge status={route.status || "Unknown"} />
-          <Link href={`/routes/${kind.toLowerCase()}/${namespace}/${name}/edit`}>
+          <LocalizedLink href={`/routes/${kind.toLowerCase()}/${namespace}/${name}/edit`}>
             <Button variant="outline" size="sm">
               <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
             </Button>
-          </Link>
+          </LocalizedLink>
           <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
           </Button>
@@ -157,7 +158,7 @@ export default function RouteDetailPage() {
             {parentRefs.length > 0 ? (
               <div className="space-y-2">
                 {parentRefs.map((parent: any, idx: number) => (
-                  <Link
+                  <LocalizedLink
                     key={idx}
                     href={`/gateways/${parent.namespace || "default"}/${parent.name}`}
                     className="flex items-center gap-2 hover:underline"
@@ -173,7 +174,7 @@ export default function RouteDetailPage() {
                         port: {parent.port || "default"} {parent.sectionName && `section: ${parent.sectionName}`}
                       </span>
                     )}
-                  </Link>
+                  </LocalizedLink>
                 ))}
               </div>
             ) : (

@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useBackendTls } from "@/hooks/use-api";
 import type { BackendTlsPolicyRow } from "@/lib/admin-models";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +17,6 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus } from "lucide-react";
-import Link from "next/link";
 
 export default function BackendTlsPage() {
   const t = useTranslations();
@@ -57,12 +57,12 @@ function BackendTlsContent() {
         <CardTitle className="text-base">
           BackendTLSPolicy ({rows.length})
         </CardTitle>
-        <Link href="/backend-tls/create">
+        <LocalizedLink href="/backend-tls/create">
           <Button size="sm">
             <Plus className="h-4 w-4 mr-1" />
             {t("actions.create_backend_tls")}
           </Button>
-        </Link>
+        </LocalizedLink>
       </CardHeader>
       <CardContent>
         <Table>
@@ -79,9 +79,9 @@ function BackendTlsContent() {
             {rows.map((policy: BackendTlsPolicyRow, idx: number) => (
               <TableRow key={idx}>
                 <TableCell className="font-medium">
-                  <Link href={`/backend-tls/${policy.namespace}/${policy.name}`} className="hover:underline text-primary">
+                  <LocalizedLink href={`/backend-tls/${policy.namespace}/${policy.name}`} className="hover:underline text-primary">
                     {policy.name}
-                  </Link>
+                  </LocalizedLink>
                 </TableCell>
                 <TableCell>{policy.namespace}</TableCell>
                 <TableCell className="text-sm">

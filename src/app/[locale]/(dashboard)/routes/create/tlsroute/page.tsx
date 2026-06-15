@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,8 +16,8 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { applyResource } from "@/lib/api";
 import { useNamespaces, useGateways } from "@/hooks/use-api";
+import { useLocalizedDashboardRouter } from "@/lib/use-localized-dashboard-router";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
-import Link from "next/link";
 
 interface BackendRef {
   name: string;
@@ -27,7 +27,7 @@ interface BackendRef {
 }
 
 export default function CreateTLSRoutePage() {
-  const router = useRouter();
+  const { push } = useLocalizedDashboardRouter();
   const t = useTranslations();
   const { data: namespacesData } = useNamespaces();
   const namespaces = (namespacesData as string[]) || ["default", "kube-system", "kube-public", "ingress"];
@@ -111,7 +111,7 @@ ${backendRefsYaml}`;
         const text = await response.text();
         throw new Error(text || `Failed to create: ${response.status}`);
       }
-      router.push(`/routes/TLSRoute/${namespace}/${name}`);
+      push(`/routes/TLSRoute/${namespace}/${name}`);
     } catch (err) {
       setError((err as Error).message || "Failed to create route");
       setIsLoading(false);
@@ -122,11 +122,11 @@ ${backendRefsYaml}`;
     <div className="flex justify-center py-8">
       <div className="w-full max-w-5xl px-4">
         <div className="flex items-center gap-4 mb-8">
-          <Link href="/routes">
+          <LocalizedLink href="/routes">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-          </Link>
+          </LocalizedLink>
           <div>
             <h1 className="text-3xl font-bold">{t("create.route.title", { kind: "TLSRoute" })}</h1>
             <p className="text-muted-foreground">{t("create.route.description", { kind: "TLSRoute" })}</p>
@@ -296,9 +296,9 @@ ${backendRefsYaml}`;
             )}
 
             <div className="flex gap-4">
-              <Link href="/routes">
+              <LocalizedLink href="/routes">
                 <Button variant="outline" type="button">Cancel</Button>
-              </Link>
+              </LocalizedLink>
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? "Creating..." : "Create TLSRoute"}
               </Button>

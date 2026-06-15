@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import {
   usePrometheusQuery,
   usePrometheusRangeQuery,
@@ -105,9 +105,9 @@ function PrometheusNotConfiguredCard() {
         <CardDescription>{t("pages.observability.notConfigured.description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Link href="/settings">
+        <LocalizedLink href="/settings">
           <Button variant="default">{t("pages.observability.notConfigured.link")}</Button>
-        </Link>
+        </LocalizedLink>
       </CardContent>
     </Card>
   );
@@ -122,9 +122,9 @@ function PrometheusUnavailableCard() {
         <CardDescription>{t("pages.observability.unreachable.description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Link href="/settings">
+        <LocalizedLink href="/settings">
           <Button variant="outline">{t("pages.observability.unreachable.link")}</Button>
-        </Link>
+        </LocalizedLink>
       </CardContent>
     </Card>
   );

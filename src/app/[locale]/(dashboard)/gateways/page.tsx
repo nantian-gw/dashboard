@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useGateways } from "@/hooks/use-api";
 import type { GatewayRow } from "@/lib/admin-models";
 import { useAtomValue } from "jotai";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { searchAtom } from "@/lib/store";
 import { deleteResource } from "@/lib/api";
 import { StatusBadge } from "@/components/dashboard/status-badge";
@@ -25,7 +26,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import Link from "next/link";
 
 export default function GatewaysPage() {
   const t = useTranslations();
@@ -61,7 +61,8 @@ function GatewaysContent({ search }: { search: string }) {
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }, []);
@@ -143,12 +144,12 @@ function GatewaysContent({ search }: { search: string }) {
               onDelete={handleBatchDelete}
               onClear={() => setSelectedIds(new Set())}
             />
-            <Link href="/gateways/create">
+            <LocalizedLink href="/gateways/create">
               <Button size="sm">
                 <Plus className="h-4 w-4 mr-1" />
                 {t("actions.create_gateway")}
               </Button>
-            </Link>
+            </LocalizedLink>
           </div>
         </CardHeader>
         <CardContent>
@@ -179,12 +180,12 @@ function GatewaysContent({ search }: { search: string }) {
                     />
                   </TableCell>
                   <TableCell>
-                    <Link
+                    <LocalizedLink
                       href={`/gateways/${gateway.namespace}/${gateway.name}`}
                       className="font-medium hover:underline"
                     >
                       <ClampText value={gateway.name} head={18} tail={8} />
-                    </Link>
+                    </LocalizedLink>
                     <p className="text-xs text-muted-foreground">{gateway.namespace}</p>
                   </TableCell>
                   <TableCell>{gateway.gatewayClass || "nantian"}</TableCell>

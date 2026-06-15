@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useRoutes } from "@/hooks/use-api";
 import { useAtomValue } from "jotai";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { searchAtom } from "@/lib/store";
 import { StatusBadge } from "@/components/dashboard/status-badge";
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -29,7 +30,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Filter, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 function FilterDropdown({
   label,
@@ -250,31 +250,32 @@ function RoutesContent({ search }: { search: string }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((route: any, idx: number) => (
-                <TableRow key={idx}>
-                  <TableCell className="font-medium">
-                    <Link
-                      href={`/routes/${route.kind}/${route.namespace}/${route.name}`}
-                      className="hover:underline"
-                    >
-                      <ClampText value={route.name || "—"} head={18} tail={8} />
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
-                      {route.kind}
-                    </span>
-                  </TableCell>
-                  <TableCell>{route.namespace}</TableCell>
-                  <TableCell>{route.parent || "—"}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {route.hostnames?.join(", ") || "—"}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={route.status || "Unknown"} />
-                  </TableCell>
-                </TableRow>
-              ))}
+              {filtered.map((route: any, idx: number) => {
+                const detailHref = `/routes/${route.kind}/${route.namespace}/${route.name}`;
+
+                return (
+                  <TableRow key={idx}>
+                    <TableCell className="font-medium">
+                      <LocalizedLink href={detailHref} className="hover:underline">
+                        <ClampText value={route.name || "—"} head={18} tail={8} />
+                      </LocalizedLink>
+                    </TableCell>
+                    <TableCell>
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
+                        {route.kind}
+                      </span>
+                    </TableCell>
+                    <TableCell>{route.namespace}</TableCell>
+                    <TableCell>{route.parent || "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {route.hostnames?.join(", ") || "—"}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={route.status || "Unknown"} />
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
               {filtered.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">

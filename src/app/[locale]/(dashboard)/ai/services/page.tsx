@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useAIServices } from "@/hooks/use-api";
+import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { ModelCard } from "@/components/ai/model-card";
 import { ModelSelector } from "@/components/ai/model-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus } from "lucide-react";
-import Link from "next/link";
 
 export default function AIServicesPage() {
   const t = useTranslations();
@@ -40,12 +40,12 @@ export default function AIServicesPage() {
             onSelect={setSelectedModel}
           />
         </div>
-        <Link href="/ai/services/create">
+        <LocalizedLink href="/ai/services/create">
           <Button size="sm">
             <Plus className="h-4 w-4 mr-1" />
             {t("actions.create_ai_service")}
           </Button>
-        </Link>
+        </LocalizedLink>
       </div>
 
       {isLoading && (
