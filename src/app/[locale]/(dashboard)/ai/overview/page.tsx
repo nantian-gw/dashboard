@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { useAIOverview } from "@/hooks/use-api";
+import { useAIOverview, useAITokenTrend, useAILatencyTrend } from "@/hooks/use-api";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +20,8 @@ const LatencyChart = dynamic(
 export default function AIOverviewPage() {
   const t = useTranslations();
   const { data, isLoading, error } = useAIOverview();
+  const { data: tokenTrend, isLoading: tokenLoading } = useAITokenTrend();
+  const { data: latencyTrend, isLoading: latencyLoading } = useAILatencyTrend();
 
   return (
     <div className="space-y-6">
@@ -69,7 +71,11 @@ export default function AIOverviewPage() {
                 <CardTitle>{t("ai.token_usage_trend")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <TokenChart data={[]} />
+                {tokenLoading ? (
+                  <Skeleton className="h-[300px] w-full" />
+                ) : (
+                  <TokenChart data={tokenTrend ?? []} />
+                )}
               </CardContent>
             </Card>
             <Card>
@@ -77,7 +83,11 @@ export default function AIOverviewPage() {
                 <CardTitle>{t("ai.latency_performance")}</CardTitle>
               </CardHeader>
               <CardContent>
-                <LatencyChart data={[]} />
+                {latencyLoading ? (
+                  <Skeleton className="h-[250px] w-full" />
+                ) : (
+                  <LatencyChart data={latencyTrend ?? []} />
+                )}
               </CardContent>
             </Card>
           </div>

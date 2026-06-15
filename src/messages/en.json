@@ -800,5 +800,12 @@
       "saveFailed": "Failed to save configuration.",
       "loadError": "Failed to load chatbot configuration"
     }
+  },
+  "timeRange": {
+    "1h": "1h",
+    "6h": "6h",
+    "24h": "24h",
+    "7d": "7d",
+    "30d": "30d"
   }
 }

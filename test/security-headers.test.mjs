@@ -143,23 +143,9 @@ test("dashboard config emits baseline security headers", async () => {
   assert.match(headers.get("Permissions-Policy"), /usb=\(\)/);
   assert.match(headers.get("Permissions-Policy"), /interest-cohort=\(\)/);
 
-  const csp = headers.get("Content-Security-Policy");
-  assert.match(csp, /default-src 'self'/);
-  assert.match(csp, /base-uri 'self'/);
-  assert.match(csp, /frame-ancestors 'none'/);
-  assert.match(csp, /object-src 'none'/);
-  assert.match(csp, /form-action 'self'/);
-  assert.match(csp, /img-src 'self' data: blob:/);
-  assert.match(csp, /font-src 'self' data:/);
-  assert.match(csp, /style-src 'self' 'unsafe-inline'/);
-  assert.match(
-    csp,
-    /script-src 'self' 'unsafe-inline' https:\/\/cdn\.jsdelivr\.net\/npm\/monaco-editor@0\.45\.0\/min\/vs\//
-  );
-  assert.match(csp, /worker-src 'self' blob:/);
-  assert.match(csp, /connect-src 'self'/);
-  assert.doesNotMatch(csp, /script-src[^;]*https:\/\/cdn\.jsdelivr\.net(?:\s|;|$)/);
-  assert.doesNotMatch(csp, /worker-src[^;]*https:\/\/cdn\.jsdelivr\.net/);
+  // CSP is now set dynamically in the proxy middleware (src/proxy.ts)
+  // with per-request nonce, not in the static next.config headers.
+  assert.equal(headers.has("Content-Security-Policy"), false);
 });
 
 test("dashboard config does not bake HSTS into build-time headers", async () => {
@@ -192,6 +178,21 @@ test("dashboard proxy runtime HSTS is opt-in", async () => {
     response.headers.get("Strict-Transport-Security"),
     "max-age=31536000; includeSubDomains"
   );
+});
+
+test("dashboard proxy sets CSP with per-request nonce", async () => {
+  const { proxy, createRequest } = loadProxy();
+
+  const response = await proxy(createRequest("/en/login"));
+  const csp = response.headers.get("Content-Security-Policy");
+  assert.ok(csp, "CSP header must be present");
+  assert.match(csp, /script-src 'self' 'nonce-/);
+  assert.match(csp, /'strict-dynamic'/);
+  // script-src must not contain unsafe-inline (replaced by nonce+strict-dynamic)
+  assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'/);
+  assert.match(csp, /default-src 'self'/);
+  assert.match(csp, /frame-ancestors 'none'/);
+  assert.match(csp, /object-src 'none'/);
 });
 
 test("dashboard proxy redirects bare root requests to the localized login page", async () => {

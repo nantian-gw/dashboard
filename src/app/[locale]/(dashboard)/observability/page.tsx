@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -13,6 +14,7 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TimeRangeSelector, TIME_RANGES, type TimeRange } from "@/components/dashboard/time-range-selector";
 import { Download } from "lucide-react";
 
 const AreaChart = dynamic(() => import("@/components/charts/area-chart").then((m) => m.AreaChart), {
@@ -65,6 +67,9 @@ function rangePairValues(
 
 export default function ObservabilityPage() {
   const t = useTranslations();
+  const [timeRange, setTimeRange] = useState<TimeRange>("1h");
+  const hours = TIME_RANGES.find((r) => r.value === timeRange)?.hours ?? 1;
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
@@ -72,20 +77,23 @@ export default function ObservabilityPage() {
           <h1 className="text-3xl font-bold">{t("pages.observability.title")}</h1>
           <p className="text-muted-foreground">{t("pages.observability.subtitle")}</p>
         </div>
-        <Button variant="outline" size="sm" asChild>
-          <a href="/grafana-dashboard.json" download>
-            <Download className="mr-2 h-4 w-4" />
-            Grafana JSON
-          </a>
-        </Button>
+        <div className="flex items-center gap-3">
+          <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
+          <Button variant="outline" size="sm" asChild>
+            <a href="/grafana-dashboard.json" download>
+              <Download className="mr-2 h-4 w-4" />
+              Grafana JSON
+            </a>
+          </Button>
+        </div>
       </div>
-      <ObservabilityContent />
+      <ObservabilityContent hours={hours} />
     </div>
   );
 }
 
-function ObservabilityContent() {
-  return <ObservabilityData />;
+function ObservabilityContent({ hours }: { hours: number }) {
+  return <ObservabilityData hours={hours} />;
 }
 
 function PrometheusNotConfiguredCard() {
@@ -122,7 +130,7 @@ function PrometheusUnavailableCard() {
   );
 }
 
-function ObservabilityData() {
+function ObservabilityData({ hours }: { hours: number }) {
   const {
     data: p95Data,
     isLoading: p95Loading,
@@ -148,22 +156,22 @@ function ObservabilityData() {
     data: rpsRangeData,
     isLoading: rpsRangeLoading,
     isError: rpsRangeError,
-  } = usePrometheusRangeQuery(RPS_QUERY);
+  } = usePrometheusRangeQuery(RPS_QUERY, hours);
   const {
     data: p95RangeData,
     isLoading: p95RangeLoading,
     isError: p95RangeError,
-  } = usePrometheusRangeQuery(P95_QUERY);
+  } = usePrometheusRangeQuery(P95_QUERY, hours);
   const {
     data: p99RangeData,
     isLoading: p99RangeLoading,
     isError: p99RangeError,
-  } = usePrometheusRangeQuery(P99_QUERY);
+  } = usePrometheusRangeQuery(P99_QUERY, hours);
   const {
     data: successRangeData,
     isLoading: srRangeLoading,
     isError: srRangeError,
-  } = usePrometheusRangeQuery(SUCCESS_RATE_QUERY);
+  } = usePrometheusRangeQuery(SUCCESS_RATE_QUERY, hours);
 
   const isLoading =
     p95Loading || p99Loading || rpsLoading || srLoading ||

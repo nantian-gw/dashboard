@@ -5,20 +5,11 @@ import { useAtom } from "jotai";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import {
-  useBackendTls,
-  useDiagnostics,
-  useGateways,
-  useNodes,
-  useReferenceGrants,
-  useRoutes,
-} from "@/hooks/use-api";
+import { useGlobalSearch } from "@/hooks/use-api/use-global-search";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { searchAtom } from "@/lib/store";
 import {
-  buildGlobalSearchItems,
-  filterGlobalSearchItems,
   type GlobalSearchItem,
   type GlobalSearchKind,
 } from "@/lib/global-search";
@@ -61,42 +52,16 @@ export function GlobalSearch() {
   const [search, setSearch] = useAtom(searchAtom);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const shouldFetch = open || search.trim().length > 0;
-
-  const gateways = useGateways(shouldFetch);
-  const routes = useRoutes(shouldFetch);
-  const backendTls = useBackendTls(shouldFetch);
-  const nodes = useNodes(shouldFetch);
-  const referenceGrants = useReferenceGrants(shouldFetch);
-  const diagnostics = useDiagnostics(shouldFetch);
-
-  const items = useMemo(
-    () =>
-      buildGlobalSearchItems({
-        gateways: gateways.data,
-        routes: routes.data,
-        backendTlsPolicies: backendTls.data,
-        nodes: nodes.data,
-        referenceGrants: referenceGrants.data,
-        diagnostics: diagnostics.data,
-      }),
-    [gateways.data, routes.data, backendTls.data, nodes.data, referenceGrants.data, diagnostics.data]
-  );
-
   const query = search.trim();
-  const results = useMemo(() => filterGlobalSearchItems(items, query, 12), [items, query]);
+  const shouldFetch = open && query.length > 0;
+
+  const { data: results = [], isLoading } = useGlobalSearch(query, shouldFetch);
+
   const indexedResults = useMemo(
     () => results.map((item, index) => ({ item, index })),
     [results]
   );
   const grouped = useMemo(() => groupResults(indexedResults), [indexedResults]);
-  const isLoading =
-    gateways.isLoading ||
-    routes.isLoading ||
-    backendTls.isLoading ||
-    nodes.isLoading ||
-    referenceGrants.isLoading ||
-    diagnostics.isLoading;
   const showPanel = open && query.length > 0;
   const selectedIndex = results.length === 0 ? 0 : Math.min(activeIndex, results.length - 1);
 
@@ -171,7 +136,7 @@ export function GlobalSearch() {
           role="listbox"
           className="absolute right-0 top-11 z-50 max-h-[28rem] w-[28rem] overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground shadow-xl"
         >
-          {isLoading && results.length === 0 ? (
+          {isLoading ? (
             <div className="px-3 py-6 text-center text-sm text-muted-foreground">
               {t("topbar.search_loading")}
             </div>

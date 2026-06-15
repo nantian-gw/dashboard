@@ -106,3 +106,59 @@ export function useAICost(timeRange?: string) {
     gcTime: GC_TIME,
   }) as UseQueryResult<AICostSummary>;
 }
+
+export interface AITokenTrendDatum {
+  timestamp: string;
+  promptTokens: number;
+  completionTokens: number;
+  model: string;
+}
+
+export interface AILatencyTrendDatum {
+  timestamp: string;
+  latency: number;
+}
+
+/**
+ * Returns token usage trend data.
+ * Uses the existing /v1/ai/token-usage endpoint and aggregates by timestamp.
+ * Falls back to empty array when backend is unavailable.
+ */
+export function useAITokenTrend() {
+  return useQuery({
+    queryKey: ["ai", "token-trend"],
+    queryFn: async () => {
+      try {
+        return await controlplane.get<AITokenUsage[]>("/v1/ai/token-usage");
+      } catch {
+        return [] as AITokenUsage[];
+      }
+    },
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  }) as UseQueryResult<AITokenUsage[]>;
+}
+
+/**
+ * Returns latency trend data.
+ * Uses the existing /v1/ai/traces endpoint and extracts duration as latency.
+ * Falls back to empty array when backend is unavailable.
+ */
+export function useAILatencyTrend() {
+  return useQuery({
+    queryKey: ["ai", "latency-trend"],
+    queryFn: async () => {
+      try {
+        const data = await controlplane.get<AITraceSummary[]>("/v1/ai/traces");
+        return data.map((d) => ({
+          timestamp: d.timestamp,
+          latency: d.duration,
+        })) as AILatencyTrendDatum[];
+      } catch {
+        return [] as AILatencyTrendDatum[];
+      }
+    },
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  }) as UseQueryResult<AILatencyTrendDatum[]>;
+}

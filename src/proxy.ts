@@ -2,17 +2,42 @@ import { auth } from "@/lib/auth";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 import { NextRequest, NextResponse } from "next/server";
+import { randomBytes } from "node:crypto";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
 const I18N_EXCLUDED = ["/api", "/healthz", "/_next", "/_vercel"];
 const HSTS_HEADER_VALUE = "max-age=31536000; includeSubDomains";
 
+function generateNonce(): string {
+  return randomBytes(16).toString("base64url");
+}
+
 function isI18nExcluded(pathname: string): boolean {
   return I18N_EXCLUDED.some((path) => pathname.startsWith(path)) || /\.[^/]+$/.test(pathname);
 }
 
-function withRuntimeSecurityHeaders(response: NextResponse): NextResponse {
+function cspWithNonce(nonce: string): string {
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "style-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/`,
+    "worker-src 'self' blob:",
+    "connect-src 'self'",
+  ].join("; ");
+}
+
+function withRuntimeSecurityHeaders(response: NextResponse, nonce?: string): NextResponse {
+  if (nonce) {
+    response.headers.set("Content-Security-Policy", cspWithNonce(nonce));
+  }
+
   if (process.env.DASHBOARD_ENABLE_HSTS === "true") {
     response.headers.set("Strict-Transport-Security", HSTS_HEADER_VALUE);
   }
@@ -22,14 +47,16 @@ function withRuntimeSecurityHeaders(response: NextResponse): NextResponse {
 
 export default async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const nonce = generateNonce();
 
   if (isI18nExcluded(pathname)) {
-    return withRuntimeSecurityHeaders(NextResponse.next());
+    return withRuntimeSecurityHeaders(NextResponse.next(), nonce);
   }
 
   if (pathname === "/") {
     return withRuntimeSecurityHeaders(
-      NextResponse.redirect(new URL(`/${routing.defaultLocale}/login`, request.url))
+      NextResponse.redirect(new URL(`/${routing.defaultLocale}/login`, request.url)),
+      nonce
     );
   }
 
@@ -39,10 +66,11 @@ export default async function proxy(request: NextRequest) {
     const session = await auth();
     if (session) {
       return withRuntimeSecurityHeaders(
-        NextResponse.redirect(new URL(`/${locale}/overview`, request.url))
+        NextResponse.redirect(new URL(`/${locale}/overview`, request.url)),
+        nonce
       );
     }
-    return withRuntimeSecurityHeaders(intlMiddleware(request));
+    return withRuntimeSecurityHeaders(intlMiddleware(request), nonce);
   }
 
   const session = await auth();
@@ -50,10 +78,10 @@ export default async function proxy(request: NextRequest) {
     const locale = pathname.match(/^\/([a-z]{2})/)?.[1] ?? routing.defaultLocale;
     const loginUrl = new URL(`/${locale}/login`, request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
-    return withRuntimeSecurityHeaders(NextResponse.redirect(loginUrl));
+    return withRuntimeSecurityHeaders(NextResponse.redirect(loginUrl), nonce);
   }
 
-  return withRuntimeSecurityHeaders(intlMiddleware(request));
+  return withRuntimeSecurityHeaders(intlMiddleware(request), nonce);
 }
 
 export const config = {
