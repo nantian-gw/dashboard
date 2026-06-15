@@ -147,6 +147,30 @@ test("legacy dataplane nodes requests are routed to the published nodes endpoint
   );
 });
 
+test("dataplane summary auth mismatches degrade through the BFF instead of surfacing a 401", () => {
+  const source = readSource("src/app/api/dataplane/[[...slug]]/route.ts");
+  assert.match(
+    source,
+    /slug === "\/v1\/summary"/,
+    "dataplane proxy must detect the summary endpoint explicitly"
+  );
+  assert.match(
+    source,
+    /response\.status === 401 \|\| response\.status === 403/,
+    "dataplane summary compatibility must handle upstream 401/403 responses"
+  );
+  assert.match(
+    source,
+    /availability/,
+    "dataplane summary compatibility must emit an availability marker"
+  );
+  assert.match(
+    source,
+    /degraded/,
+    "dataplane summary compatibility must mark the payload as degraded"
+  );
+});
+
 test("legacy controlplane dashboard endpoints are served by compatibility handlers", () => {
   const source = readSource("src/app/api/controlplane/[[...slug]]/route.ts");
   for (const legacyEndpoint of [

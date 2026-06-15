@@ -1,15 +1,61 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { CONTROLPLANE_ADMIN_URL } from "@/lib/admin-urls";
 import { createFixedWindowRateLimiter, type RateLimitResult } from "./rate-limit";
 
 const AUTH_RATE_LIMIT_MAX_ATTEMPTS = 10;
 const AUTH_RATE_LIMIT_WINDOW_MS = 60_000;
+const AUTH_ERROR_CODE_INVALID = "invalid";
+const AUTH_ERROR_CODE_RATE_LIMITED = "rate_limited";
+const AUTH_ERROR_CODE_NETWORK = "network";
+const SUPPRESSED_AUTH_ERROR_CODES = new Set([
+  "credentials",
+  AUTH_ERROR_CODE_INVALID,
+  AUTH_ERROR_CODE_RATE_LIMITED,
+]);
+
+type TokenVerificationResult = "valid" | "invalid" | "network_error";
+type TokenVerificationOutcome =
+  | { result: "valid" }
+  | { result: "invalid" }
+  | { result: "network_error"; error?: Error; responseStatus?: number };
 
 const authRateLimiter = createFixedWindowRateLimiter({
   limit: AUTH_RATE_LIMIT_MAX_ATTEMPTS,
   windowMs: AUTH_RATE_LIMIT_WINDOW_MS,
 });
+
+class InvalidCredentialsError extends CredentialsSignin {
+  code = AUTH_ERROR_CODE_INVALID;
+}
+
+class RateLimitedCredentialsError extends CredentialsSignin {
+  code = AUTH_ERROR_CODE_RATE_LIMITED;
+}
+
+class NetworkCredentialsError extends CredentialsSignin {
+  code = AUTH_ERROR_CODE_NETWORK;
+
+  constructor(cause?: Error, responseStatus?: number) {
+    super("Controlplane token verification failed");
+
+    const details: Record<string, unknown> = {};
+    if (cause) {
+      details.err = cause;
+    }
+    if (typeof responseStatus === "number") {
+      details.responseStatus = responseStatus;
+    }
+    if (Object.keys(details).length > 0) {
+      Object.defineProperty(this, "cause", {
+        configurable: true,
+        enumerable: false,
+        value: details,
+        writable: true,
+      });
+    }
+  }
+}
 
 function firstForwardedForValue(value: string | null): string {
   return value
@@ -45,6 +91,54 @@ export function resetAuthRateLimitForTests(): void {
   authRateLimiter.reset();
 }
 
+function isSuppressedCredentialsError(error: Error): error is CredentialsSignin {
+  return (
+    error instanceof CredentialsSignin &&
+    SUPPRESSED_AUTH_ERROR_CODES.has(error.code)
+  );
+}
+
+function createNetworkCredentialsError(
+  outcome: Extract<TokenVerificationOutcome, { result: "network_error" }>
+): NetworkCredentialsError {
+  if (typeof outcome.responseStatus === "number") {
+    return new NetworkCredentialsError(
+      new Error(
+        `Controlplane token verification returned HTTP ${outcome.responseStatus}`
+      ),
+      outcome.responseStatus
+    );
+  }
+
+  return new NetworkCredentialsError(outcome.error);
+}
+
+export function logAuthError(error: Error): void {
+  if (isSuppressedCredentialsError(error)) return;
+
+  const name = error instanceof CredentialsSignin ? error.type : error.name;
+  console.error(`[auth][error] ${name}: ${error.message}`);
+
+  const cause = (error as Error & { cause?: unknown }).cause;
+  if (
+    cause &&
+    typeof cause === "object" &&
+    "err" in cause &&
+    cause.err instanceof Error
+  ) {
+    const { err, ...data } = cause as { err: Error } & Record<string, unknown>;
+    console.error("[auth][cause]:", err.stack);
+    if (Object.keys(data).length > 0) {
+      console.error("[auth][details]:", JSON.stringify(data, null, 2));
+    }
+    return;
+  }
+
+  if (error.stack) {
+    console.error(error.stack.replace(/.*/, "").substring(1));
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
@@ -56,10 +150,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!token) return null;
 
         const rateLimit = checkAuthRateLimit(request);
-        if (!rateLimit.allowed) return null;
+        if (!rateLimit.allowed) throw new RateLimitedCredentialsError();
 
-        const valid = await verifyTokenAgainstControlplane(token);
-        if (!valid) return null;
+        const verification = await verifyTokenAgainstControlplaneDetailed(token);
+        if (verification.result === "invalid") {
+          throw new InvalidCredentialsError();
+        }
+        if (verification.result === "network_error") {
+          throw createNetworkCredentialsError(verification);
+        }
 
         return {
           id: "admin",
@@ -73,6 +172,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET,
   pages: {
     signIn: "/en/login",
+  },
+  logger: {
+    error: logAuthError,
   },
   callbacks: {
     jwt: async ({ token, user }) => {
@@ -90,7 +192,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
 });
 
-export async function verifyTokenAgainstControlplane(token: string): Promise<boolean> {
+async function verifyTokenAgainstControlplaneDetailed(
+  token: string
+): Promise<TokenVerificationOutcome> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 5000);
 
@@ -103,10 +207,31 @@ export async function verifyTokenAgainstControlplane(token: string): Promise<boo
       }
     );
 
-    return response.ok;
-  } catch {
-    return false;
+    if (response.ok) return { result: "valid" };
+    if (response.status === 401 || response.status === 403) {
+      return { result: "invalid" };
+    }
+
+    return {
+      result: "network_error",
+      responseStatus: response.status,
+    };
+  } catch (error) {
+    return {
+      result: "network_error",
+      error:
+        error instanceof Error
+          ? error
+          : new Error("Controlplane token verification failed"),
+    };
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export async function verifyTokenAgainstControlplane(
+  token: string
+): Promise<TokenVerificationResult> {
+  const verification = await verifyTokenAgainstControlplaneDetailed(token);
+  return verification.result;
 }

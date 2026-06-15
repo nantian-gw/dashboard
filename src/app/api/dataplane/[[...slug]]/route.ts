@@ -38,6 +38,15 @@ function legacyDataplanePayload(slug: string, data: unknown): unknown {
   return data;
 }
 
+function degradedDataplaneSummaryPayload(): Record<string, unknown> {
+  return {
+    availability: {
+      state: "degraded",
+      reason: "unauthorized",
+    },
+  };
+}
+
 export async function handler(request: NextRequest): Promise<NextResponse> {
   const session = await auth();
   if (!session?.user?.token) {
@@ -92,6 +101,14 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
       redirect: "manual",
       signal: controller.signal,
     });
+
+    if (
+      slug === "/v1/summary" &&
+      (response.status === 401 || response.status === 403)
+    ) {
+      clearTimeout(timeout);
+      return NextResponse.json(degradedDataplaneSummaryPayload());
+    }
 
     clearTimeout(timeout);
 
