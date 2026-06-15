@@ -490,14 +490,45 @@ test("dashboard shared navigation wrappers localize in-app routes", () => {
 });
 
 test("resource forms use localized dashboard links for operator back navigation", () => {
-  for (const routePath of [
-    "src/components/resources/aiservice-form.tsx",
-    "src/components/resources/backendtls-form.tsx",
-    "src/components/resources/referencegrant-form.tsx",
-    "src/components/resources/tokenpolicy-form.tsx",
+  function escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  for (const { routePath, href } of [
+    { routePath: "src/components/resources/aiservice-form.tsx", href: "/ai/services" },
+    { routePath: "src/components/resources/backendtls-form.tsx", href: "/backend-tls" },
+    { routePath: "src/components/resources/referencegrant-form.tsx", href: "/reference-grants" },
+    { routePath: "src/components/resources/tokenpolicy-form.tsx", href: "/ai/token-policies" },
   ]) {
     const source = readSource(routePath);
-    assert.match(source, /LocalizedLink/, `${routePath} must use LocalizedLink for in-app back navigation`);
-    assert.doesNotMatch(source, /<Link href="\/(ai\/services|backend-tls|reference-grants|ai\/token-policies)"/, `${routePath} must not point at bare dashboard hrefs`);
+    const escapedHref = escapeRegExp(href);
+    const localizedLinkPattern = new RegExp(`<LocalizedLink\\s+href="${escapedHref}"`, "g");
+
+    assert.equal(
+      source.match(localizedLinkPattern)?.length ?? 0,
+      2,
+      `${routePath} must render both back and cancel navigation with LocalizedLink to ${href}`
+    );
+    assert.doesNotMatch(
+      source,
+      /import\s+Link\s+from\s+"next\/link";?/,
+      `${routePath} must not import raw next/link`
+    );
+
+    for (const barePattern of [
+      new RegExp(`<Link\\s+href="${escapedHref}"`),
+      new RegExp(`<a\\s+href="${escapedHref}"`),
+      new RegExp(`router\\.push\\("${escapedHref}"\\)`),
+      new RegExp(`router\\.replace\\("${escapedHref}"\\)`),
+      new RegExp(`window\\.location\\.href\\s*=\\s*"${escapedHref}"`),
+      new RegExp(`window\\.location\\.assign\\("${escapedHref}"\\)`),
+      new RegExp(`window\\.location\\.replace\\("${escapedHref}"\\)`),
+    ]) {
+      assert.doesNotMatch(
+        source,
+        barePattern,
+        `${routePath} must not keep bare in-app navigation to ${href}`
+      );
+    }
   }
 });
