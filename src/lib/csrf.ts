@@ -7,11 +7,14 @@ import { randomBytes } from "node:crypto";
  * 1. A random token is set as a cookie on every page response
  * 2. The client reads the cookie and sends it as a header on POST/PUT/DELETE
  * 3. The server compares the header value against the cookie value
+ *
+ * Note: The cookie is NOT HttpOnly because the client JavaScript must
+ * read it to include it as a request header (double-submit pattern).
  */
 
 const CSRF_COOKIE_NAME = "x-csrf-token";
 const CSRF_HEADER_NAME = "x-csrf-token";
-const CSRF_COOKIE_OPTIONS = "Path=/; SameSite=Strict; HttpOnly; Secure";
+const CSRF_COOKIE_OPTIONS = "Path=/; SameSite=Strict; Secure";
 
 export function generateCsrfToken(): string {
   return randomBytes(32).toString("base64url");

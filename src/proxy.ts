@@ -39,9 +39,10 @@ function withRuntimeSecurityHeaders(response: NextResponse, nonce?: string): Nex
     response.headers.set("Content-Security-Policy", cspWithNonce(nonce));
   }
 
-  // Set CSRF token cookie on page responses (not API routes)
+  // Set CSRF token cookie on page responses (not API routes).
+  // Use append() to avoid overwriting NextAuth's session cookie.
   const csrfToken = generateCsrfToken();
-  response.headers.set("Set-Cookie", getCsrfCookieHeader(csrfToken));
+  response.headers.append("Set-Cookie", getCsrfCookieHeader(csrfToken));
 
   if (process.env.DASHBOARD_ENABLE_HSTS === "true") {
     response.headers.set("Strict-Transport-Security", HSTS_HEADER_VALUE);

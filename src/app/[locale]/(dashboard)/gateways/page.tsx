@@ -76,15 +76,15 @@ function GatewaysContent({ search }: { search: string }) {
 
   const handleBatchDelete = useCallback(async () => {
     const ids = Array.from(selectedIds);
-    let deleted = 0;
-    let failed = 0;
-    for (const id of ids) {
-      try {
+    const results = await Promise.allSettled(
+      ids.map(async (id) => {
         const [namespace, name] = id.split("-");
         const res = await deleteResource(`/v1/resources/gateway/${namespace}/${name}`);
-        if (res.ok) deleted++; else failed++;
-      } catch { failed++; }
-    }
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      })
+    );
+    const deleted = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results.filter((r) => r.status === "rejected").length;
     if (failed === 0) {
       toast.success(t("batch.delete_success", { count: deleted }));
     } else {
