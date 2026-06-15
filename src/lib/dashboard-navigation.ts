@@ -16,14 +16,11 @@ export function localizeDashboardPath(locale: string, href: string): string {
   }
 
   const normalizedLocale = normalizeDashboardLocale(locale);
-  const match = href.match(/^([^?#]*)(.*)$/);
-  const pathname = match?.[1] ?? href;
-  const suffix = match?.[2] ?? "";
-  const firstSegment = pathname.split("/").filter(Boolean)[0] ?? "";
-
-  if (isDashboardLocale(firstSegment)) {
-    return `${pathname}${suffix}`;
+  for (const dashboardLocale of routing.locales) {
+    if (href === `/${dashboardLocale}` || href.startsWith(`/${dashboardLocale}/`)) {
+      return href;
+    }
   }
 
-  return `/${normalizedLocale}${pathname}${suffix}`;
+  return `/${normalizedLocale}${href}`;
 }
