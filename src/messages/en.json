@@ -96,6 +96,12 @@
     "every_seconds": "{seconds}s",
     "never": "Never"
   },
+  "resource_editor": {
+    "form_tab": "Form",
+    "yaml_tab": "YAML",
+    "yaml_help": "Edit a single resource manifest here. Switch back to Form to rebuild the structured editor.",
+    "cancel": "Cancel"
+  },
   "pages": {
     "overview": { "title": "Overview", "subtitle": "Real-time summary of your Gateway API resources and traffic." },
     "gateways": { "title": "Gateways", "subtitle": "Manage and monitor Gateway resources in your cluster." },

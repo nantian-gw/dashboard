@@ -96,6 +96,12 @@
     "every_seconds": "{seconds}秒",
     "never": "从不"
   },
+  "resource_editor": {
+    "form_tab": "表单",
+    "yaml_tab": "YAML",
+    "yaml_help": "在这里编辑单个资源清单。切回表单模式时会重新构建结构化字段。",
+    "cancel": "取消"
+  },
   "pages": {
     "overview": { "title": "概览", "subtitle": "Gateway API 资源和流量的实时摘要。" },
     "gateways": { "title": "网关", "subtitle": "管理和监控集群中的 Gateway 资源。" },
