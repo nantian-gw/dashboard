@@ -81,3 +81,79 @@ test("gateway codec round-trips listeners with TLS certificate refs", () => {
   assert.match(yamlText, /kind: Gateway/);
   assert.deepEqual(normalize(gatewayManifestToFormData(yamlText)), formData);
 });
+
+test("gateway codec preserves an explicit empty listener list from YAML", () => {
+  const { gatewayFormDataToManifest, gatewayManifestToFormData } = loadTsModule(
+    "src/components/resources/gateway-form-codec.ts",
+    commonStubs
+  );
+
+  const yamlText = `apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: edge
+  namespace: platform
+spec:
+  gatewayClassName: nantian
+  listeners: []
+`;
+
+  const formData = normalize(gatewayManifestToFormData(yamlText));
+
+  assert.deepEqual(formData, {
+    name: "edge",
+    namespace: "platform",
+    gatewayClass: "nantian",
+    listeners: [],
+  });
+  assert.match(gatewayFormDataToManifest(formData), /listeners: \[\]/);
+});
+
+test("gateway codec initializes TLS defaults for HTTPS and TLS listeners without tls blocks", () => {
+  const { gatewayManifestToFormData } = loadTsModule(
+    "src/components/resources/gateway-form-codec.ts",
+    commonStubs
+  );
+
+  const yamlText = `apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: edge
+  namespace: platform
+spec:
+  gatewayClassName: nantian
+  listeners:
+    - name: https
+      port: 443
+      protocol: HTTPS
+    - name: tls
+      port: 8443
+      protocol: TLS
+`;
+
+  assert.deepEqual(normalize(gatewayManifestToFormData(yamlText)), {
+    name: "edge",
+    namespace: "platform",
+    gatewayClass: "nantian",
+    listeners: [
+      {
+        name: "https",
+        port: 443,
+        protocol: "HTTPS",
+        tls: {
+          mode: "Terminate",
+          certificateRefs: [],
+        },
+      },
+      {
+        name: "tls",
+        port: 8443,
+        protocol: "TLS",
+        tls: {
+          mode: "Terminate",
+          certificateRefs: [],
+        },
+      },
+    ],
+  });
+});

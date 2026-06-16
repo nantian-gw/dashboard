@@ -688,13 +688,18 @@ test("Gateway form adopts the shared dual-mode editor shell", () => {
 
   assert.match(
     gatewayFormSource,
-    /ResourceEditorShell/,
-    "Gateway form must render through the shared dual-mode editor shell"
+    /import\s+\{\s*ResourceEditorShell\s*\}\s+from\s+"\.\/resource-editor-shell";?/,
+    "Gateway form must import the shared dual-mode editor shell"
   );
   assert.match(
     gatewayFormSource,
+    /<ResourceEditorShell[\s\S]*backHref="\/gateways"/,
+    "Gateway form must render through the shared dual-mode editor shell"
+  );
+  assert.doesNotMatch(
+    gatewayFormSource,
     /LocalizedLink/,
-    "Gateway form must use localized back and cancel navigation"
+    "Gateway form should delegate LocalizedLink wiring to the shared shell instead of mentioning it locally"
   );
   assert.doesNotMatch(
     gatewayFormSource,

@@ -13,6 +13,17 @@ function createEmptyListener() {
   return { port: 80, protocol: "HTTP", name: "http" };
 }
 
+function readCertificateRefs(rawCertificateRefs: unknown) {
+  return Array.isArray(rawCertificateRefs)
+    ? rawCertificateRefs.map((ref: any) => ({
+        name: String(ref.name ?? ""),
+        namespace: String(ref.namespace ?? ""),
+        kind: String(ref.kind ?? "Secret"),
+        group: String(ref.group ?? ""),
+      }))
+    : [];
+}
+
 export function createEmptyGatewayFormData(): GatewayFormData {
   return {
     name: "",
@@ -34,35 +45,28 @@ export function gatewayResourceToFormData(
   const unwrapped = unwrapResource(resource) as ManifestRecord;
   const spec = (unwrapped.spec ?? {}) as Record<string, any>;
   const metadata = (unwrapped.metadata ?? {}) as Record<string, any>;
-  const listeners =
-    Array.isArray(spec.listeners) && spec.listeners.length > 0
-      ? spec.listeners.map((listener: any) => {
-          const entry = {
-            name: String(listener.name ?? ""),
-            port:
-              typeof listener.port === "number"
-                ? listener.port
-                : parseInt(String(listener.port), 10) || 0,
-            protocol: String(listener.protocol ?? "HTTP"),
-          } as GatewayFormData["listeners"][number];
+  const listeners = Array.isArray(spec.listeners)
+    ? spec.listeners.map((listener: any) => {
+        const protocol = String(listener.protocol ?? "HTTP");
+        const entry = {
+          name: String(listener.name ?? ""),
+          port:
+            typeof listener.port === "number"
+              ? listener.port
+              : parseInt(String(listener.port), 10) || 0,
+          protocol,
+        } as GatewayFormData["listeners"][number];
 
-          if (listener.tls) {
-            entry.tls = {
-              mode: String(listener.tls.mode ?? "Terminate"),
-              certificateRefs: Array.isArray(listener.tls.certificateRefs)
-                ? listener.tls.certificateRefs.map((ref: any) => ({
-                    name: String(ref.name ?? ""),
-                    namespace: String(ref.namespace ?? ""),
-                    kind: String(ref.kind ?? "Secret"),
-                    group: String(ref.group ?? ""),
-                  }))
-                : [],
-            };
-          }
+        if (listener.tls || protocol === "HTTPS" || protocol === "TLS") {
+          entry.tls = {
+            mode: String(listener.tls?.mode ?? "Terminate"),
+            certificateRefs: readCertificateRefs(listener.tls?.certificateRefs),
+          };
+        }
 
-          return entry;
-        })
-      : createEmptyGatewayFormData().listeners;
+        return entry;
+      })
+    : createEmptyGatewayFormData().listeners;
 
   return {
     name: String(metadata.name ?? fallbackName),
@@ -73,6 +77,18 @@ export function gatewayResourceToFormData(
 }
 
 export function gatewayFormDataToManifest(formData: GatewayFormData): string {
+  if (formData.listeners.length === 0) {
+    return `apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: ${formData.name}
+  namespace: ${formData.namespace}
+spec:
+  gatewayClassName: ${formData.gatewayClass}
+  listeners: []
+`;
+  }
+
   const listenersYaml = formData.listeners
     .map((listener) => {
       const lines = [

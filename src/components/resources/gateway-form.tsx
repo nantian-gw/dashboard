@@ -56,6 +56,13 @@ interface GatewayFormFieldsProps {
   disableIdentityFields: boolean;
 }
 
+function createTlsState() {
+  return {
+    mode: "Terminate",
+    certificateRefs: [] as CertRef[],
+  };
+}
+
 function GatewayFormFields({
   value,
   onChange,
@@ -126,11 +133,11 @@ function GatewayFormFields({
 
   const updateListenerTLS = (index: number, field: string, fieldValue: string) => {
     const listeners = value.listeners.map((listener, listenerIndex) => {
-      if (listenerIndex !== index || !listener.tls) return listener;
+      if (listenerIndex !== index) return listener;
       return {
         ...listener,
         tls: {
-          ...listener.tls,
+          ...(listener.tls ?? createTlsState()),
           [field]: fieldValue,
         },
       };
@@ -141,13 +148,14 @@ function GatewayFormFields({
 
   const addCertRef = (listenerIndex: number) => {
     const listeners = value.listeners.map((listener, index) => {
-      if (index !== listenerIndex || !listener.tls) return listener;
+      if (index !== listenerIndex) return listener;
+      const tls = listener.tls ?? createTlsState();
       return {
         ...listener,
         tls: {
-          ...listener.tls,
+          ...tls,
           certificateRefs: [
-            ...listener.tls.certificateRefs,
+            ...tls.certificateRefs,
             { name: "", namespace: value.namespace, kind: "Secret", group: "" },
           ],
         },
@@ -159,12 +167,13 @@ function GatewayFormFields({
 
   const removeCertRef = (listenerIndex: number, refIndex: number) => {
     const listeners = value.listeners.map((listener, index) => {
-      if (index !== listenerIndex || !listener.tls) return listener;
+      if (index !== listenerIndex) return listener;
+      const tls = listener.tls ?? createTlsState();
       return {
         ...listener,
         tls: {
-          ...listener.tls,
-          certificateRefs: listener.tls.certificateRefs.filter(
+          ...tls,
+          certificateRefs: tls.certificateRefs.filter(
             (_, certificateIndex) => certificateIndex !== refIndex
           ),
         },
@@ -181,12 +190,13 @@ function GatewayFormFields({
     fieldValue: string
   ) => {
     const listeners = value.listeners.map((listener, index) => {
-      if (index !== listenerIndex || !listener.tls) return listener;
+      if (index !== listenerIndex) return listener;
+      const tls = listener.tls ?? createTlsState();
       return {
         ...listener,
         tls: {
-          ...listener.tls,
-          certificateRefs: listener.tls.certificateRefs.map((ref, certificateIndex) =>
+          ...tls,
+          certificateRefs: tls.certificateRefs.map((ref, certificateIndex) =>
             certificateIndex === refIndex ? { ...ref, [field]: fieldValue } : ref
           ),
         },
@@ -441,7 +451,7 @@ export function GatewayForm({ initialData, mode, onSuccess }: GatewayFormProps) 
   const [error, setError] = useState("");
   const isEdit = mode === "edit";
 
-  // ResourceEditorShell owns the LocalizedLink back/cancel navigation for this editor.
+  // The shared shell owns back/cancel navigation for this editor.
   return (
     <ResourceEditorShell
       title={isEdit ? t("create.gateway.edit_title") : t("create.gateway.title")}
