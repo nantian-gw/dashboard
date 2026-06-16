@@ -366,6 +366,92 @@ test("representative dashboard pages stop using raw non-localized navigation tar
   }
 });
 
+test("shared dashboard navigation surfaces prewarm approved hotspots without changing navigation contracts", () => {
+  const prewarmSource = readSource("src/lib/dashboard-query-prewarm.ts");
+  const linkSource = readSource("src/components/dashboard/localized-link.tsx");
+  const routerSource = readSource("src/lib/use-localized-dashboard-router.ts");
+  const searchSource = readSource("src/components/dashboard/global-search.tsx");
+
+  assert.match(
+    prewarmSource,
+    /getDashboardQueryPrewarmTargets/,
+    "dashboard query prewarm helper must consume the explicit hotspot matcher"
+  );
+  assert.match(
+    prewarmSource,
+    /queryClient\.prefetchQuery/,
+    "dashboard query prewarm helper must warm the existing React Query cache"
+  );
+
+  assert.match(
+    linkSource,
+    /useQueryClient/,
+    "LocalizedLink must have access to the shared query client for prewarm"
+  );
+  assert.match(
+    linkSource,
+    /prewarmDashboardQueries/,
+    "LocalizedLink must trigger best-effort query prewarm on early-intent events"
+  );
+  assert.match(
+    linkSource,
+    /router\.prefetch\(localizedHref\)/,
+    "LocalizedLink must prefetch route code for localized dashboard hrefs"
+  );
+  assert.match(
+    linkSource,
+    /onMouseEnter/,
+    "LocalizedLink must wire a hover prewarm entry point"
+  );
+  assert.match(
+    linkSource,
+    /onFocus/,
+    "LocalizedLink must wire a focus prewarm entry point"
+  );
+
+  assert.match(
+    routerSource,
+    /useQueryClient/,
+    "useLocalizedDashboardRouter must reuse the shared query client"
+  );
+  assert.match(
+    routerSource,
+    /prewarmDashboardQueries/,
+    "useLocalizedDashboardRouter must trigger best-effort query prewarm for imperative navigation"
+  );
+  assert.match(
+    routerSource,
+    /prefetch\(href: string, options\?: Parameters<typeof router\.prefetch>\[1\]\)/,
+    "useLocalizedDashboardRouter must preserve the typed prefetch options signature"
+  );
+  assert.match(
+    routerSource,
+    /router\.prefetch\(localizedHref, options\)/,
+    "useLocalizedDashboardRouter must still forward localized prefetch options into Next.js"
+  );
+
+  assert.match(
+    searchSource,
+    /useDeferredValue/,
+    "GlobalSearch must defer typed input before issuing fetch-heavy result updates"
+  );
+  assert.match(
+    searchSource,
+    /startTransition/,
+    "GlobalSearch must wrap result navigation in a transition"
+  );
+  assert.match(
+    searchSource,
+    /const \{ push, prefetch \} = useLocalizedDashboardRouter\(\)/,
+    "GlobalSearch must reuse the shared localized router wrapper for both navigation and prewarm"
+  );
+  assert.match(
+    searchSource,
+    /void prefetch\(item\.href\)/,
+    "GlobalSearch must prewarm explicit result targets before click navigation"
+  );
+});
+
 test("optional dashboard feature groups are gated by dedicated layouts", () => {
   for (const routePath of [
     "src/app/[locale]/(dashboard)/ai/overview/layout.tsx",

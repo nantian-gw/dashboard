@@ -1,6 +1,13 @@
 "use client";
 
-import { useId, useMemo, useState, type KeyboardEvent } from "react";
+import {
+  startTransition,
+  useDeferredValue,
+  useId,
+  useMemo,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { useAtom } from "jotai";
 import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
@@ -47,13 +54,15 @@ function groupResults(items: IndexedSearchItem[]): Record<GlobalSearchKind, Inde
 
 export function GlobalSearch() {
   const t = useTranslations();
-  const { push } = useLocalizedDashboardRouter();
+  const { push, prefetch } = useLocalizedDashboardRouter();
   const listboxId = useId();
   const [search, setSearch] = useAtom(searchAtom);
+  const deferredSearch = useDeferredValue(search);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const query = search.trim();
-  const shouldFetch = open && query.length > 0;
+  const query = deferredSearch.trim();
+  const typedQuery = search.trim();
+  const shouldFetch = open && typedQuery.length > 0;
 
   const { data: results = [], isLoading } = useGlobalSearch(query, shouldFetch);
 
@@ -62,13 +71,15 @@ export function GlobalSearch() {
     [results]
   );
   const grouped = useMemo(() => groupResults(indexedResults), [indexedResults]);
-  const showPanel = open && query.length > 0;
+  const showPanel = open && typedQuery.length > 0;
   const selectedIndex = results.length === 0 ? 0 : Math.min(activeIndex, results.length - 1);
 
   function openResult(href: string) {
     setOpen(false);
     setSearch("");
-    push(href);
+    startTransition(() => {
+      push(href);
+    });
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -164,6 +175,14 @@ export function GlobalSearch() {
                         className="flex w-full items-start gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring aria-selected:bg-accent"
                         onClick={() => openResult(item.href)}
                         onMouseDown={(event) => event.preventDefault()}
+                        onMouseEnter={() => {
+                          setActiveIndex(index);
+                          void prefetch(item.href);
+                        }}
+                        onFocus={() => {
+                          setActiveIndex(index);
+                          void prefetch(item.href);
+                        }}
                       >
                         <Badge variant="outline" className="mt-0.5 shrink-0">
                           {t(`topbar.search_badges.${item.kind}`)}
