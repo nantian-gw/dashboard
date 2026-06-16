@@ -122,11 +122,35 @@ test("unsupported and create routes do not trigger query prewarm", () => {
 
   assert.equal(JSON.stringify(getDashboardQueryPrewarmTargets("/en/overview")), JSON.stringify([]));
   assert.equal(
+    JSON.stringify(getDashboardQueryPrewarmTargets("/en/gateways/ns/name/extra")),
+    JSON.stringify([])
+  );
+  assert.equal(
     JSON.stringify(getDashboardQueryPrewarmTargets("/zh/routes/create/grpcroute")),
     JSON.stringify([])
   );
   assert.equal(
+    JSON.stringify(getDashboardQueryPrewarmTargets("/en/routes/HTTPRoute/ns/name/extra")),
+    JSON.stringify([])
+  );
+  assert.equal(
+    JSON.stringify(getDashboardQueryPrewarmTargets("/en/backend-tls/ns/name/extra")),
+    JSON.stringify([])
+  );
+  assert.equal(
+    JSON.stringify(getDashboardQueryPrewarmTargets("/en/reference-grants/ns/name/extra")),
+    JSON.stringify([])
+  );
+  assert.equal(
+    JSON.stringify(getDashboardQueryPrewarmTargets("/en/ai/services/name/extra")),
+    JSON.stringify([])
+  );
+  assert.equal(
     JSON.stringify(getDashboardQueryPrewarmTargets("/en/ai/token-policies/create")),
+    JSON.stringify([])
+  );
+  assert.equal(
+    JSON.stringify(getDashboardQueryPrewarmTargets("/en/ai/token-policies/name/extra")),
     JSON.stringify([])
   );
   assert.equal(
