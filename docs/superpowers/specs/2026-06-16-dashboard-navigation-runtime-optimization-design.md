@@ -168,8 +168,8 @@ Planned scope:
 - reference grant list/detail transitions
 - AI services list/detail transitions where detail pages currently derive from
   the shared list data
-- AI token policy list/detail transitions where detail pages currently derive
-  from the shared list data
+- AI token policy list transitions only in the current route tree; detail
+  prewarm stays out of scope until a real detail page exists
 
 This design intentionally avoids:
 

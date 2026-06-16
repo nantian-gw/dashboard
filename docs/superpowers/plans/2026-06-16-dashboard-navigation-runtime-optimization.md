@@ -184,7 +184,7 @@ test("approved AI pages resolve to list-backed prewarm targets", () => {
   );
   assert.equal(
     JSON.stringify(getDashboardQueryPrewarmTargets("/zh/ai/token-policies/default-limit")),
-    JSON.stringify([{ kind: "token-policies-list" }])
+    JSON.stringify([])
   );
 });
 
@@ -201,6 +201,10 @@ test("unsupported and create routes do not trigger query prewarm", () => {
   );
   assert.equal(
     JSON.stringify(getDashboardQueryPrewarmTargets("/en/ai/token-policies/create")),
+    JSON.stringify([])
+  );
+  assert.equal(
+    JSON.stringify(getDashboardQueryPrewarmTargets("/en/ai/token-policies/default-limit")),
     JSON.stringify([])
   );
   assert.equal(
@@ -308,8 +312,7 @@ export function getDashboardQueryPrewarmTargets(href: string): DashboardQueryPre
 
   if (segments[0] === "ai" && segments[1] === "token-policies") {
     if (segments.length === 2) return [{ kind: "token-policies-list" }];
-    if (segments[2] === "create") return [];
-    return [{ kind: "token-policies-list" }];
+    return [];
   }
 
   return [];
