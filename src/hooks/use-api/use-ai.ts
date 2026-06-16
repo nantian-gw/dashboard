@@ -71,13 +71,17 @@ export function useAIOverview() {
   }) as UseQueryResult<AIOverview>;
 }
 
-export function useAIServices() {
-  return useQuery({
-    queryKey: ["ai", "services"],
+export function aiServicesQueryOptions() {
+  return {
+    queryKey: ["ai", "services"] as const,
     queryFn: () => controlplane.get<AIServiceSummary[]>("/v1/ai/services"),
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
-  }) as UseQueryResult<AIServiceSummary[]>;
+  };
+}
+
+export function useAIServices() {
+  return useQuery(aiServicesQueryOptions()) as UseQueryResult<AIServiceSummary[]>;
 }
 
 export function useAITokenUsage() {

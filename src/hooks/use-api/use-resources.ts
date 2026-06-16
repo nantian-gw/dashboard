@@ -26,32 +26,41 @@ export function useNodes(enabled = true) {
   }) as UseQueryResult<{ nodes: ReturnType<typeof mapNodePayload> }>;
 }
 
-export function useReferenceGrants(enabled = true) {
-  return useQuery({
-    queryKey: ["referencegrants"],
+export function referenceGrantsQueryOptions() {
+  return {
+    queryKey: ["referencegrants"] as const,
     queryFn: async () => {
-      const resources = await controlplane.get<ManagedResource[]>(
-        "/v1/resources",
-        { kind: "ReferenceGrant" }
-      );
+      const resources = await controlplane.get<ManagedResource[]>("/v1/resources", {
+        kind: "ReferenceGrant",
+      });
       return { grants: resources };
     },
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
+  };
+}
+
+export function referenceGrantQueryOptions(namespace: string, name: string) {
+  return {
+    queryKey: ["referencegrant", namespace, name] as const,
+    queryFn: () =>
+      controlplane.get<ManagedResource>(`/v1/resources/referencegrant/${namespace}/${name}`),
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  };
+}
+
+export function useReferenceGrants(enabled = true) {
+  return useQuery({
+    ...referenceGrantsQueryOptions(),
     enabled,
   }) as UseQueryResult<{ grants: ManagedResource[] }>;
 }
 
 export function useReferenceGrant(namespace: string, name: string) {
   return useQuery({
-    queryKey: ["referencegrant", namespace, name],
-    queryFn: () =>
-      controlplane.get<ManagedResource>(
-        `/v1/resources/referencegrant/${namespace}/${name}`
-      ),
+    ...referenceGrantQueryOptions(namespace, name),
     enabled: !!namespace && !!name,
-    staleTime: STALE_TIME,
-    gcTime: GC_TIME,
   }) as UseQueryResult<ManagedResource>;
 }
 

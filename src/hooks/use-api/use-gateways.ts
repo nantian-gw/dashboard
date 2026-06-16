@@ -12,9 +12,9 @@ const REFETCH_INTERVAL = (query: any) => {
 const STALE_TIME = 300000;
 const GC_TIME = 5 * 60 * 1000;
 
-export function useGateways(enabled = true) {
-  return useQuery({
-    queryKey: ["gateways"],
+export function gatewaysQueryOptions() {
+  return {
+    queryKey: ["gateways"] as const,
     queryFn: async () => {
       const [resources, summary, routesPayload] = await Promise.all([
         controlplane.get<ManagedResource[]>("/v1/resources", { kind: "Gateway" }),
@@ -31,42 +31,33 @@ export function useGateways(enabled = true) {
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
-    enabled,
-  }) as UseQueryResult<{
-    gateways: ReturnType<typeof mapGatewayResource>[];
-    httpRouteCount: number;
-    grpcRouteCount: number;
-  }>;
+  };
 }
 
-export function useGateway(namespace: string, name: string) {
-  return useQuery({
-    queryKey: ["gateway", namespace, name],
+export function gatewayQueryOptions(namespace: string, name: string) {
+  return {
+    queryKey: ["gateway", namespace, name] as const,
     queryFn: async () => {
       const [resource, routesPayload] = await Promise.all([
-        controlplane.get<ManagedResource>(
-          `/v1/resources/gateway/${namespace}/${name}`
-        ),
+        controlplane.get<ManagedResource>(`/v1/resources/gateway/${namespace}/${name}`),
         controlplane.get("/v1/routes"),
       ]);
       return mapGatewayResource(resource, mapRoutesPayload(routesPayload));
     },
-    enabled: !!namespace && !!name,
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
-  }) as UseQueryResult<ReturnType<typeof mapGatewayResource>>;
+  };
 }
 
-export function useRoute(namespace: string, name: string, kind: string) {
-  return useQuery({
-    queryKey: ["route", namespace, name, kind],
+export function routeQueryOptions(namespace: string, name: string, kind: string) {
+  return {
+    queryKey: ["route", namespace, name, kind] as const,
     queryFn: async () => {
       const r = await controlplane.get<ManagedResource>(
         `/v1/resources/${kind.toLowerCase()}/${namespace}/${name}`
       );
       const rawSpec = (r.resource?.spec || {}) as Record<string, unknown>;
-
       const rules = (rawSpec.rules as unknown[]) || [];
       const backends: unknown[] = [];
       const pathMatches: string[] = [];
@@ -74,15 +65,9 @@ export function useRoute(namespace: string, name: string, kind: string) {
       rules.forEach((rule: any) => {
         if (rule.matches) {
           rule.matches.forEach((m: any) => {
-            if (m.path) {
-              pathMatches.push(`${m.path.type || "PathPrefix"}: ${m.path.value || "/"}`);
-            }
-            if (m.headers) {
-              pathMatches.push(`Headers: ${m.headers.length}`);
-            }
-            if (m.method) {
-              pathMatches.push(`Method: ${m.method}`);
-            }
+            if (m.path) pathMatches.push(`${m.path.type || "PathPrefix"}: ${m.path.value || "/"}`);
+            if (m.headers) pathMatches.push(`Headers: ${m.headers.length}`);
+            if (m.method) pathMatches.push(`Method: ${m.method}`);
           });
         }
         if (rule.backendRefs) {
@@ -105,25 +90,24 @@ export function useRoute(namespace: string, name: string, kind: string) {
           status: "Accepted",
           hostnames: rawSpec.hostnames || [],
           parentRefs: rawSpec.parentRefs || [],
-          rules: rules,
+          rules,
           pathMatches,
           backends,
           filters: rules.flatMap((rule: any) => rule.filters || []),
           timeouts: (rules[0] as Record<string, unknown> | undefined)?.timeouts,
           manifest: toYaml(r.resource || r),
-        }
+        },
       };
     },
-    enabled: !!namespace && !!name && !!kind,
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
-  }) as UseQueryResult<{ route: Record<string, unknown> }>;
+  };
 }
 
-export function useRoutes(enabled = true) {
-  return useQuery({
-    queryKey: ["routes"],
+export function routesQueryOptions() {
+  return {
+    queryKey: ["routes"] as const,
     queryFn: async () => {
       const payload = await controlplane.get("/v1/routes");
       return { routes: mapRoutesPayload(payload) };
@@ -131,38 +115,79 @@ export function useRoutes(enabled = true) {
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
+  };
+}
+
+export function tokenPoliciesQueryOptions() {
+  return {
+    queryKey: ["token-policies"] as const,
+    queryFn: async () => {
+      const resources = await controlplane.get<ManagedResource[]>("/v1/resources", {
+        kind: "TokenPolicy",
+      });
+      return { policies: resources.map(mapTokenPolicyResource) };
+    },
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  };
+}
+
+export function backendTlsQueryOptions() {
+  return {
+    queryKey: ["backend-tls"] as const,
+    queryFn: async () => {
+      const resources = await controlplane.get<ManagedResource[]>("/v1/resources", {
+        kind: "BackendTLSPolicy",
+      });
+      return { policies: resources.map(mapBackendTlsPolicyResource) };
+    },
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  };
+}
+
+export function useGateways(enabled = true) {
+  return useQuery({
+    ...gatewaysQueryOptions(),
+    enabled,
+  }) as UseQueryResult<{
+    gateways: ReturnType<typeof mapGatewayResource>[];
+    httpRouteCount: number;
+    grpcRouteCount: number;
+  }>;
+}
+
+export function useGateway(namespace: string, name: string) {
+  return useQuery({
+    ...gatewayQueryOptions(namespace, name),
+    enabled: !!namespace && !!name,
+  }) as UseQueryResult<ReturnType<typeof mapGatewayResource>>;
+}
+
+export function useRoute(namespace: string, name: string, kind: string) {
+  return useQuery({
+    ...routeQueryOptions(namespace, name, kind),
+    enabled: !!namespace && !!name && !!kind,
+  }) as UseQueryResult<{ route: Record<string, unknown> }>;
+}
+
+export function useRoutes(enabled = true) {
+  return useQuery({
+    ...routesQueryOptions(),
     enabled,
   }) as UseQueryResult<{ routes: ReturnType<typeof mapRoutesPayload> }>;
 }
 
 export function useTokenPolicies(enabled = true) {
   return useQuery({
-    queryKey: ["token-policies"],
-    queryFn: async () => {
-      const resources = await controlplane.get<ManagedResource[]>(
-        "/v1/resources",
-        { kind: "TokenPolicy" }
-      );
-      return { policies: resources.map(mapTokenPolicyResource) };
-    },
-    staleTime: STALE_TIME,
-    gcTime: GC_TIME,
+    ...tokenPoliciesQueryOptions(),
     enabled,
   }) as UseQueryResult<{ policies: ReturnType<typeof mapTokenPolicyResource>[] }>;
 }
 
 export function useBackendTls(enabled = true) {
   return useQuery({
-    queryKey: ["backend-tls"],
-    queryFn: async () => {
-      const resources = await controlplane.get<ManagedResource[]>(
-        "/v1/resources",
-        { kind: "BackendTLSPolicy" }
-      );
-      return { policies: resources.map(mapBackendTlsPolicyResource) };
-    },
-    staleTime: STALE_TIME,
-    gcTime: GC_TIME,
+    ...backendTlsQueryOptions(),
     enabled,
   }) as UseQueryResult<{ policies: ReturnType<typeof mapBackendTlsPolicyResource>[] }>;
 }
