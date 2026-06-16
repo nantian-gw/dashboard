@@ -241,3 +241,81 @@ test("HTTPRoute codec round-trips filters, matches, timeouts, and backends", () 
   assert.match(yamlText, /kind: HTTPRoute/);
   assert.deepEqual(normalize(httpRouteManifestToFormData(yamlText)), formData);
 });
+
+test("GRPCRoute codec round-trips hostnames, matches, and backends", () => {
+  const { grpcRouteFormDataToManifest, grpcRouteManifestToFormData } = loadTsModule(
+    "src/components/resources/grpcroute-form-codec.ts",
+    commonStubs
+  );
+
+  const formData = {
+    name: "payments",
+    namespace: "shop",
+    gatewayName: "edge",
+    gatewayNamespace: "platform",
+    hostnames: "grpc.example.com",
+    rules: [
+      {
+        matches: [{ service: "payments.v1.Checkout", method: "Create" }],
+        backends: [{ name: "payments-svc", namespace: "shop", port: 50051, weight: 100 }],
+      },
+    ],
+  };
+
+  const yamlText = grpcRouteFormDataToManifest(formData);
+  assert.match(yamlText, /kind: GRPCRoute/);
+  assert.deepEqual(normalize(grpcRouteManifestToFormData(yamlText)), formData);
+});
+
+for (const [kind, relativePath, formData] of [
+  [
+    "TCPRoute",
+    "src/components/resources/tcproute-form-codec.ts",
+    {
+      name: "tcp-store",
+      namespace: "shop",
+      gatewayName: "edge",
+      gatewayNamespace: "platform",
+      backends: [{ name: "store-tcp", namespace: "shop", port: 9000, weight: 100 }],
+    },
+  ],
+  [
+    "TLSRoute",
+    "src/components/resources/tlsroute-form-codec.ts",
+    {
+      name: "tls-store",
+      namespace: "shop",
+      gatewayName: "edge",
+      gatewayNamespace: "platform",
+      sniHosts: "store.example.com",
+      backends: [{ name: "store-tls", namespace: "shop", port: 443, weight: 100 }],
+    },
+  ],
+  [
+    "UDPRoute",
+    "src/components/resources/udproute-form-codec.ts",
+    {
+      name: "udp-metrics",
+      namespace: "ops",
+      gatewayName: "edge",
+      gatewayNamespace: "platform",
+      backends: [{ name: "metrics-udp", namespace: "ops", port: 8125, weight: 100 }],
+    },
+  ],
+]) {
+  test(`${kind} codec round-trips parent gateway and backend refs`, () => {
+    const moduleExports = loadTsModule(relativePath, commonStubs);
+    const exportNames = {
+      TCPRoute: ["tcpRouteFormDataToManifest", "tcpRouteManifestToFormData"],
+      TLSRoute: ["tlsRouteFormDataToManifest", "tlsRouteManifestToFormData"],
+      UDPRoute: ["udpRouteFormDataToManifest", "udpRouteManifestToFormData"],
+    };
+    const [toYamlName, fromYamlName] = exportNames[kind];
+    const toYaml = moduleExports[toYamlName];
+    const fromYaml = moduleExports[fromYamlName];
+
+    const yamlText = toYaml(formData);
+    assert.match(yamlText, new RegExp(`kind: ${kind}`));
+    assert.deepEqual(normalize(fromYaml(yamlText)), formData);
+  });
+}

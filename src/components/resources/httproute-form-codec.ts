@@ -17,14 +17,6 @@ import type {
   RuleFilter,
 } from "./httproute-form";
 
-function createEmptyHeaderModifier(): HeaderModifier {
-  return { set: [], add: [], remove: [] };
-}
-
-function createEmptyFilter(): RuleFilter {
-  return { type: "RequestHeaderModifier", config: createEmptyHeaderModifier() };
-}
-
 function createEmptyBackendRef(namespace = "default"): BackendRef {
   return { name: "", namespace, port: 80, weight: 100 };
 }
@@ -102,7 +94,9 @@ function readFilters(rawFilters: unknown): RuleFilter[] {
     return [];
   }
 
-  return rawFilters.flatMap((rawFilter) => {
+  const filters: RuleFilter[] = [];
+
+  for (const rawFilter of rawFilters) {
     const filter =
       rawFilter && typeof rawFilter === "object" && !Array.isArray(rawFilter)
         ? (rawFilter as Record<string, unknown>)
@@ -110,34 +104,31 @@ function readFilters(rawFilters: unknown): RuleFilter[] {
 
     if (filter.type === "RequestHeaderModifier" && filter.requestHeaderModifier) {
       const modifier = filter.requestHeaderModifier as Record<string, unknown>;
-      return [
-        {
-          type: "RequestHeaderModifier" as const,
-          config: {
-            set: readNameValueEntries(modifier.set),
-            add: readNameValueEntries(modifier.add),
-            remove: readStringEntries(modifier.remove),
-          },
+      filters.push({
+        type: "RequestHeaderModifier",
+        config: {
+          set: readNameValueEntries(modifier.set),
+          add: readNameValueEntries(modifier.add),
+          remove: readStringEntries(modifier.remove),
         },
-      ];
+      });
+      continue;
     }
 
     if (filter.type === "ResponseHeaderModifier" && filter.responseHeaderModifier) {
       const modifier = filter.responseHeaderModifier as Record<string, unknown>;
-      return [
-        {
-          type: "ResponseHeaderModifier" as const,
-          config: {
-            set: readNameValueEntries(modifier.set),
-            add: readNameValueEntries(modifier.add),
-            remove: readStringEntries(modifier.remove),
-          },
+      filters.push({
+        type: "ResponseHeaderModifier",
+        config: {
+          set: readNameValueEntries(modifier.set),
+          add: readNameValueEntries(modifier.add),
+          remove: readStringEntries(modifier.remove),
         },
-      ];
+      });
     }
+  }
 
-    return [];
-  });
+  return filters;
 }
 
 function readBackends(rawBackends: unknown, namespace: string): BackendRef[] {

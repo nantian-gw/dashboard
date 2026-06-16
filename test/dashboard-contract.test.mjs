@@ -263,19 +263,6 @@ test("representative dashboard pages stop using raw non-localized navigation tar
   const observabilitySource = readSource("src/app/[locale]/(dashboard)/observability/page.tsx");
   const aiServicesSource = readSource("src/app/[locale]/(dashboard)/ai/services/page.tsx");
   const aiTokenPoliciesSource = readSource("src/app/[locale]/(dashboard)/ai/token-policies/page.tsx");
-  const grpcRouteCreateSource = readSource(
-    "src/app/[locale]/(dashboard)/routes/create/grpcroute/page.tsx"
-  );
-  const tcpRouteCreateSource = readSource(
-    "src/app/[locale]/(dashboard)/routes/create/tcproute/page.tsx"
-  );
-  const tlsRouteCreateSource = readSource(
-    "src/app/[locale]/(dashboard)/routes/create/tlsroute/page.tsx"
-  );
-  const udpRouteCreateSource = readSource(
-    "src/app/[locale]/(dashboard)/routes/create/udproute/page.tsx"
-  );
-
   function assertUsesLocalizedLink(source, label) {
     assert.match(source, /LocalizedLink/, `${label} must use LocalizedLink`);
     assert.doesNotMatch(
@@ -349,21 +336,6 @@ test("representative dashboard pages stop using raw non-localized navigation tar
 
   assertUsesLocalizedLink(aiServicesSource, "AI services page");
   assertUsesLocalizedLink(aiTokenPoliciesSource, "AI token policies page");
-
-  for (const [label, source, routeKind] of [
-    ["gRPC route creation", grpcRouteCreateSource, "GRPCRoute"],
-    ["TCP route creation", tcpRouteCreateSource, "TCPRoute"],
-    ["TLS route creation", tlsRouteCreateSource, "TLSRoute"],
-    ["UDP route creation", udpRouteCreateSource, "UDPRoute"],
-  ]) {
-    assertUsesLocalizedLink(source, label);
-    assertUsesLocalizedRouter(
-      source,
-      label,
-      new RegExp("router\\.push\\(\\`\\/routes\\/" + routeKind),
-      `${label} must not push a bare /routes/... path`
-    );
-  }
 });
 
 test("shared dashboard navigation surfaces prewarm approved hotspots without changing navigation contracts", () => {
@@ -551,6 +523,36 @@ test("HTTPRoute form interpolates route kind labels through the translation cont
   );
 });
 
+test("non-HTTP route create pages delegate to reusable resource editors", () => {
+  for (const [routePath, componentName] of [
+    ["src/app/[locale]/(dashboard)/routes/create/grpcroute/page.tsx", "GRPCRouteForm"],
+    ["src/app/[locale]/(dashboard)/routes/create/tcproute/page.tsx", "TCPRouteForm"],
+    ["src/app/[locale]/(dashboard)/routes/create/tlsroute/page.tsx", "TLSRouteForm"],
+    ["src/app/[locale]/(dashboard)/routes/create/udproute/page.tsx", "UDPRouteForm"],
+  ]) {
+    const source = readSource(routePath);
+    assert.match(source, new RegExp(componentName), `${routePath} must render ${componentName}`);
+    assert.doesNotMatch(source, /applyResource\(/, `${routePath} must not inline manifest submission`);
+    assert.doesNotMatch(source, /useState\(/, `${routePath} must not own form state after extraction`);
+  }
+});
+
+test("route edit page dispatches editors by route kind instead of hardcoding HTTPRoute", () => {
+  const routeEditSource = readSource(
+    "src/app/[locale]/(dashboard)/routes/[kind]/[namespace]/[name]/edit/page.tsx"
+  );
+
+  assert.match(routeEditSource, /GRPCRouteForm/, "route edit page must support GRPCRoute editing");
+  assert.match(routeEditSource, /TCPRouteForm/, "route edit page must support TCPRoute editing");
+  assert.match(routeEditSource, /TLSRouteForm/, "route edit page must support TLSRoute editing");
+  assert.match(routeEditSource, /UDPRouteForm/, "route edit page must support UDPRoute editing");
+  assert.doesNotMatch(
+    routeEditSource,
+    /const formData = httpRouteResourceToFormData\(data as Record<string, any>\);/,
+    "route edit page must not always coerce every route into HTTPRoute form data"
+  );
+});
+
 test("feature gate renders a controlled unavailable state", () => {
   const source = readSource("src/components/dashboard/capability-gate.tsx");
   assert.match(source, /FeatureUnavailable/, "capability gate must render the shared unavailable view");
@@ -678,6 +680,26 @@ test("resource forms use localized dashboard links for operator back navigation"
     },
     {
       routePath: "src/components/resources/httproute-form.tsx",
+      href: "/routes",
+      navigationOwner: "shell",
+    },
+    {
+      routePath: "src/components/resources/grpcroute-form.tsx",
+      href: "/routes",
+      navigationOwner: "shell",
+    },
+    {
+      routePath: "src/components/resources/tcproute-form.tsx",
+      href: "/routes",
+      navigationOwner: "shell",
+    },
+    {
+      routePath: "src/components/resources/tlsroute-form.tsx",
+      href: "/routes",
+      navigationOwner: "shell",
+    },
+    {
+      routePath: "src/components/resources/udproute-form.tsx",
       href: "/routes",
       navigationOwner: "shell",
     },
