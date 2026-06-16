@@ -35,7 +35,8 @@ export function getDashboardQueryPrewarmTargets(href: string): DashboardQueryPre
 
   if (segments[0] === "gateways") {
     if (segments.length === 1) return [{ kind: "gateways-list" }];
-    if (segments.length === 3 && segments[1] !== "create") {
+    if (segments.length === 2 && segments[1] === "create") return [];
+    if (segments.length === 3) {
       return [{ kind: "gateway-detail", namespace: segments[1], name: segments[2] }];
     }
     return [];
@@ -59,14 +60,14 @@ export function getDashboardQueryPrewarmTargets(href: string): DashboardQueryPre
 
   if (segments[0] === "backend-tls") {
     if (segments.length === 1) return [{ kind: "backend-tls-list" }];
-    if (segments[1] === "create") return [];
+    if (segments.length === 2 && segments[1] === "create") return [];
     if (segments.length === 3) return [{ kind: "backend-tls-list" }];
     return [];
   }
 
   if (segments[0] === "reference-grants") {
     if (segments.length === 1) return [{ kind: "reference-grants-list" }];
-    if (segments[1] === "create") return [];
+    if (segments.length === 2 && segments[1] === "create") return [];
     if (segments.length === 3) {
       return [{ kind: "reference-grant-detail", namespace: segments[1], name: segments[2] }];
     }

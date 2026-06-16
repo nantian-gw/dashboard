@@ -30,6 +30,8 @@ const kindOrder: GlobalSearchKind[] = [
   "diagnostic",
 ];
 
+const emptySearchResults: GlobalSearchItem[] = [];
+
 type IndexedSearchItem = {
   item: GlobalSearchItem;
   index: number;
@@ -66,7 +68,7 @@ export function GlobalSearch() {
   const shouldFetch = open && typedQuery.length > 0;
 
   const { data: results = [], isLoading } = useGlobalSearch(query, shouldFetch);
-  const interactiveResults = querySettled ? results : [];
+  const interactiveResults = querySettled ? results : emptySearchResults;
 
   const indexedResults = useMemo(
     () => interactiveResults.map((item, index) => ({ item, index })),

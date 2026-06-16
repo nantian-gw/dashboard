@@ -83,8 +83,16 @@ test("approved backend TLS and reference grant pages resolve to explicit prewarm
     JSON.stringify([{ kind: "backend-tls-list" }])
   );
   assert.equal(
+    JSON.stringify(getDashboardQueryPrewarmTargets("/en/backend-tls/create/mtls")),
+    JSON.stringify([{ kind: "backend-tls-list" }])
+  );
+  assert.equal(
     JSON.stringify(getDashboardQueryPrewarmTargets("/en/reference-grants")),
     JSON.stringify([{ kind: "reference-grants-list" }])
+  );
+  assert.equal(
+    JSON.stringify(getDashboardQueryPrewarmTargets("/en/reference-grants/create/allow")),
+    JSON.stringify([{ kind: "reference-grant-detail", namespace: "create", name: "allow" }])
   );
   assert.equal(
     JSON.stringify(
@@ -117,6 +125,10 @@ test("unsupported and create routes do not trigger query prewarm", () => {
   const { getDashboardQueryPrewarmTargets } = loadDashboardPrewarmTargets();
 
   assert.equal(JSON.stringify(getDashboardQueryPrewarmTargets("/en/overview")), JSON.stringify([]));
+  assert.equal(
+    JSON.stringify(getDashboardQueryPrewarmTargets("/en/gateways/create/edge")),
+    JSON.stringify([{ kind: "gateway-detail", namespace: "create", name: "edge" }])
+  );
   assert.equal(
     JSON.stringify(getDashboardQueryPrewarmTargets("/en/gateways/ns/name/extra")),
     JSON.stringify([])
