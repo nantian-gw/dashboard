@@ -628,3 +628,57 @@ test("resource forms use localized dashboard links for operator back navigation"
     }
   }
 });
+
+test("top bar isolates pathname-sensitive rendering from unrelated shell controls", () => {
+  const topBarSource = readSource("src/components/dashboard/top-bar.tsx");
+  const titleSource = readSource("src/components/dashboard/top-bar-page-title.tsx");
+  const actionsSource = readSource("src/components/dashboard/top-bar-actions.tsx");
+  const localeSource = readSource("src/components/dashboard/top-bar-locale-switcher.tsx");
+
+  assert.match(
+    topBarSource,
+    /TopBarPageTitle/,
+    "TopBar must delegate pathname-derived title rendering into a focused child component"
+  );
+  assert.match(
+    topBarSource,
+    /TopBarActions/,
+    "TopBar must delegate non-pathname shell controls into a separate child component"
+  );
+  assert.match(
+    topBarSource,
+    /TopBarLocaleSwitcher/,
+    "TopBar must delegate locale path switching into its own child component"
+  );
+  assert.doesNotMatch(
+    topBarSource,
+    /usePathname/,
+    "TopBar shell must stop subscribing the entire header to pathname changes"
+  );
+  assert.doesNotMatch(
+    topBarSource,
+    /useTheme/,
+    "TopBar shell must stop owning theme state directly"
+  );
+  assert.doesNotMatch(
+    topBarSource,
+    /useAtom/,
+    "TopBar shell must stop owning refresh atom state directly"
+  );
+
+  assert.match(
+    titleSource,
+    /usePathname/,
+    "TopBarPageTitle must be the pathname-aware rendering boundary"
+  );
+  assert.match(
+    actionsSource,
+    /GlobalSearch/,
+    "TopBarActions must host the search box outside the pathname boundary"
+  );
+  assert.match(
+    localeSource,
+    /usePathname/,
+    "TopBarLocaleSwitcher must own locale route replacement logic"
+  );
+});
