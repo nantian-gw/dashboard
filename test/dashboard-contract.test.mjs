@@ -506,6 +506,51 @@ test("backend TLS and reference grant forms adopt the shared shell", () => {
   }
 });
 
+test("HTTPRoute form adopts the shared dual-mode editor shell", () => {
+  const httpRouteFormSource = readSource("src/components/resources/httproute-form.tsx");
+
+  assert.match(
+    httpRouteFormSource,
+    /import\s+\{\s*ResourceEditorShell\s*\}\s+from\s+"\.\/resource-editor-shell";?/,
+    "HTTPRoute form must import the shared dual-mode editor shell"
+  );
+  assert.match(
+    httpRouteFormSource,
+    /<ResourceEditorShell[\s\S]*backHref="\/routes"/,
+    "HTTPRoute form must render through the shared dual-mode editor shell"
+  );
+  assert.doesNotMatch(
+    httpRouteFormSource,
+    /LocalizedLink/,
+    "HTTPRoute form should delegate LocalizedLink wiring to the shared shell instead of mentioning it locally"
+  );
+  assert.doesNotMatch(
+    httpRouteFormSource,
+    /window\.history\.back\(/,
+    "HTTPRoute form must not depend on window.history.back after shell adoption"
+  );
+});
+
+test("HTTPRoute form interpolates route kind labels through the translation contract", () => {
+  const httpRouteFormSource = readSource("src/components/resources/httproute-form.tsx");
+
+  assert.match(
+    httpRouteFormSource,
+    /t\("create\.route\.title", \{ kind: "HTTPRoute" \}\)/,
+    "HTTPRoute form title must pass the HTTPRoute kind interpolation value"
+  );
+  assert.match(
+    httpRouteFormSource,
+    /t\("create\.route\.description", \{ kind: "HTTPRoute" \}\)/,
+    "HTTPRoute form description must pass the HTTPRoute kind interpolation value"
+  );
+  assert.match(
+    httpRouteFormSource,
+    /t\("create\.route\.(submit|save)", \{ kind: "HTTPRoute" \}\)/,
+    "HTTPRoute form submit label must pass the HTTPRoute kind interpolation value"
+  );
+});
+
 test("feature gate renders a controlled unavailable state", () => {
   const source = readSource("src/components/dashboard/capability-gate.tsx");
   assert.match(source, /FeatureUnavailable/, "capability gate must render the shared unavailable view");
@@ -629,6 +674,11 @@ test("resource forms use localized dashboard links for operator back navigation"
     {
       routePath: "src/components/resources/referencegrant-form.tsx",
       href: "/reference-grants",
+      navigationOwner: "shell",
+    },
+    {
+      routePath: "src/components/resources/httproute-form.tsx",
+      href: "/routes",
       navigationOwner: "shell",
     },
     {

@@ -202,3 +202,42 @@ test("reference grant codec round-trips multiple from/to entries", () => {
   assert.match(yamlText, /kind: ReferenceGrant/);
   assert.deepEqual(normalize(referenceGrantManifestToFormData(yamlText)), formData);
 });
+
+test("HTTPRoute codec round-trips filters, matches, timeouts, and backends", () => {
+  const { httpRouteFormDataToManifest, httpRouteManifestToFormData } = loadTsModule(
+    "src/components/resources/httproute-form-codec.ts",
+    commonStubs
+  );
+
+  const formData = {
+    name: "checkout",
+    namespace: "shop",
+    gatewayName: "edge",
+    gatewayNamespace: "platform",
+    hostnames: "api.example.com, checkout.example.com",
+    rules: [
+      {
+        pathMatch: "/checkout",
+        method: "POST",
+        headerMatches: [{ type: "Exact", name: "x-tenant", value: "shop" }],
+        queryParamMatches: [{ type: "Exact", name: "preview", value: "1" }],
+        filters: [
+          {
+            type: "RequestHeaderModifier",
+            config: {
+              set: [{ name: "x-stage", value: "stable" }],
+              add: [],
+              remove: ["x-remove-me"],
+            },
+          },
+        ],
+        requestTimeout: "30s",
+        backends: [{ name: "checkout-svc", namespace: "shop", port: 8080, weight: 100 }],
+      },
+    ],
+  };
+
+  const yamlText = httpRouteFormDataToManifest(formData);
+  assert.match(yamlText, /kind: HTTPRoute/);
+  assert.deepEqual(normalize(httpRouteManifestToFormData(yamlText)), formData);
+});
