@@ -157,3 +157,48 @@ spec:
     ],
   });
 });
+
+test("backend TLS codec round-trips hostname and CA refs", () => {
+  const { backendTlsFormDataToManifest, backendTlsManifestToFormData } = loadTsModule(
+    "src/components/resources/backendtls-form-codec.ts",
+    commonStubs
+  );
+
+  const formData = {
+    name: "mtls-store",
+    namespace: "platform",
+    targetGroup: "",
+    targetKind: "Service",
+    targetName: "store",
+    hostname: "store.internal",
+    caRefs: [{ name: "store-ca", group: "", kind: "ConfigMap" }],
+  };
+
+  const yamlText = backendTlsFormDataToManifest(formData);
+  assert.match(yamlText, /kind: BackendTLSPolicy/);
+  assert.deepEqual(normalize(backendTlsManifestToFormData(yamlText)), formData);
+});
+
+test("reference grant codec round-trips multiple from/to entries", () => {
+  const { referenceGrantFormDataToManifest, referenceGrantManifestToFormData } = loadTsModule(
+    "src/components/resources/referencegrant-form-codec.ts",
+    commonStubs
+  );
+
+  const formData = {
+    name: "allow-shop",
+    namespace: "shared",
+    froms: [
+      { group: "gateway.networking.k8s.io", kind: "HTTPRoute", namespace: "shop" },
+      { group: "gateway.networking.k8s.io", kind: "GRPCRoute", namespace: "payments" },
+    ],
+    tos: [
+      { group: "", kind: "Service", name: "catalog" },
+      { group: "", kind: "Secret", name: "catalog-cert" },
+    ],
+  };
+
+  const yamlText = referenceGrantFormDataToManifest(formData);
+  assert.match(yamlText, /kind: ReferenceGrant/);
+  assert.deepEqual(normalize(referenceGrantManifestToFormData(yamlText)), formData);
+});

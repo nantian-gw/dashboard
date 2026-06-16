@@ -481,6 +481,31 @@ test("optional dashboard feature groups are gated by dedicated layouts", () => {
   }
 });
 
+test("backend TLS and reference grant forms adopt the shared shell", () => {
+  for (const [routePath, backHref] of [
+    ["src/components/resources/backendtls-form.tsx", "/backend-tls"],
+    ["src/components/resources/referencegrant-form.tsx", "/reference-grants"],
+  ]) {
+    const source = readSource(routePath);
+    assert.match(source, /ResourceEditorShell/, `${routePath} must use the shared shell`);
+    assert.match(
+      source,
+      new RegExp(`<ResourceEditorShell[\\s\\S]*backHref="${backHref}"`),
+      `${routePath} must delegate localized back/cancel links through the shared shell`
+    );
+    assert.doesNotMatch(
+      source,
+      /LocalizedLink/,
+      `${routePath} should delegate LocalizedLink wiring to the shared shell instead of mentioning it locally`
+    );
+    assert.doesNotMatch(
+      source,
+      /window\\.history\\.back\(/,
+      `${routePath} must not use window.history.back`
+    );
+  }
+});
+
 test("feature gate renders a controlled unavailable state", () => {
   const source = readSource("src/components/dashboard/capability-gate.tsx");
   assert.match(source, /FeatureUnavailable/, "capability gate must render the shared unavailable view");
@@ -590,21 +615,50 @@ test("resource forms use localized dashboard links for operator back navigation"
     return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
-  for (const { routePath, href } of [
-    { routePath: "src/components/resources/aiservice-form.tsx", href: "/ai/services" },
-    { routePath: "src/components/resources/backendtls-form.tsx", href: "/backend-tls" },
-    { routePath: "src/components/resources/referencegrant-form.tsx", href: "/reference-grants" },
-    { routePath: "src/components/resources/tokenpolicy-form.tsx", href: "/ai/token-policies" },
+  for (const { routePath, href, navigationOwner } of [
+    {
+      routePath: "src/components/resources/aiservice-form.tsx",
+      href: "/ai/services",
+      navigationOwner: "form",
+    },
+    {
+      routePath: "src/components/resources/backendtls-form.tsx",
+      href: "/backend-tls",
+      navigationOwner: "shell",
+    },
+    {
+      routePath: "src/components/resources/referencegrant-form.tsx",
+      href: "/reference-grants",
+      navigationOwner: "shell",
+    },
+    {
+      routePath: "src/components/resources/tokenpolicy-form.tsx",
+      href: "/ai/token-policies",
+      navigationOwner: "form",
+    },
   ]) {
     const source = readSource(routePath);
     const escapedHref = escapeRegExp(href);
     const localizedLinkPattern = new RegExp(`<LocalizedLink\\s+href="${escapedHref}"`, "g");
 
-    assert.equal(
-      source.match(localizedLinkPattern)?.length ?? 0,
-      2,
-      `${routePath} must render both back and cancel navigation with LocalizedLink to ${href}`
-    );
+    if (navigationOwner === "shell") {
+      assert.match(
+        source,
+        new RegExp(`<ResourceEditorShell[\\s\\S]*backHref="${escapedHref}"`),
+        `${routePath} must delegate back and cancel navigation to ResourceEditorShell for ${href}`
+      );
+      assert.doesNotMatch(
+        source,
+        /LocalizedLink/,
+        `${routePath} should not mention LocalizedLink directly after shared-shell adoption`
+      );
+    } else {
+      assert.equal(
+        source.match(localizedLinkPattern)?.length ?? 0,
+        2,
+        `${routePath} must render both back and cancel navigation with LocalizedLink to ${href}`
+      );
+    }
     assert.doesNotMatch(
       source,
       /import\s+Link\s+from\s+"next\/link";?/,

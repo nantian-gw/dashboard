@@ -1,7 +1,8 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { BackendTlsForm, backendTlsResourceToFormData } from "@/components/resources/backendtls-form";
+import { BackendTlsForm } from "@/components/resources/backendtls-form";
+import { backendTlsResourceToFormData } from "@/components/resources/backendtls-form-codec";
 import { useBackendTls } from "@/hooks/use-api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";

@@ -1,7 +1,8 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { ReferenceGrantForm, referenceGrantResourceToFormData } from "@/components/resources/referencegrant-form";
+import { ReferenceGrantForm } from "@/components/resources/referencegrant-form";
+import { referenceGrantResourceToFormData } from "@/components/resources/referencegrant-form-codec";
 import { useReferenceGrant } from "@/hooks/use-api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
