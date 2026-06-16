@@ -2,8 +2,9 @@
 
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { gatewayResourceToFormData } from "@/components/resources/gateway-form-codec";
 import { controlplane } from "@/lib/api";
-import { GatewayForm, gatewayResourceToFormData } from "@/components/resources/gateway-form";
+import { GatewayForm } from "@/components/resources/gateway-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 

@@ -682,3 +682,23 @@ test("top bar isolates pathname-sensitive rendering from unrelated shell control
     "TopBarLocaleSwitcher must own locale route replacement logic"
   );
 });
+
+test("Gateway form adopts the shared dual-mode editor shell", () => {
+  const gatewayFormSource = readSource("src/components/resources/gateway-form.tsx");
+
+  assert.match(
+    gatewayFormSource,
+    /ResourceEditorShell/,
+    "Gateway form must render through the shared dual-mode editor shell"
+  );
+  assert.match(
+    gatewayFormSource,
+    /LocalizedLink/,
+    "Gateway form must use localized back and cancel navigation"
+  );
+  assert.doesNotMatch(
+    gatewayFormSource,
+    /window\.history\.back\(/,
+    "Gateway form must not depend on window.history.back after shell adoption"
+  );
+});
