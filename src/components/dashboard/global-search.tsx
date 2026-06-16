@@ -62,24 +62,38 @@ export function GlobalSearch() {
   const [activeIndex, setActiveIndex] = useState(0);
   const query = deferredSearch.trim();
   const typedQuery = search.trim();
+  const querySettled = query === typedQuery;
   const shouldFetch = open && typedQuery.length > 0;
 
   const { data: results = [], isLoading } = useGlobalSearch(query, shouldFetch);
+  const interactiveResults = querySettled ? results : [];
 
   const indexedResults = useMemo(
-    () => results.map((item, index) => ({ item, index })),
-    [results]
+    () => interactiveResults.map((item, index) => ({ item, index })),
+    [interactiveResults]
   );
   const grouped = useMemo(() => groupResults(indexedResults), [indexedResults]);
   const showPanel = open && typedQuery.length > 0;
-  const selectedIndex = results.length === 0 ? 0 : Math.min(activeIndex, results.length - 1);
+  const selectedIndex =
+    interactiveResults.length === 0 ? 0 : Math.min(activeIndex, interactiveResults.length - 1);
+  const selectedResult = interactiveResults[selectedIndex] ?? interactiveResults[0];
+  const isResolvingResults = showPanel && !querySettled;
 
   function openResult(href: string) {
     setOpen(false);
     setSearch("");
+    void prefetch(href);
     startTransition(() => {
       push(href);
     });
+  }
+
+  function setActiveResult(nextIndex: number) {
+    setActiveIndex(nextIndex);
+    const nextResult = interactiveResults[nextIndex];
+    if (nextResult) {
+      void prefetch(nextResult.href);
+    }
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -90,27 +104,29 @@ export function GlobalSearch() {
     if (event.key === "ArrowDown") {
       event.preventDefault();
       setOpen(true);
-      setActiveIndex((index) => (results.length === 0 ? 0 : Math.min(index + 1, results.length - 1)));
+      setActiveResult(
+        interactiveResults.length === 0 ? 0 : Math.min(selectedIndex + 1, interactiveResults.length - 1)
+      );
       return;
     }
     if (event.key === "ArrowUp") {
       event.preventDefault();
-      setActiveIndex((index) => Math.max(index - 1, 0));
+      setActiveResult(Math.max(selectedIndex - 1, 0));
       return;
     }
     if (event.key === "Home") {
       event.preventDefault();
-      setActiveIndex(0);
+      setActiveResult(0);
       return;
     }
     if (event.key === "End") {
       event.preventDefault();
-      setActiveIndex(Math.max(results.length - 1, 0));
+      setActiveResult(Math.max(interactiveResults.length - 1, 0));
       return;
     }
-    if (event.key === "Enter" && results[0]) {
+    if (event.key === "Enter" && selectedResult) {
       event.preventDefault();
-      openResult(results[selectedIndex]?.href ?? results[0].href);
+      openResult(selectedResult.href);
     }
   }
 
@@ -126,7 +142,7 @@ export function GlobalSearch() {
       <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
       <Input
         aria-controls="global-search-results"
-        aria-activedescendant={showPanel && results[selectedIndex] ? `${listboxId}-${selectedIndex}` : undefined}
+        aria-activedescendant={showPanel && selectedResult ? `${listboxId}-${selectedIndex}` : undefined}
         aria-expanded={showPanel}
         aria-label={t("topbar.search_label")}
         className="pl-8"
@@ -147,11 +163,11 @@ export function GlobalSearch() {
           role="listbox"
           className="absolute right-0 top-11 z-50 max-h-[28rem] w-[28rem] overflow-y-auto rounded-lg border bg-popover p-2 text-popover-foreground shadow-xl"
         >
-          {isLoading ? (
+          {isResolvingResults || isLoading ? (
             <div className="px-3 py-6 text-center text-sm text-muted-foreground">
               {t("topbar.search_loading")}
             </div>
-          ) : results.length === 0 ? (
+          ) : interactiveResults.length === 0 ? (
             <div className="px-3 py-6 text-center text-sm text-muted-foreground">
               {t("topbar.search_empty")}
             </div>

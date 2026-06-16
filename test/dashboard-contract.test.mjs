@@ -450,6 +450,16 @@ test("shared dashboard navigation surfaces prewarm approved hotspots without cha
     /void prefetch\(item\.href\)/,
     "GlobalSearch must prewarm explicit result targets before click navigation"
   );
+  assert.match(
+    searchSource,
+    /query === typedQuery|deferredSearch\.trim\(\)\s*===\s*search\.trim\(\)/,
+    "GlobalSearch must gate result interaction until deferred and typed queries are aligned"
+  );
+  assert.match(
+    searchSource,
+    /void prefetch\(href\)|void prefetch\(selectedResult\.href\)/,
+    "GlobalSearch must prewarm the active result when keyboard selection opens it"
+  );
 });
 
 test("optional dashboard feature groups are gated by dedicated layouts", () => {
