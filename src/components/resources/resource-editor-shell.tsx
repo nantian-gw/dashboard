@@ -35,6 +35,36 @@ interface ResourceEditorShellProps<TFormData> {
   renderForm: (props: { value: TFormData; onChange: (next: TFormData) => void }) => ReactNode;
 }
 
+export function assertEditorFormDataIdentity<TFormData>(
+  codec: ResourceEditorCodec<TFormData>,
+  expectedEditIdentity: ResourceIdentity | null,
+  formData: TFormData
+): string | null {
+  return assertEditIdentityMatch(expectedEditIdentity, codec.getIdentity(formData));
+}
+
+export function parseYamlDraftForEditor<TFormData>(
+  codec: ResourceEditorCodec<TFormData>,
+  yamlText: string,
+  expectedEditIdentity: ResourceIdentity | null
+): { ok: true; formData: TFormData } | { ok: false; error: string } {
+  const parsed = parseFormDraftFromYaml(codec, yamlText);
+  if (!parsed.ok) {
+    return parsed;
+  }
+
+  const identityError = assertEditorFormDataIdentity(
+    codec,
+    expectedEditIdentity,
+    parsed.formData
+  );
+  if (identityError) {
+    return { ok: false, error: identityError };
+  }
+
+  return parsed;
+}
+
 export function ResourceEditorShell<TFormData>({
   title,
   description,
@@ -63,7 +93,7 @@ export function ResourceEditorShell<TFormData>({
       return;
     }
 
-    const parsed = parseFormDraftFromYaml(codec, yamlText);
+    const parsed = parseYamlDraftForEditor(codec, yamlText, expectedEditIdentity);
     if (!parsed.ok) {
       setYamlError(parsed.error);
       return;
@@ -78,22 +108,23 @@ export function ResourceEditorShell<TFormData>({
     event.preventDefault();
 
     if (mode === "form") {
+      const identityError = assertEditorFormDataIdentity(
+        codec,
+        expectedEditIdentity,
+        formData
+      );
+      if (identityError) {
+        setYamlError(identityError);
+        return;
+      }
+
       await onSubmitManifest(buildYamlDraft(codec, formData));
       return;
     }
 
-    const parsed = parseFormDraftFromYaml(codec, yamlText);
+    const parsed = parseYamlDraftForEditor(codec, yamlText, expectedEditIdentity);
     if (!parsed.ok) {
       setYamlError(parsed.error);
-      return;
-    }
-
-    const identityError = assertEditIdentityMatch(
-      expectedEditIdentity,
-      codec.getIdentity(parsed.formData)
-    );
-    if (identityError) {
-      setYamlError(identityError);
       return;
     }
 

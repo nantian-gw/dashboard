@@ -36,6 +36,55 @@ function loadTsModule(relativePath, stubs = {}) {
   return cjsModule.exports;
 }
 
+function loadResourceEditorShell() {
+  const stateModule = loadTsModule("src/components/resources/resource-editor-state.ts");
+  return loadTsModule("src/components/resources/resource-editor-shell.tsx", {
+    "./resource-editor-state": stateModule,
+    react: {
+      useState(initialValue) {
+        return [typeof initialValue === "function" ? initialValue() : initialValue, () => {}];
+      },
+    },
+    "react/jsx-runtime": {
+      Fragment: Symbol.for("fragment"),
+      jsx: () => null,
+      jsxs: () => null,
+    },
+    "next-intl": {
+      useTranslations: () => () => "",
+    },
+    "@/components/dashboard/localized-link": {
+      LocalizedLink: () => null,
+    },
+    "@/components/ui/button": {
+      Button: () => null,
+    },
+    "@/components/ui/card": {
+      Card: () => null,
+      CardContent: () => null,
+      CardDescription: () => null,
+      CardHeader: () => null,
+      CardTitle: () => null,
+    },
+    "@/components/ui/label": {
+      Label: () => null,
+    },
+    "@/components/ui/tabs": {
+      Tabs: () => null,
+      TabsContent: () => null,
+      TabsList: () => null,
+      TabsTrigger: () => null,
+    },
+    "@/components/ui/textarea": {
+      Textarea: () => null,
+    },
+  });
+}
+
+function loadResourceManifest() {
+  return loadTsModule("src/lib/resource-manifest.ts");
+}
+
 test("buildYamlDraft serializes the current form data without mutating it", () => {
   const { buildYamlDraft } = loadTsModule("src/components/resources/resource-editor-state.ts");
   const formData = { name: "edge", namespace: "platform" };
@@ -117,5 +166,132 @@ test("assertEditIdentityMatch rejects YAML identity drift on edit pages", () => 
       { name: "edge-copy", namespace: "platform" }
     ),
     /must stay on platform\/edge/
+  );
+});
+
+test("shell keeps YAML mode when YAML -> Form parsing changes the edit identity", () => {
+  const { parseYamlDraftForEditor } = loadResourceEditorShell();
+  const codec = {
+    kind: "Gateway",
+    apiVersion: "gateway.networking.k8s.io/v1",
+    toYaml: () => "",
+    fromYaml: () => ({ name: "edge-copy", namespace: "platform" }),
+    getIdentity: (value) => ({ name: value.name, namespace: value.namespace }),
+  };
+
+  const result = parseYamlDraftForEditor(
+    codec,
+    "apiVersion: gateway.networking.k8s.io/v1\nkind: Gateway",
+    { name: "edge", namespace: "platform" }
+  );
+
+  assert.equal(result.ok, false);
+  assert.match(result.error, /must stay on platform\/edge/);
+});
+
+test("shell also guards edit identity before form-mode submission", () => {
+  const { assertEditorFormDataIdentity } = loadResourceEditorShell();
+  const codec = {
+    kind: "Gateway",
+    apiVersion: "gateway.networking.k8s.io/v1",
+    toYaml: () => "",
+    fromYaml: () => ({ name: "edge", namespace: "platform" }),
+    getIdentity: (value) => ({ name: value.name, namespace: value.namespace }),
+  };
+
+  assert.equal(
+    assertEditorFormDataIdentity(codec, { name: "edge", namespace: "platform" }, {
+      name: "edge",
+      namespace: "platform",
+    }),
+    null
+  );
+
+  assert.match(
+    assertEditorFormDataIdentity(codec, { name: "edge", namespace: "platform" }, {
+      name: "edge-copy",
+      namespace: "platform",
+    }),
+    /must stay on platform\/edge/
+  );
+});
+
+test("readManifestIdentity returns the manifest identity when both fields are strings", () => {
+  const { readManifestIdentity } = loadResourceManifest();
+  const identity = readManifestIdentity({
+    metadata: {
+      name: "edge",
+      namespace: "platform",
+    },
+  });
+
+  assert.equal(identity.name, "edge");
+  assert.equal(identity.namespace, "platform");
+});
+
+test("readManifestIdentity rejects a non-object metadata block", () => {
+  const { readManifestIdentity } = loadResourceManifest();
+
+  assert.throws(
+    () => readManifestIdentity({ metadata: "edge" }),
+    /metadata must be an object/
+  );
+});
+
+test("readManifestIdentity rejects a missing metadata.name", () => {
+  const { readManifestIdentity } = loadResourceManifest();
+
+  assert.throws(
+    () =>
+      readManifestIdentity({
+        metadata: {
+          namespace: "platform",
+        },
+      }),
+    /metadata\.name is required/
+  );
+});
+
+test("readManifestIdentity rejects a missing metadata.namespace", () => {
+  const { readManifestIdentity } = loadResourceManifest();
+
+  assert.throws(
+    () =>
+      readManifestIdentity({
+        metadata: {
+          name: "edge",
+        },
+      }),
+    /metadata\.namespace is required/
+  );
+});
+
+test("readManifestIdentity rejects a malformed metadata.name value", () => {
+  const { readManifestIdentity } = loadResourceManifest();
+
+  assert.throws(
+    () =>
+      readManifestIdentity({
+        metadata: {
+          name: { nested: true },
+          namespace: "platform",
+        },
+      }),
+    /metadata\.name must be a string/
+  );
+});
+
+test("readManifestIdentity rejects a malformed metadata.namespace value", () => {
+  const { readManifestIdentity } = loadResourceManifest();
+
+  assert.throws(
+    () =>
+      readManifestIdentity({
+        metadata: {
+          name: "edge",
+          namespace: true,
+        },
+      }),
+    /metadata\.namespace must be a string/
   );
 });

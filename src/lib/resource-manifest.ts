@@ -41,17 +41,34 @@ export function readManifestIdentity(manifest: ManifestRecord): {
   name: string;
   namespace: string;
 } {
-  const metadata = (manifest.metadata ?? {}) as Record<string, unknown>;
-  const name = String(metadata.name ?? "");
-  const namespace = String(metadata.namespace ?? "");
-
-  if (!name.trim()) {
-    throw new ResourceManifestError("Manifest metadata.name is required.");
+  const metadata = manifest.metadata;
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    throw new ResourceManifestError("Manifest metadata must be an object.");
   }
 
-  if (!namespace.trim()) {
-    throw new ResourceManifestError("Manifest metadata.namespace is required.");
-  }
+  const metadataRecord = metadata as Record<string, unknown>;
+  const name = readRequiredIdentityField(metadataRecord, "name");
+  const namespace = readRequiredIdentityField(metadataRecord, "namespace");
 
   return { name, namespace };
+}
+
+function readRequiredIdentityField(
+  metadata: Record<string, unknown>,
+  field: "name" | "namespace"
+): string {
+  const value = metadata[field];
+  if (value == null) {
+    throw new ResourceManifestError(`Manifest metadata.${field} is required.`);
+  }
+
+  if (typeof value !== "string") {
+    throw new ResourceManifestError(`Manifest metadata.${field} must be a string.`);
+  }
+
+  if (!value.trim()) {
+    throw new ResourceManifestError(`Manifest metadata.${field} is required.`);
+  }
+
+  return value;
 }
