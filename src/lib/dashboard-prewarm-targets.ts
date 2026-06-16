@@ -81,9 +81,6 @@ export function getDashboardQueryPrewarmTargets(href: string): DashboardQueryPre
 
   if (segments[0] === "ai" && segments[1] === "token-policies") {
     if (segments.length === 2) return [{ kind: "token-policies-list" }];
-    if (segments.length === 3 && segments[2] !== "create") {
-      return [{ kind: "token-policies-list" }];
-    }
     return [];
   }
 
