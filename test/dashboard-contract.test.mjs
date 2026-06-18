@@ -405,6 +405,16 @@ test("shared dashboard navigation surfaces prewarm approved hotspots without cha
     /onMouseLeave/,
     "LocalizedLink must wire pointer-leave cleanup for delayed hover prewarm"
   );
+  assert.match(
+    linkSource,
+    /prewarmedHrefRef\.current === localizedHref/,
+    "LocalizedLink must suppress duplicate manual prewarm for the same mounted href"
+  );
+  assert.match(
+    linkSource,
+    /onFocus=\{\(event\)\s*=>\s*\{\s*handlePrewarm\(\);\s*onFocus\?\.\(event\);\s*\}\}/,
+    "LocalizedLink must keep focus-triggered prewarm immediate instead of delaying it behind hover intent"
+  );
 
   assert.match(
     routerSource,

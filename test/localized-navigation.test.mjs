@@ -122,12 +122,12 @@ test("LocalizedLink turns hover prewarm into delayed intent work", () => {
   assert.match(source, /clearTimeout/, "LocalizedLink must clear pending hover timers");
   assert.match(
     source,
-    /already\s+prewarm|duplicate\s+.*href|same\s+href.*prewarm/i,
+    /prewarmedHrefRef\.current === localizedHref/,
     "LocalizedLink must suppress duplicate manual prewarm for the same mounted href"
   );
   assert.match(
     source,
-    /onFocus[\s\S]*handlePrewarm\(\)/,
+    /onFocus=\{\(event\)\s*=>\s*\{\s*handlePrewarm\(\);\s*onFocus\?\.\(event\);\s*\}\}/,
     "LocalizedLink must keep focus-triggered prewarm immediate instead of delaying it behind hover intent"
   );
 });
