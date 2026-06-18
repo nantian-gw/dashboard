@@ -380,6 +380,31 @@ test("shared dashboard navigation surfaces prewarm approved hotspots without cha
     /onFocus/,
     "LocalizedLink must wire a focus prewarm entry point"
   );
+  assert.match(
+    linkSource,
+    /queryPrewarm/,
+    "LocalizedLink must expose independent query prewarm control"
+  );
+  assert.doesNotMatch(
+    linkSource,
+    /if\s*\(\s*prefetch\s*===\s*false\s*\)\s*return;?/,
+    "LocalizedLink must not couple query prewarm to prefetch=false"
+  );
+  assert.match(
+    linkSource,
+    /setTimeout\(/,
+    "LocalizedLink must debounce hover-triggered prewarm instead of firing immediately on every hover"
+  );
+  assert.match(
+    linkSource,
+    /clearTimeout/,
+    "LocalizedLink must clear pending hover timers during hover cancellation and cleanup"
+  );
+  assert.match(
+    linkSource,
+    /onMouseLeave/,
+    "LocalizedLink must wire pointer-leave cleanup for delayed hover prewarm"
+  );
 
   assert.match(
     routerSource,

@@ -10,6 +10,10 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
 const ts = require("typescript");
 
+function readSource(relativePath) {
+  return readFileSync(resolve(root, relativePath), "utf8");
+}
+
 function loadDashboardNavigation() {
   const source = readFileSync(resolve(root, "src/lib/dashboard-navigation.ts"), "utf8");
   const { outputText } = ts.transpileModule(source, {
@@ -78,4 +82,52 @@ test("localizeDashboardPath rejects non-absolute dashboard hrefs", () => {
   const { localizeDashboardPath } = loadDashboardNavigation();
 
   assert.throws(() => localizeDashboardPath("en", "gateways"), /must start with \//);
+});
+
+test("LocalizedLink separates query prewarm from route prefetch", () => {
+  const source = readSource("src/components/dashboard/localized-link.tsx");
+
+  assert.match(
+    source,
+    /queryPrewarm\??:\s*boolean|queryPrewarm\s*=\s*true/,
+    "LocalizedLink must expose an independent queryPrewarm control"
+  );
+  assert.doesNotMatch(
+    source,
+    /if\s*\(\s*prefetch\s*===\s*false\s*\)\s*return;?/,
+    "LocalizedLink must not let prefetch=false disable query prewarm implicitly"
+  );
+  assert.match(
+    source,
+    /if\s*\(\s*prefetch\s*!==\s*false\s*\)[\s\S]*router\.prefetch\(localizedHref\)/,
+    "LocalizedLink must gate manual route prefetch independently"
+  );
+  assert.match(
+    source,
+    /if\s*\(\s*queryPrewarm\s*!==\s*false\s*\)[\s\S]*prewarmDashboardQueries\(queryClient,\s*localizedHref\)/,
+    "LocalizedLink must gate query prewarm independently"
+  );
+});
+
+test("LocalizedLink turns hover prewarm into delayed intent work", () => {
+  const source = readSource("src/components/dashboard/localized-link.tsx");
+
+  assert.match(source, /setTimeout\(/, "LocalizedLink must debounce hover-triggered prewarm");
+  assert.match(
+    source,
+    /150|HOVER_PREWARM_DELAY_MS/,
+    "LocalizedLink must delay hover prewarm by the configured intent threshold"
+  );
+  assert.match(source, /onMouseLeave/, "LocalizedLink must cancel hover prewarm on pointer leave");
+  assert.match(source, /clearTimeout/, "LocalizedLink must clear pending hover timers");
+  assert.match(
+    source,
+    /already\s+prewarm|duplicate\s+.*href|same\s+href.*prewarm/i,
+    "LocalizedLink must suppress duplicate manual prewarm for the same mounted href"
+  );
+  assert.match(
+    source,
+    /onFocus[\s\S]*handlePrewarm\(\)/,
+    "LocalizedLink must keep focus-triggered prewarm immediate instead of delaying it behind hover intent"
+  );
 });
