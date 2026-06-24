@@ -10,7 +10,7 @@ function readSource(relativePath) {
   return readFileSync(resolve(root, relativePath), "utf8");
 }
 
-test("docker workflow publishes release tag images without changing main semantics", () => {
+test("docker workflow publishes multi-arch release tag images without changing main semantics", () => {
   const source = readSource(".github/workflows/docker.yml");
 
   assert.match(
@@ -35,7 +35,22 @@ test("docker workflow publishes release tag images without changing main semanti
   );
   assert.match(
     source,
-    /type=raw,value=latest,enable=\$\{\{\s*github\.ref == 'refs\/heads\/main'\s*\}\}/,
-    "latest must remain reserved for main"
+    /type=raw,value=latest-\$\{\{\s*matrix\.arch\s*\}\},enable=\$\{\{\s*github\.ref == 'refs\/heads\/main'\s*\}\}/,
+    "latest tag must remain reserved for main (with arch suffix in build job)"
+  );
+  assert.match(
+    source,
+    /name:\s+Create and push multi-arch manifest[\s\S]*?refs\/heads\/main/,
+    "multi-arch latest manifest must only be created on main"
+  );
+  assert.match(
+    source,
+    /name:\s+Build.*matrix\.arch/,
+    "build job must support multi-arch via matrix"
+  );
+  assert.match(
+    source,
+    /name:\s+Create multi-arch manifest/,
+    "manifest job must merge arch-specific images into multi-arch image"
   );
 });
