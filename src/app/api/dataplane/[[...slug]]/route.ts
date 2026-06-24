@@ -6,6 +6,7 @@ import {
 import {
   CONTROLPLANE_ADMIN_URL,
   DATAPLANE_ADMIN_URL,
+  DATAPLANE_BEARER_TOKEN,
   ADMIN_API_TIMEOUT_MS,
 } from "@/lib/admin-urls";
 import { buildProxyHeaders, proxyResponseHeaders } from "@/lib/proxy-headers";
@@ -83,7 +84,14 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
   }
   targetUrl.search = request.nextUrl.search;
 
-  const headers = buildProxyHeaders(request.headers, token ? { Authorization: `Bearer ${token}` } : {});
+  // The dataplane admin may use a different bearer token than the controlplane
+  // admin. When DATAPLANE_BEARER_TOKEN is configured, use it for requests
+  // forwarded to the dataplane; for controlplane targets (legacy /v1/nodes)
+  // keep using the session token.
+  const isDataplaneTarget = !legacyTarget;
+  const dataplaneToken = DATAPLANE_BEARER_TOKEN || token;
+  const effectiveToken = isDataplaneTarget ? dataplaneToken : token;
+  const headers = buildProxyHeaders(request.headers, effectiveToken ? { Authorization: `Bearer ${effectiveToken}` } : {});
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);

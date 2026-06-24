@@ -10,6 +10,7 @@ import {
 import {
   CONTROLPLANE_ADMIN_URL,
   DATAPLANE_ADMIN_URL,
+  DATAPLANE_BEARER_TOKEN,
   ADMIN_API_TIMEOUT_MS,
 } from "@/lib/admin-urls";
 import { buildProxyHeaders, proxyResponseHeaders } from "@/lib/proxy-headers";
@@ -60,6 +61,7 @@ async function fetchAdminJson(
 async function legacyControlplanePayload(
   slug: string,
   headers: Record<string, string>,
+  sessionToken: string,
   signal: AbortSignal
 ): Promise<LegacyPayload> {
   if (slug === "/v1/gateways") {
@@ -116,10 +118,17 @@ async function legacyControlplanePayload(
   }
 
   if (slug === "/v1/diagnostics") {
+    // The dataplane admin may use a different bearer token than the controlplane.
+    // Build a dataplane-specific header set that prefers DATAPLANE_BEARER_TOKEN.
+    const dataplaneToken = DATAPLANE_BEARER_TOKEN || sessionToken;
+    const dataplaneHeaders = buildProxyHeaders(
+      new Headers(headers as Record<string, string>),
+      dataplaneToken ? { Authorization: `Bearer ${dataplaneToken}` } : {}
+    );
     const [controlplaneSummary, infrastructure, dataplaneSummary] = await Promise.all([
       fetchAdminJson(DEFAULT_TARGET, "/v1/summary", headers, signal),
       fetchAdminJson(DEFAULT_TARGET, "/v1/infrastructure", headers, signal),
-      fetchAdminJson(DATAPLANE_TARGET, "/v1/summary", headers, signal),
+      fetchAdminJson(DATAPLANE_TARGET, "/v1/summary", dataplaneHeaders, signal),
     ]);
     return {
       matched: true,
@@ -172,7 +181,7 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
 
   try {
     if (request.method === "GET") {
-      const legacyPayload = await legacyControlplanePayload(slug, headers, controller.signal);
+      const legacyPayload = await legacyControlplanePayload(slug, headers, token, controller.signal);
       if (legacyPayload.matched) {
         clearTimeout(timeout);
         return NextResponse.json(legacyPayload.payload);

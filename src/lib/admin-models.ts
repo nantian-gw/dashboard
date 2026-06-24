@@ -149,6 +149,11 @@ function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
+/** Coerce a value to ManagedResource[], defending against null/undefined from API responses. */
+export function asManagedResourceArray(value: unknown): ManagedResource[] {
+  return Array.isArray(value) ? value : [];
+}
+
 function asString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback;
 }

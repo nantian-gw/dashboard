@@ -2,7 +2,7 @@
 
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { controlplane } from "@/lib/api";
-import { mapGatewayResource, mapRoutesPayload, mapBackendTlsPolicyResource, mapTokenPolicyResource, toYaml, type ManagedResource } from "@/lib/admin-models";
+import { mapGatewayResource, mapRoutesPayload, mapBackendTlsPolicyResource, mapTokenPolicyResource, toYaml, asManagedResourceArray, type ManagedResource } from "@/lib/admin-models";
 
 const REFETCH_INTERVAL = (query: any) => {
   if (typeof document !== "undefined" && document.hidden) return false;
@@ -22,10 +22,13 @@ export function gatewaysQueryOptions() {
         controlplane.get("/v1/routes"),
       ]);
       const routes = mapRoutesPayload(routesPayload);
+      const summaryObject = (summary && typeof summary === "object" && !Array.isArray(summary)
+        ? summary
+        : {}) as Record<string, unknown>;
       return {
-        gateways: resources.map((resource) => mapGatewayResource(resource, routes)),
-        httpRouteCount: (summary.httpRouteCount as number) ?? 0,
-        grpcRouteCount: (summary.grpcRouteCount as number) ?? 0,
+        gateways: asManagedResourceArray(resources).map((resource) => mapGatewayResource(resource, routes)),
+        httpRouteCount: (summaryObject.httpRouteCount as number) ?? 0,
+        grpcRouteCount: (summaryObject.grpcRouteCount as number) ?? 0,
       };
     },
     refetchInterval: REFETCH_INTERVAL,
@@ -122,9 +125,11 @@ export function tokenPoliciesQueryOptions() {
   return {
     queryKey: ["token-policies"] as const,
     queryFn: async () => {
-      const resources = await controlplane.get<ManagedResource[]>("/v1/resources", {
-        kind: "TokenPolicy",
-      });
+      const resources = asManagedResourceArray(
+        await controlplane.get<ManagedResource[]>("/v1/resources", {
+          kind: "TokenPolicy",
+        })
+      );
       return { policies: resources.map(mapTokenPolicyResource) };
     },
     staleTime: STALE_TIME,
@@ -136,9 +141,11 @@ export function backendTlsQueryOptions() {
   return {
     queryKey: ["backend-tls"] as const,
     queryFn: async () => {
-      const resources = await controlplane.get<ManagedResource[]>("/v1/resources", {
-        kind: "BackendTLSPolicy",
-      });
+      const resources = asManagedResourceArray(
+        await controlplane.get<ManagedResource[]>("/v1/resources", {
+          kind: "BackendTLSPolicy",
+        })
+      );
       return { policies: resources.map(mapBackendTlsPolicyResource) };
     },
     staleTime: STALE_TIME,

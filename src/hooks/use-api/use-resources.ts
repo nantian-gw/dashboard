@@ -2,7 +2,7 @@
 
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { controlplane, dataplane } from "@/lib/api";
-import { mapDiagnostics, mapNodePayload, type ManagedResource } from "@/lib/admin-models";
+import { mapDiagnostics, mapNodePayload, asManagedResourceArray, type ManagedResource } from "@/lib/admin-models";
 
 const REFETCH_INTERVAL = (query: any) => {
   if (typeof document !== "undefined" && document.hidden) return false;
@@ -30,9 +30,11 @@ export function referenceGrantsQueryOptions() {
   return {
     queryKey: ["referencegrants"] as const,
     queryFn: async () => {
-      const resources = await controlplane.get<ManagedResource[]>("/v1/resources", {
-        kind: "ReferenceGrant",
-      });
+      const resources = asManagedResourceArray(
+        await controlplane.get<ManagedResource[]>("/v1/resources", {
+          kind: "ReferenceGrant",
+        })
+      );
       return { grants: resources };
     },
     staleTime: STALE_TIME,

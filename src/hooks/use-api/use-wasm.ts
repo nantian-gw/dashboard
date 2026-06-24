@@ -2,7 +2,7 @@
 
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { controlplane } from "@/lib/api";
-import type { ManagedResource } from "@/lib/admin-models";
+import { asManagedResourceArray, type ManagedResource } from "@/lib/admin-models";
 
 const STALE_TIME = 300000;
 const GC_TIME = 5 * 60 * 1000;
@@ -11,9 +11,10 @@ export function useWasmPlugins(enabled = true) {
   return useQuery({
     queryKey: ["wasm", "plugins"],
     queryFn: async () => {
-      const resources = await controlplane.get<ManagedResource[]>(
-        "/v1/resources",
-        { kind: "WasmPlugin" }
+      const resources = asManagedResourceArray(
+        await controlplane.get<ManagedResource[]>("/v1/resources", {
+          kind: "WasmPlugin",
+        })
       );
       return { plugins: resources };
     },

@@ -394,8 +394,22 @@ function HTTPRouteFormFields({
           <div className="grid gap-2">
             <Label htmlFor="gw-name">{t("create.route.parent_gateway")}</Label>
             <Select
-              value={value.gatewayName}
-              onValueChange={(gatewayName) => onChange({ ...value, gatewayName })}
+              value={
+                value.gatewayName
+                  ? `${value.gatewayNamespace}/${value.gatewayName}`
+                  : ""
+              }
+              onValueChange={(selection) => {
+                // selection is "<namespace>/<name>"; keep both fields in sync
+                // so the parentRef always points at the chosen gateway.
+                const [namespace, ...nameParts] = selection.split("/");
+                const name = nameParts.join("/");
+                onChange({
+                  ...value,
+                  gatewayName: name,
+                  gatewayNamespace: namespace || value.gatewayNamespace,
+                });
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder={t("create.route.select_gateway")} />
@@ -404,7 +418,7 @@ function HTTPRouteFormFields({
                 {gateways.map((gateway) => (
                   <SelectItem
                     key={`${gateway.namespace}/${gateway.name}`}
-                    value={gateway.name}
+                    value={`${gateway.namespace}/${gateway.name}`}
                   >
                     {gateway.name} ({gateway.namespace})
                   </SelectItem>

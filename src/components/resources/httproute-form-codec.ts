@@ -340,7 +340,9 @@ export function httpRouteFormDataToManifest(formData: HTTPRouteFormData): string
     `  namespace: ${formData.namespace}`,
     "spec:",
     "  parentRefs:",
-    `    - name: ${formData.gatewayName}`,
+    "    - group: gateway.networking.k8s.io",
+    "      kind: Gateway",
+    `      name: ${formData.gatewayName}`,
     `      namespace: ${formData.gatewayNamespace}`,
   ];
 
