@@ -13,6 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { applyResource } from "@/lib/api";
 import { useNamespaces } from "@/hooks/use-api";
@@ -37,6 +39,44 @@ export interface AIServiceFormData {
   langfuseSecretKey: string;
   otelEndpoint: string;
   otelServiceName: string;
+  // Model routing
+  routingEnabled: boolean;
+  routingComplexityThresholds: string;
+  routingModelOverrides: string;
+  // Semantic cache
+  cacheEnabled: boolean;
+  cacheTtl: string;
+  cacheMaxTokens: number;
+  // Prompt guard
+  guardEnabled: boolean;
+  guardMode: string;
+  guardPatterns: string;
+  guardKeywords: string;
+  // Content safety
+  safetyEnabled: boolean;
+  safetyBlockMode: boolean;
+  safetyCategories: string[];
+  // PII masking
+  piiEnabled: boolean;
+  piiMode: string;
+  piiEntityTypes: string[];
+  // A/B testing
+  abTestingEnabled: boolean;
+  abTestingExperimentId: string;
+  abTestingVariants: string;
+  // Fallback chains
+  fallbackEnabled: boolean;
+  fallbackChains: string;
+  // Cost tracking
+  costTrackingEnabled: boolean;
+  costInputPricePer1K: string;
+  costOutputPricePer1K: string;
+  costCurrency: string;
+  // Multi-tenant
+  multiTenantEnabled: boolean;
+  multiTenantId: string;
+  multiTenantAllowedModels: string;
+  multiTenantCostLimit: string;
 }
 
 interface AIServiceFormProps {
@@ -64,6 +104,35 @@ function emptyAIServiceForm(): AIServiceFormData {
     langfuseSecretKey: "",
     otelEndpoint: "",
     otelServiceName: "",
+    routingEnabled: false,
+    routingComplexityThresholds: "",
+    routingModelOverrides: "",
+    cacheEnabled: false,
+    cacheTtl: "",
+    cacheMaxTokens: 0,
+    guardEnabled: false,
+    guardMode: "",
+    guardPatterns: "",
+    guardKeywords: "",
+    safetyEnabled: false,
+    safetyBlockMode: false,
+    safetyCategories: [],
+    piiEnabled: false,
+    piiMode: "",
+    piiEntityTypes: [],
+    abTestingEnabled: false,
+    abTestingExperimentId: "",
+    abTestingVariants: "",
+    fallbackEnabled: false,
+    fallbackChains: "",
+    costTrackingEnabled: false,
+    costInputPricePer1K: "",
+    costOutputPricePer1K: "",
+    costCurrency: "",
+    multiTenantEnabled: false,
+    multiTenantId: "",
+    multiTenantAllowedModels: "",
+    multiTenantCostLimit: "",
   };
 }
 
@@ -76,6 +145,15 @@ export function aiserviceResourceToFormData(resource: ManagedResource | Kubernet
   const observability = spec.observability || {};
   const langfuse = observability.langfuse || {};
   const otel = observability.otel || {};
+  const routing = spec.routing || {};
+  const cache = spec.cache || {};
+  const guard = spec.guard || {};
+  const safety = spec.safety || {};
+  const pii = spec.pii || {};
+  const abTesting = spec.abTesting || {};
+  const fallback = spec.fallback || {};
+  const costTracking = spec.costTracking || {};
+  const multiTenant = spec.multiTenant || {};
 
   return {
     name: metadata.name || (resource as ManagedResource).name || "",
@@ -95,6 +173,35 @@ export function aiserviceResourceToFormData(resource: ManagedResource | Kubernet
     langfuseSecretKey: langfuse.secretKey || "",
     otelEndpoint: otel.endpoint || "",
     otelServiceName: otel.serviceName || "",
+    routingEnabled: routing.enabled === true,
+    routingComplexityThresholds: routing.complexityThresholds ? JSON.stringify(routing.complexityThresholds) : "",
+    routingModelOverrides: routing.modelOverrides ? JSON.stringify(routing.modelOverrides) : "",
+    cacheEnabled: cache.enabled === true,
+    cacheTtl: cache.ttl || "",
+    cacheMaxTokens: typeof cache.maxTokens === "number" ? cache.maxTokens : 0,
+    guardEnabled: guard.enabled === true,
+    guardMode: guard.mode || "",
+    guardPatterns: Array.isArray(guard.patterns) ? guard.patterns.join("\n") : "",
+    guardKeywords: Array.isArray(guard.keywords) ? guard.keywords.join("\n") : "",
+    safetyEnabled: safety.enabled === true,
+    safetyBlockMode: safety.blockMode === true,
+    safetyCategories: Array.isArray(safety.categories) ? safety.categories : [],
+    piiEnabled: pii.enabled === true,
+    piiMode: pii.mode || "",
+    piiEntityTypes: Array.isArray(pii.entityTypes) ? pii.entityTypes : [],
+    abTestingEnabled: abTesting.enabled === true,
+    abTestingExperimentId: abTesting.experimentId || "",
+    abTestingVariants: abTesting.variants ? JSON.stringify(abTesting.variants) : "",
+    fallbackEnabled: fallback.enabled === true,
+    fallbackChains: fallback.chains ? JSON.stringify(fallback.chains) : "",
+    costTrackingEnabled: costTracking.enabled === true,
+    costInputPricePer1K: costTracking.inputPricePer1K || "",
+    costOutputPricePer1K: costTracking.outputPricePer1K || "",
+    costCurrency: costTracking.currency || "",
+    multiTenantEnabled: multiTenant.enabled === true,
+    multiTenantId: multiTenant.id || "",
+    multiTenantAllowedModels: multiTenant.allowedModels || "",
+    multiTenantCostLimit: multiTenant.costLimit || "",
   };
 }
 
@@ -121,6 +228,35 @@ export function AIServiceForm({ initialData, mode, onSuccess }: AIServiceFormPro
   const [langfuseSecretKey, setLangfuseSecretKey] = useState(defaults.langfuseSecretKey);
   const [otelEndpoint, setOtelEndpoint] = useState(defaults.otelEndpoint);
   const [otelServiceName, setOtelServiceName] = useState(defaults.otelServiceName);
+  const [routingEnabled, setRoutingEnabled] = useState(defaults.routingEnabled);
+  const [routingComplexityThresholds, setRoutingComplexityThresholds] = useState(defaults.routingComplexityThresholds);
+  const [routingModelOverrides, setRoutingModelOverrides] = useState(defaults.routingModelOverrides);
+  const [cacheEnabled, setCacheEnabled] = useState(defaults.cacheEnabled);
+  const [cacheTtl, setCacheTtl] = useState(defaults.cacheTtl);
+  const [cacheMaxTokens, setCacheMaxTokens] = useState(defaults.cacheMaxTokens);
+  const [guardEnabled, setGuardEnabled] = useState(defaults.guardEnabled);
+  const [guardMode, setGuardMode] = useState(defaults.guardMode);
+  const [guardPatterns, setGuardPatterns] = useState(defaults.guardPatterns);
+  const [guardKeywords, setGuardKeywords] = useState(defaults.guardKeywords);
+  const [safetyEnabled, setSafetyEnabled] = useState(defaults.safetyEnabled);
+  const [safetyBlockMode, setSafetyBlockMode] = useState(defaults.safetyBlockMode);
+  const [safetyCategories, setSafetyCategories] = useState<string[]>(defaults.safetyCategories);
+  const [piiEnabled, setPiiEnabled] = useState(defaults.piiEnabled);
+  const [piiMode, setPiiMode] = useState(defaults.piiMode);
+  const [piiEntityTypes, setPiiEntityTypes] = useState<string[]>(defaults.piiEntityTypes);
+  const [abTestingEnabled, setAbTestingEnabled] = useState(defaults.abTestingEnabled);
+  const [abTestingExperimentId, setAbTestingExperimentId] = useState(defaults.abTestingExperimentId);
+  const [abTestingVariants, setAbTestingVariants] = useState(defaults.abTestingVariants);
+  const [fallbackEnabled, setFallbackEnabled] = useState(defaults.fallbackEnabled);
+  const [fallbackChains, setFallbackChains] = useState(defaults.fallbackChains);
+  const [costTrackingEnabled, setCostTrackingEnabled] = useState(defaults.costTrackingEnabled);
+  const [costInputPricePer1K, setCostInputPricePer1K] = useState(defaults.costInputPricePer1K);
+  const [costOutputPricePer1K, setCostOutputPricePer1K] = useState(defaults.costOutputPricePer1K);
+  const [costCurrency, setCostCurrency] = useState(defaults.costCurrency);
+  const [multiTenantEnabled, setMultiTenantEnabled] = useState(defaults.multiTenantEnabled);
+  const [multiTenantId, setMultiTenantId] = useState(defaults.multiTenantId);
+  const [multiTenantAllowedModels, setMultiTenantAllowedModels] = useState(defaults.multiTenantAllowedModels);
+  const [multiTenantCostLimit, setMultiTenantCostLimit] = useState(defaults.multiTenantCostLimit);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const isEdit = mode === "edit";
@@ -174,6 +310,109 @@ export function AIServiceForm({ initialData, mode, onSuccess }: AIServiceFormPro
       }
     }
 
+    let routingYaml = "";
+    if (routingEnabled) {
+      routingYaml = "\n  routing:\n    enabled: true";
+      if (routingComplexityThresholds.trim()) {
+        routingYaml += `\n    complexityThresholds: ${routingComplexityThresholds.trim()}`;
+      }
+      if (routingModelOverrides.trim()) {
+        routingYaml += `\n    modelOverrides: ${routingModelOverrides.trim()}`;
+      }
+    }
+
+    let cacheYaml = "";
+    if (cacheEnabled) {
+      cacheYaml = "\n  cache:\n    enabled: true";
+      if (cacheTtl.trim()) {
+        cacheYaml += `\n    ttl: ${cacheTtl.trim()}`;
+      }
+      if (cacheMaxTokens > 0) {
+        cacheYaml += `\n    maxTokens: ${cacheMaxTokens}`;
+      }
+    }
+
+    let guardYaml = "";
+    if (guardEnabled) {
+      guardYaml = "\n  guard:\n    enabled: true";
+      if (guardMode.trim()) {
+        guardYaml += `\n    mode: ${guardMode.trim()}`;
+      }
+      if (guardPatterns.trim()) {
+        guardYaml += `\n    patterns:${guardPatterns.trim().split("\n").filter(Boolean).map((p) => `\n      - ${p}`).join("")}`;
+      }
+      if (guardKeywords.trim()) {
+        guardYaml += `\n    keywords:${guardKeywords.trim().split("\n").filter(Boolean).map((k) => `\n      - ${k}`).join("")}`;
+      }
+    }
+
+    let safetyYaml = "";
+    if (safetyEnabled) {
+      safetyYaml = "\n  safety:\n    enabled: true";
+      safetyYaml += `\n    blockMode: ${safetyBlockMode}`;
+      if (safetyCategories.length > 0) {
+        safetyYaml += `\n    categories:${safetyCategories.map((c) => `\n      - ${c}`).join("")}`;
+      }
+    }
+
+    let piiYaml = "";
+    if (piiEnabled) {
+      piiYaml = "\n  pii:\n    enabled: true";
+      if (piiMode.trim()) {
+        piiYaml += `\n    mode: ${piiMode.trim()}`;
+      }
+      if (piiEntityTypes.length > 0) {
+        piiYaml += `\n    entityTypes:${piiEntityTypes.map((e) => `\n      - ${e}`).join("")}`;
+      }
+    }
+
+    let abTestingYaml = "";
+    if (abTestingEnabled) {
+      abTestingYaml = "\n  abTesting:\n    enabled: true";
+      if (abTestingExperimentId.trim()) {
+        abTestingYaml += `\n    experimentId: ${abTestingExperimentId.trim()}`;
+      }
+      if (abTestingVariants.trim()) {
+        abTestingYaml += `\n    variants: ${abTestingVariants.trim()}`;
+      }
+    }
+
+    let fallbackYaml = "";
+    if (fallbackEnabled) {
+      fallbackYaml = "\n  fallback:\n    enabled: true";
+      if (fallbackChains.trim()) {
+        fallbackYaml += `\n    chains: ${fallbackChains.trim()}`;
+      }
+    }
+
+    let costTrackingYaml = "";
+    if (costTrackingEnabled) {
+      costTrackingYaml = "\n  costTracking:\n    enabled: true";
+      if (costInputPricePer1K.trim()) {
+        costTrackingYaml += `\n    inputPricePer1K: ${costInputPricePer1K.trim()}`;
+      }
+      if (costOutputPricePer1K.trim()) {
+        costTrackingYaml += `\n    outputPricePer1K: ${costOutputPricePer1K.trim()}`;
+      }
+      if (costCurrency.trim()) {
+        costTrackingYaml += `\n    currency: ${costCurrency.trim()}`;
+      }
+    }
+
+    let multiTenantYaml = "";
+    if (multiTenantEnabled) {
+      multiTenantYaml = "\n  multiTenant:\n    enabled: true";
+      if (multiTenantId.trim()) {
+        multiTenantYaml += `\n    id: ${multiTenantId.trim()}`;
+      }
+      if (multiTenantAllowedModels.trim()) {
+        multiTenantYaml += `\n    allowedModels: ${multiTenantAllowedModels.trim()}`;
+      }
+      if (multiTenantCostLimit.trim()) {
+        multiTenantYaml += `\n    costLimit: ${multiTenantCostLimit.trim()}`;
+      }
+    }
+
     const yaml = `apiVersion: gateway.nantian.dev/v1alpha1
 kind: AIService
 metadata:
@@ -181,7 +420,7 @@ metadata:
   namespace: ${namespace}
 spec:
   provider: ${provider.trim()}${format.trim() ? `\n  format: ${format.trim()}` : ""}
-  model: ${model.trim()}${timeout.trim() ? `\n  timeout: ${timeout.trim()}` : ""}${authYaml}${retryYaml}${observabilityYaml}
+  model: ${model.trim()}${timeout.trim() ? `\n  timeout: ${timeout.trim()}` : ""}${authYaml}${retryYaml}${observabilityYaml}${routingYaml}${cacheYaml}${guardYaml}${safetyYaml}${piiYaml}${abTestingYaml}${fallbackYaml}${costTrackingYaml}${multiTenantYaml}
 `;
 
     try {
@@ -430,6 +669,402 @@ spec:
                   </div>
                 </div>
               </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">{t("aiservice.create.routing_title")}</CardTitle>
+                    <CardDescription>{t("aiservice.create.routing_desc")}</CardDescription>
+                  </div>
+                  <Checkbox
+                    checked={routingEnabled}
+                    onCheckedChange={setRoutingEnabled}
+                  />
+                </div>
+              </CardHeader>
+              {routingEnabled && (
+                <CardContent className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label>{t("aiservice.create.routing_thresholds")}</Label>
+                    <Textarea
+                      value={routingComplexityThresholds}
+                      onChange={(e) => setRoutingComplexityThresholds(e.target.value)}
+                      placeholder='{"simple": 100, "medium": 500}'
+                      rows={2}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>{t("aiservice.create.routing_overrides")}</Label>
+                    <Textarea
+                      value={routingModelOverrides}
+                      onChange={(e) => setRoutingModelOverrides(e.target.value)}
+                      placeholder='{"simple": "gpt-4o-mini", "medium": "gpt-4o", "complex": "o1"}'
+                      rows={3}
+                    />
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">{t("aiservice.create.cache_title")}</CardTitle>
+                    <CardDescription>{t("aiservice.create.cache_desc")}</CardDescription>
+                  </div>
+                  <Checkbox
+                    checked={cacheEnabled}
+                    onCheckedChange={setCacheEnabled}
+                  />
+                </div>
+              </CardHeader>
+              {cacheEnabled && (
+                <CardContent className="grid gap-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label>{t("aiservice.create.cache_ttl")}</Label>
+                      <Input
+                        value={cacheTtl}
+                        onChange={(e) => setCacheTtl(e.target.value)}
+                        placeholder="3600s"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>{t("aiservice.create.cache_max_tokens")}</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        value={cacheMaxTokens}
+                        onChange={(e) => setCacheMaxTokens(parseInt(e.target.value, 10) || 0)}
+                        placeholder="4096"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">{t("aiservice.create.guard_title")}</CardTitle>
+                    <CardDescription>{t("aiservice.create.guard_desc")}</CardDescription>
+                  </div>
+                  <Checkbox
+                    checked={guardEnabled}
+                    onCheckedChange={setGuardEnabled}
+                  />
+                </div>
+              </CardHeader>
+              {guardEnabled && (
+                <CardContent className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label>{t("aiservice.create.guard_mode")}</Label>
+                    <Select value={guardMode} onValueChange={setGuardMode}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("aiservice.create.guard_mode_placeholder")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="block">block</SelectItem>
+                        <SelectItem value="warn">warn</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>{t("aiservice.create.guard_patterns")}</Label>
+                    <Textarea
+                      value={guardPatterns}
+                      onChange={(e) => setGuardPatterns(e.target.value)}
+                      placeholder="^DROP\s+TABLE|^DELETE\s+FROM"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>{t("aiservice.create.guard_keywords")}</Label>
+                    <Textarea
+                      value={guardKeywords}
+                      onChange={(e) => setGuardKeywords(e.target.value)}
+                      placeholder="password\nsecret\napi_key"
+                      rows={3}
+                    />
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">{t("aiservice.create.safety_title")}</CardTitle>
+                    <CardDescription>{t("aiservice.create.safety_desc")}</CardDescription>
+                  </div>
+                  <Checkbox
+                    checked={safetyEnabled}
+                    onCheckedChange={setSafetyEnabled}
+                  />
+                </div>
+              </CardHeader>
+              {safetyEnabled && (
+                <CardContent className="grid gap-4">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      checked={safetyBlockMode}
+                      onCheckedChange={setSafetyBlockMode}
+                    />
+                    <Label>{t("aiservice.create.safety_block_mode")}</Label>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("aiservice.create.safety_categories")}</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { value: "violence", labelKey: "aiservice.create.safety_violence" as const },
+                        { value: "hate", labelKey: "aiservice.create.safety_hate" as const },
+                        { value: "self_harm", labelKey: "aiservice.create.safety_self_harm" as const },
+                        { value: "exploitation", labelKey: "aiservice.create.safety_exploitation" as const },
+                        { value: "illegal", labelKey: "aiservice.create.safety_illegal" as const },
+                      ].map((cat) => (
+                        <div key={cat.value} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={safetyCategories.includes(cat.value)}
+                            onCheckedChange={(checked) =>
+                              setSafetyCategories(
+                                checked
+                                  ? [...safetyCategories, cat.value]
+                                  : safetyCategories.filter((c) => c !== cat.value)
+                              )
+                            }
+                          />
+                          <Label className="font-normal">{t(cat.labelKey)}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">{t("aiservice.create.pii_title")}</CardTitle>
+                    <CardDescription>{t("aiservice.create.pii_desc")}</CardDescription>
+                  </div>
+                  <Checkbox
+                    checked={piiEnabled}
+                    onCheckedChange={setPiiEnabled}
+                  />
+                </div>
+              </CardHeader>
+              {piiEnabled && (
+                <CardContent className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label>{t("aiservice.create.pii_mode")}</Label>
+                    <Select value={piiMode} onValueChange={setPiiMode}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("aiservice.create.pii_mode_placeholder")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="mask">mask</SelectItem>
+                        <SelectItem value="redact">redact</SelectItem>
+                        <SelectItem value="anonymize">anonymize</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t("aiservice.create.pii_entity_types")}</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { value: "email", labelKey: "aiservice.create.pii_email" as const },
+                        { value: "phone", labelKey: "aiservice.create.pii_phone" as const },
+                        { value: "credit-card", labelKey: "aiservice.create.pii_credit_card" as const },
+                        { value: "id-card", labelKey: "aiservice.create.pii_id_card" as const },
+                        { value: "url", labelKey: "aiservice.create.pii_url" as const },
+                        { value: "ip", labelKey: "aiservice.create.pii_ip" as const },
+                      ].map((ent) => (
+                        <div key={ent.value} className="flex items-center gap-2">
+                          <Checkbox
+                            checked={piiEntityTypes.includes(ent.value)}
+                            onCheckedChange={(checked) =>
+                              setPiiEntityTypes(
+                                checked
+                                  ? [...piiEntityTypes, ent.value]
+                                  : piiEntityTypes.filter((e) => e !== ent.value)
+                              )
+                            }
+                          />
+                          <Label className="font-normal">{t(ent.labelKey)}</Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">{t("aiservice.create.ab_testing_title")}</CardTitle>
+                    <CardDescription>{t("aiservice.create.ab_testing_desc")}</CardDescription>
+                  </div>
+                  <Checkbox
+                    checked={abTestingEnabled}
+                    onCheckedChange={setAbTestingEnabled}
+                  />
+                </div>
+              </CardHeader>
+              {abTestingEnabled && (
+                <CardContent className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label>{t("aiservice.create.ab_testing_experiment_id")}</Label>
+                    <Input
+                      value={abTestingExperimentId}
+                      onChange={(e) => setAbTestingExperimentId(e.target.value)}
+                      placeholder="exp-001"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>{t("aiservice.create.ab_testing_variants")}</Label>
+                    <Textarea
+                      value={abTestingVariants}
+                      onChange={(e) => setAbTestingVariants(e.target.value)}
+                      placeholder='[{"name": "A", "model": "gpt-4o", "weight": 50}, {"name": "B", "model": "claude-3", "weight": 50}]'
+                      rows={4}
+                    />
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">{t("aiservice.create.fallback_title")}</CardTitle>
+                    <CardDescription>{t("aiservice.create.fallback_desc")}</CardDescription>
+                  </div>
+                  <Checkbox
+                    checked={fallbackEnabled}
+                    onCheckedChange={setFallbackEnabled}
+                  />
+                </div>
+              </CardHeader>
+              {fallbackEnabled && (
+                <CardContent className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label>{t("aiservice.create.fallback_chains")}</Label>
+                    <Textarea
+                      value={fallbackChains}
+                      onChange={(e) => setFallbackChains(e.target.value)}
+                      placeholder='[{"primary": "gpt-4o", "fallbacks": [{"model": "claude-3", "timeout": true, "statusCodes": [429, 500]}]}]'
+                      rows={4}
+                    />
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">{t("aiservice.create.cost_title")}</CardTitle>
+                    <CardDescription>{t("aiservice.create.cost_desc")}</CardDescription>
+                  </div>
+                  <Checkbox
+                    checked={costTrackingEnabled}
+                    onCheckedChange={setCostTrackingEnabled}
+                  />
+                </div>
+              </CardHeader>
+              {costTrackingEnabled && (
+                <CardContent className="grid gap-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="grid gap-2">
+                      <Label>{t("aiservice.create.cost_input_price")}</Label>
+                      <Input
+                        value={costInputPricePer1K}
+                        onChange={(e) => setCostInputPricePer1K(e.target.value)}
+                        placeholder="0.03"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>{t("aiservice.create.cost_output_price")}</Label>
+                      <Input
+                        value={costOutputPricePer1K}
+                        onChange={(e) => setCostOutputPricePer1K(e.target.value)}
+                        placeholder="0.06"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>{t("aiservice.create.cost_currency")}</Label>
+                      <Select value={costCurrency} onValueChange={setCostCurrency}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t("aiservice.create.cost_currency_placeholder")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="USD">USD</SelectItem>
+                          <SelectItem value="EUR">EUR</SelectItem>
+                          <SelectItem value="CNY">CNY</SelectItem>
+                          <SelectItem value="JPY">JPY</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base">{t("aiservice.create.multi_tenant_title")}</CardTitle>
+                    <CardDescription>{t("aiservice.create.multi_tenant_desc")}</CardDescription>
+                  </div>
+                  <Checkbox
+                    checked={multiTenantEnabled}
+                    onCheckedChange={setMultiTenantEnabled}
+                  />
+                </div>
+              </CardHeader>
+              {multiTenantEnabled && (
+                <CardContent className="grid gap-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label>{t("aiservice.create.multi_tenant_id")}</Label>
+                      <Input
+                        value={multiTenantId}
+                        onChange={(e) => setMultiTenantId(e.target.value)}
+                        placeholder="tenant-001"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label>{t("aiservice.create.multi_tenant_cost_limit")}</Label>
+                      <Input
+                        value={multiTenantCostLimit}
+                        onChange={(e) => setMultiTenantCostLimit(e.target.value)}
+                        placeholder="1000"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>{t("aiservice.create.multi_tenant_models")}</Label>
+                    <Input
+                      value={multiTenantAllowedModels}
+                      onChange={(e) => setMultiTenantAllowedModels(e.target.value)}
+                      placeholder="gpt-4o,claude-3,gemini-pro"
+                    />
+                  </div>
+                </CardContent>
+              )}
             </Card>
 
             {error && (
