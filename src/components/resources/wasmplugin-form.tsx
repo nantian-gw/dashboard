@@ -73,34 +73,34 @@ function emptyWasmPluginForm(): WasmPluginFormData {
 
 export function wasmPluginResourceToFormData(resource: ManagedResource | KubernetesResource): WasmPluginFormData {
   const r = unwrapResource(resource);
-  const spec: Record<string, any> = r.spec || {};
+  const spec: Record<string, unknown> = r.spec || {};
   const metadata = (r.metadata || {}) as { name?: string; namespace?: string };
-  const wasm = spec.wasm || {};
+  const wasm = spec.wasm as Record<string, unknown> | undefined;
 
   let wasmSourceType: "url" | "configMap" | "inline" = "url";
-  if (wasm.configMap?.name) wasmSourceType = "configMap";
-  else if (wasm.inline) wasmSourceType = "inline";
+  if ((wasm?.configMap as Record<string, unknown> | undefined)?.name) wasmSourceType = "configMap";
+  else if (wasm?.inline) wasmSourceType = "inline";
 
   return {
     name: metadata.name || (resource as ManagedResource).name || "",
     namespace: metadata.namespace || (resource as ManagedResource).namespace || "default",
     wasmSourceType,
-    wasmUrl: wasm.url || "",
-    wasmConfigMapName: wasm.configMap?.name || "",
-    wasmConfigMapKey: wasm.configMap?.key || "plugin.wasm",
-    wasmInline: wasm.inline || "",
-    wasmSha256: wasm.sha256 || "",
-    targetRefs: (spec.targetRefs || []).map((ref: any) => ({
-      group: ref.group || "",
-      kind: ref.kind || "Service",
-      name: ref.name || "",
+    wasmUrl: (wasm?.url as string) || "",
+    wasmConfigMapName: ((wasm?.configMap as Record<string, unknown> | undefined)?.name as string) || "",
+    wasmConfigMapKey: ((wasm?.configMap as Record<string, unknown> | undefined)?.key as string) || "plugin.wasm",
+    wasmInline: (wasm?.inline as string) || "",
+    wasmSha256: (wasm?.sha256 as string) || "",
+    targetRefs: ((spec.targetRefs as Record<string, unknown>[]) || []).map((ref: Record<string, unknown>) => ({
+      group: (ref.group as string) || "",
+      kind: (ref.kind as string) || "Service",
+      name: (ref.name as string) || "",
     })),
-    hooks: spec.hooks || [],
+    hooks: (spec.hooks as string[]) || [],
     config: spec.config ? (typeof spec.config === "string" ? spec.config : JSON.stringify(spec.config, null, 2)) : "",
-    sandboxMaxMemoryBytes: spec.sandbox?.maxMemoryBytes ?? 0,
-    sandboxMaxExecutionTimeMs: spec.sandbox?.maxExecutionTimeMs ?? 0,
-    sandboxAllowNetwork: !!spec.sandbox?.allowNetwork,
-    sandboxAllowFileSystem: !!spec.sandbox?.allowFileSystem,
+    sandboxMaxMemoryBytes: ((spec.sandbox as Record<string, unknown> | undefined)?.maxMemoryBytes as number) ?? 0,
+    sandboxMaxExecutionTimeMs: ((spec.sandbox as Record<string, unknown> | undefined)?.maxExecutionTimeMs as number) ?? 0,
+    sandboxAllowNetwork: !!((spec.sandbox as Record<string, unknown> | undefined)?.allowNetwork),
+    sandboxAllowFileSystem: !!((spec.sandbox as Record<string, unknown> | undefined)?.allowFileSystem),
   };
 }
 

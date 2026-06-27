@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { BackendLbPolicyForm } from "@/components/resources/backendlbpolicy-form";
 import { backendLbPolicyResourceToFormData } from "@/components/resources/backendlbpolicy-form-codec";
 import { useBackendLb } from "@/hooks/use-api";
+import { type BackendLbPolicyRow } from "@/lib/admin-models";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -14,11 +15,11 @@ export default function EditBackendLbPolicyPage() {
 
   const { data, isLoading, error } = useBackendLb();
 
-  let resourceData: Record<string, any> | null = null;
+  let resourceData: Record<string, unknown> | null = null;
   if (data) {
     const policies = Array.isArray(data) ? data : data?.policies || [];
     const policy = policies.find(
-      (p: any) => p.name === name && p.namespace === namespace
+      (p: BackendLbPolicyRow) => p.name === name && p.namespace === namespace
     );
     resourceData = policy || null;
   }

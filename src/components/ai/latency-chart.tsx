@@ -28,12 +28,8 @@ export const LatencyChart = memo(function LatencyChart({ data }: LatencyChartPro
     }));
   }, [data]);
 
-  const formatXAxis = useCallback((v: any) => {
+  const formatXAxis = useCallback((v: string | number) => {
     return new Date(v).toLocaleTimeString();
-  }, []);
-
-  const formatTooltipLabel = useCallback((label: any) => {
-    return new Date(label).toLocaleString();
   }, []);
 
   return (
@@ -52,7 +48,9 @@ export const LatencyChart = memo(function LatencyChart({ data }: LatencyChartPro
           unit=" ms"
         />
         <Tooltip
-          labelFormatter={formatTooltipLabel}
+          labelFormatter={(label) => {
+            return new Date(label as string | number).toLocaleString();
+          }}
           contentStyle={{
             backgroundColor: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",

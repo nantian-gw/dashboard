@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useRoutes } from "@/hooks/use-api";
+import { type RouteRow } from "@/lib/admin-models";
 import { useAtomValue } from "jotai";
 import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { searchAtom } from "@/lib/store";
@@ -118,10 +119,10 @@ function RoutesContent({ search }: { search: string }) {
 
   const rows = Array.isArray(data) ? data : data?.routes || [];
 
-  const allKinds = [...new Set(rows.map((r: any) => r.kind))].sort();
-  const allNamespaces = [...new Set(rows.map((r: any) => r.namespace))].sort();
+  const allKinds = [...new Set(rows.map((r: RouteRow) => r.kind))].sort();
+  const allNamespaces = [...new Set(rows.map((r: RouteRow) => r.namespace))].sort();
   const allStatuses = [
-    ...new Set(rows.map((r: any) => r.status || "Unknown")),
+    ...new Set(rows.map((r: RouteRow) => r.status || "Unknown")),
   ].sort();
 
   const toggleSet = useCallback(
@@ -188,11 +189,11 @@ function RoutesContent({ search }: { search: string }) {
 
   const acceptedCount = rows.filter((r) => r.status === "Accepted").length;
   const hostnameCount = rows.reduce(
-    (sum: number, r: any) => sum + (r.hostnames?.length || 0),
+    (sum: number, r: RouteRow) => sum + (r.hostnames?.length || 0),
     0
   );
   const backendCount = rows.reduce(
-    (sum: number, r: any) => sum + (r.backendCount || 0),
+    (sum: number, r: RouteRow) => sum + (r.backendCount || 0),
     0
   );
 
@@ -250,7 +251,7 @@ function RoutesContent({ search }: { search: string }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((route: any, idx: number) => {
+              {filtered.map((route: RouteRow, idx: number) => {
                 const detailHref = `/routes/${route.kind}/${route.namespace}/${route.name}`;
 
                 return (

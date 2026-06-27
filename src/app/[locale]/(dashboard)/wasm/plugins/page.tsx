@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { type ManagedResource } from "@/lib/admin-models";
 import { useWasmPlugins } from "@/hooks/use-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -136,7 +137,7 @@ function WasmPluginsContent() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map((plugin: any) => {
+              {rows.map((plugin: ManagedResource) => {
                 const spec = plugin?.resource?.spec as
                   | Record<string, unknown>
                   | undefined;
@@ -149,7 +150,7 @@ function WasmPluginsContent() {
                   <TableRow key={`${plugin.namespace}-${plugin.name}`}>
                     <TableCell>
                       <Link
-                        href={`/${locale}/wasm/plugins/${encodeURIComponent(plugin.name)}`}
+                        href={`/${locale}/wasm/plugins/${encodeURIComponent(plugin.name || "")}`}
                         className="font-medium text-primary hover:underline"
                       >
                         {plugin.name}
@@ -178,7 +179,7 @@ function WasmPluginsContent() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setDeleteTarget({ name: plugin.name, namespace: plugin.namespace })}
+                        onClick={() => setDeleteTarget({ name: plugin.name || "", namespace: plugin.namespace || "" })}
                       >
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>

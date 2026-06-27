@@ -4,7 +4,7 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { controlplane, dataplane } from "@/lib/api";
 import { mapDiagnostics, mapNodePayload, asManagedResourceArray, type ManagedResource } from "@/lib/admin-models";
 
-const REFETCH_INTERVAL = (query: any) => {
+const REFETCH_INTERVAL = (query: { state: { error: unknown } }) => {
   if (typeof document !== "undefined" && document.hidden) return false;
   if (query.state.error) return 60000;
   return 30000 + Math.random() * 5000;

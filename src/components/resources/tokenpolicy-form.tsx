@@ -63,24 +63,24 @@ function emptyTokenPolicyForm(): TokenPolicyFormData {
 
 export function tokenPolicyResourceToFormData(resource: ManagedResource | KubernetesResource): TokenPolicyFormData {
   const r = unwrapResource(resource);
-  const spec: Record<string, any> = r.spec || {};
+  const spec: Record<string, unknown> = r.spec || {};
   const metadata = (r.metadata || {}) as { name?: string; namespace?: string };
-  const targetRefs: TargetRef[] = (spec.targetRefs || []).map((ref: any) => ({
-    group: ref.group || "",
-    kind: ref.kind || "AIService",
-    name: ref.name || "",
+  const targetRefs: TargetRef[] = ((spec.targetRefs as Record<string, unknown>[]) || []).map((ref: Record<string, unknown>) => ({
+    group: (ref.group as string) || "",
+    kind: (ref.kind as string) || "AIService",
+    name: (ref.name as string) || "",
   }));
 
   return {
     name: metadata.name || (resource as ManagedResource).name || "",
     namespace: metadata.namespace || (resource as ManagedResource).namespace || "default",
     targetRefs: targetRefs.length > 0 ? targetRefs : [emptyTargetRef()],
-    tokensPerMinute: spec.tokensPerMinute ?? undefined,
-    tokensPerHour: spec.tokensPerHour ?? undefined,
-    requestsPerMinute: spec.requestsPerMinute ?? undefined,
-    scope: spec.scope || "global",
-    burst: spec.burst ?? undefined,
-    onLimit: spec.onLimit || "reject",
+    tokensPerMinute: (spec.tokensPerMinute as number | undefined),
+    tokensPerHour: (spec.tokensPerHour as number | undefined),
+    requestsPerMinute: (spec.requestsPerMinute as number | undefined),
+    scope: (spec.scope as string) || "global",
+    burst: (spec.burst as number | undefined),
+    onLimit: (spec.onLimit as string) || "reject",
   };
 }
 

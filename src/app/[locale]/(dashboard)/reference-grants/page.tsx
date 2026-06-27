@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useReferenceGrants } from "@/hooks/use-api";
+import { type ManagedResource } from "@/lib/admin-models";
 import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,17 +18,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
-function formatFrom(spec: any): string {
-  const froms: any[] = spec?.from || [];
+function formatFrom(spec: Record<string, unknown> | undefined): string {
+  const froms = (spec?.from as Record<string, unknown>[]) || [];
   return froms
-    .map((f: any) => `${f.kind}(${f.namespace})`)
+    .map((f: Record<string, unknown>) => `${f.kind}(${f.namespace})`)
     .join(", ");
 }
 
-function formatTo(spec: any): string {
-  const tos: any[] = spec?.to || [];
+function formatTo(spec: Record<string, unknown> | undefined): string {
+  const tos = (spec?.to as Record<string, unknown>[]) || [];
   return tos
-    .map((t: any) => `${t.kind}${t.name ? `/${t.name}` : ""}`)
+    .map((t: Record<string, unknown>) => `${t.kind}${t.name ? `/${t.name}` : ""}`)
     .join(", ");
 }
 
@@ -88,7 +89,7 @@ function ReferenceGrantsContent() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rows.map((grant: any, idx: number) => {
+            {rows.map((grant: ManagedResource, idx: number) => {
               const spec = grant.resource?.spec || {};
               return (
                 <TableRow key={idx}>

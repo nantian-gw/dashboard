@@ -7,6 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertTriangle, AlertCircle, Info } from "lucide-react";
 
+type IssueRow = {
+  severity: string;
+  title?: string;
+  message?: string;
+  description?: string;
+  source?: string;
+  resource?: string;
+};
+
 export default function DiagnosticsPage() {
   const t = useTranslations();
   return (
@@ -99,7 +108,7 @@ function DiagnosticsContent() {
           <CardTitle className="text-base">All Issues ({issues.length})</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {issues.map((issue: any, idx: number) => (
+          {issues.map((issue: IssueRow, idx: number) => (
             <div
               key={idx}
               className="flex items-start gap-3 rounded-md border p-3"

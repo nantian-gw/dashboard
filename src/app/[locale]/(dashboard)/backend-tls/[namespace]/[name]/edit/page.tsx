@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { BackendTlsForm } from "@/components/resources/backendtls-form";
 import { backendTlsResourceToFormData } from "@/components/resources/backendtls-form-codec";
 import { useBackendTls } from "@/hooks/use-api";
+import { type BackendTlsPolicyRow } from "@/lib/admin-models";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -14,11 +15,11 @@ export default function EditBackendTlsPage() {
 
   const { data, isLoading, error } = useBackendTls();
 
-  let resourceData: Record<string, any> | null = null;
+  let resourceData: Record<string, unknown> | null = null;
   if (data) {
     const policies = Array.isArray(data) ? data : data?.policies || [];
     const policy = policies.find(
-      (p: any) => p.name === name && p.namespace === namespace
+      (p: BackendTlsPolicyRow) => p.name === name && p.namespace === namespace
     );
     resourceData = policy || null;
   }

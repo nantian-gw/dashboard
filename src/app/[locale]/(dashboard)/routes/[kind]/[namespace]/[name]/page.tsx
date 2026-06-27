@@ -96,22 +96,23 @@ export default function RouteDetailPage() {
   const filters = route?.filters || [];
   const timeouts = route?.timeouts as Record<string, unknown> | undefined;
 
-  const rulesWithBackends = rules.map((rule: any) => {
+  const rulesWithBackends = rules.map((rule: Record<string, unknown>) => {
     const pathMatches: string[] = [];
     if (rule.matches) {
-      rule.matches.forEach((m: any) => {
+      (rule.matches as Record<string, unknown>[]).forEach((m: Record<string, unknown>) => {
         if (m.path) {
-          pathMatches.push(`${m.path.type || "PathPrefix"}: ${m.path.value || "/"}`);
+          const p = m.path as Record<string, unknown>;
+          pathMatches.push(`${String(p.type || "PathPrefix")}: ${String(p.value || "/")}`);
         }
         if (m.headers) {
-          pathMatches.push(`Headers: ${m.headers.length}`);
+          pathMatches.push(`Headers: ${(m.headers as unknown[]).length}`);
         }
         if (m.method) {
-          pathMatches.push(`Method: ${m.method}`);
+          pathMatches.push(`Method: ${String(m.method)}`);
         }
       });
     }
-    const ruleBackends = (rule.backendRefs || []).map((br: any) => ({
+    const ruleBackends = ((rule.backendRefs as Record<string, unknown>[]) || []).map((br: Record<string, unknown>) => ({
       name: br.name,
       namespace: br.namespace || route?.namespace,
       port: br.port,
@@ -157,21 +158,21 @@ export default function RouteDetailPage() {
           <CardContent>
             {parentRefs.length > 0 ? (
               <div className="space-y-2">
-                {parentRefs.map((parent: any, idx: number) => (
+                {parentRefs.map((parent: Record<string, unknown>, idx: number) => (
                   <LocalizedLink
                     key={idx}
-                    href={`/gateways/${parent.namespace || "default"}/${parent.name}`}
+                    href={`/gateways/${String(parent.namespace || "default")}/${String(parent.name)}`}
                     className="flex items-center gap-2 hover:underline"
                   >
                     <span className="font-mono text-sm">
-                      {parent.namespace ? `${parent.namespace}/${parent.name}` : parent.name}
+                      {parent.namespace ? `${String(parent.namespace)}/${String(parent.name)}` : String(parent.name)}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      ({parent.kind || "Gateway"})
+                      ({String(parent.kind || "Gateway")})
                     </span>
-                    {parent.sectionName && (
+                    {!!parent.sectionName && (
                       <span className="text-xs bg-muted px-1 rounded">
-                        port: {parent.port || "default"} {parent.sectionName && `section: ${parent.sectionName}`}
+                        port: {String(parent.port || "default")} {!!parent.sectionName && `section: ${String(parent.sectionName)}`}
                       </span>
                     )}
                   </LocalizedLink>
@@ -205,7 +206,7 @@ export default function RouteDetailPage() {
       </div>
 
       {rulesWithBackends.length > 0 ? (
-        rulesWithBackends.map((ruleData: { pathMatches: string[]; backends: any[]; filters: any[] }, ruleIdx: number) => (
+        rulesWithBackends.map((ruleData, ruleIdx: number) => (
           <Card key={ruleIdx}>
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
@@ -239,10 +240,10 @@ export default function RouteDetailPage() {
                   <TableBody>
                     {ruleData.backends.map((backend, bIdx) => (
                       <TableRow key={bIdx}>
-                        <TableCell className="font-mono">{backend.name}</TableCell>
-                        <TableCell className="text-muted-foreground">{backend.namespace}</TableCell>
-                        <TableCell>{backend.port}</TableCell>
-                        <TableCell>{backend.weight}%</TableCell>
+                        <TableCell className="font-mono">{String(backend.name)}</TableCell>
+                        <TableCell className="text-muted-foreground">{String(backend.namespace)}</TableCell>
+                        <TableCell>{String(backend.port)}</TableCell>
+                        <TableCell>{String(backend.weight)}%</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -271,45 +272,52 @@ export default function RouteDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {filters.map((filter: any, idx: number) => (
+              {filters.map((filter: Record<string, unknown>, idx: number) => {
+                const reqHdr = filter.requestHeaderModifier as Record<string, unknown> | undefined;
+                const resHdr = filter.responseHeaderModifier as Record<string, unknown> | undefined;
+                const redirect = filter.requestRedirect as Record<string, unknown> | undefined;
+                const rewrite = filter.urlRewrite as Record<string, unknown> | undefined;
+                const mirror = filter.requestMirror as Record<string, unknown> | undefined;
+                return (
                 <div key={idx} className="p-3 border rounded-md bg-slate-50/50">
-                  <div className="font-mono text-sm font-medium">{filter.type}</div>
-                  {filter.requestHeaderModifier && (
+                  <div className="font-mono text-sm font-medium">{String(filter.type)}</div>
+                  {!!reqHdr && (
                     <div className="mt-2 text-sm text-muted-foreground">
                       <div className="font-medium">Request Header Modifier:</div>
-                      {filter.requestHeaderModifier.add && (
-                        <div className="ml-2">Add: {JSON.stringify(filter.requestHeaderModifier.add)}</div>
+                      {!!reqHdr.add && (
+                        <div className="ml-2">Add: {JSON.stringify(reqHdr.add)}</div>
                       )}
-                      {filter.requestHeaderModifier.remove && (
-                        <div className="ml-2">Remove: {JSON.stringify(filter.requestHeaderModifier.remove)}</div>
+                      {!!reqHdr.remove && (
+                        <div className="ml-2">Remove: {JSON.stringify(reqHdr.remove)}</div>
                       )}
                     </div>
                   )}
-                  {filter.responseHeaderModifier && (
+                  {!!resHdr && (
                     <div className="mt-2 text-sm text-muted-foreground">
                       <div className="font-medium">Response Header Modifier:</div>
-                      {filter.responseHeaderModifier.add && (
-                        <div className="ml-2">Add: {JSON.stringify(filter.responseHeaderModifier.add)}</div>
+                      {!!resHdr.add && (
+                        <div className="ml-2">Add: {JSON.stringify(resHdr.add)}</div>
                       )}
                     </div>
                   )}
-                  {filter.requestRedirect && (
+                  {!!redirect && (
                     <div className="mt-2 text-sm text-muted-foreground">
-                      Request Redirect: {filter.requestRedirect.scheme}://{filter.requestRedirect.hostname}{filter.requestRedirect.path}
+                      Request Redirect: {String(redirect.scheme)}://{String(redirect.hostname)}{String(redirect.path)}
                     </div>
                   )}
-                  {filter.urlRewrite && (
+                  {!!rewrite && (
                     <div className="mt-2 text-sm text-muted-foreground">
-                      URL Rewrite: {filter.urlRewrite.pathType} → {filter.urlRewrite.path || filter.urlRewrite.hostname || ""}
+                      URL Rewrite: {String(rewrite.pathType)} → {String(rewrite.path || rewrite.hostname || "")}
                     </div>
                   )}
-                  {filter.requestMirror && (
+                  {!!mirror && (
                     <div className="mt-2 text-sm text-muted-foreground">
-                      Request Mirror: {filter.requestMirror.backendRef?.name}:{filter.requestMirror.backendRef?.port}
+                      Request Mirror: {String((mirror.backendRef as Record<string, unknown> | undefined)?.name)}:{String((mirror.backendRef as Record<string, unknown> | undefined)?.port)}
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>

@@ -31,10 +31,10 @@ export function backendTlsResourceToFormData(
       ? resource.namespace
       : "default";
   const unwrapped = unwrapResource(resource) as ManifestRecord;
-  const spec = (unwrapped.spec ?? {}) as Record<string, any>;
-  const metadata = (unwrapped.metadata ?? {}) as Record<string, any>;
-  const targetRef = (spec.targetRef ?? {}) as Record<string, any>;
-  const validation = (spec.validation ?? {}) as Record<string, any>;
+  const spec = (unwrapped.spec ?? {}) as Record<string, unknown>;
+  const metadata = (unwrapped.metadata ?? {}) as Record<string, unknown>;
+  const targetRef = (spec.targetRef ?? {}) as Record<string, unknown>;
+  const validation = (spec.validation ?? {}) as Record<string, unknown>;
 
   return {
     name: String(metadata.name ?? fallbackName),
@@ -45,7 +45,7 @@ export function backendTlsResourceToFormData(
     hostname: String(validation.hostname ?? ""),
     caRefs:
       Array.isArray(validation.caCertificateRefs) && validation.caCertificateRefs.length > 0
-        ? validation.caCertificateRefs.map((ref: any) => ({
+        ? validation.caCertificateRefs.map((ref: Record<string, unknown>) => ({
             name: String(ref.name ?? ""),
             group: String(ref.group ?? ""),
             kind: String(ref.kind ?? "ConfigMap"),

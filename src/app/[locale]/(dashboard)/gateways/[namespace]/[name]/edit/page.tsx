@@ -40,7 +40,7 @@ export default function EditGatewayPage() {
     );
   }
 
-  const formData = gatewayResourceToFormData(data as Record<string, any>);
+  const formData = gatewayResourceToFormData(data as Record<string, unknown>);
 
   return (
     <GatewayForm

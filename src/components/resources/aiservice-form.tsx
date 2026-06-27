@@ -138,70 +138,70 @@ function emptyAIServiceForm(): AIServiceFormData {
 
 export function aiserviceResourceToFormData(resource: ManagedResource | KubernetesResource): AIServiceFormData {
   const r = unwrapResource(resource);
-  const spec: Record<string, any> = r.spec || {};
+  const spec: Record<string, unknown> = r.spec || {};
   const metadata = (r.metadata || {}) as { name?: string; namespace?: string };
-  const auth = spec.auth || {};
-  const retry = spec.retry || {};
-  const observability = spec.observability || {};
-  const langfuse = observability.langfuse || {};
-  const otel = observability.otel || {};
-  const routing = spec.routing || {};
-  const cache = spec.cache || {};
-  const guard = spec.guard || {};
-  const safety = spec.safety || {};
-  const pii = spec.pii || {};
-  const abTesting = spec.abTesting || {};
-  const fallback = spec.fallback || {};
-  const costTracking = spec.costTracking || {};
-  const multiTenant = spec.multiTenant || {};
+  const auth = (spec.auth as Record<string, unknown>) || {};
+  const retry = (spec.retry as Record<string, unknown>) || {};
+  const observability = (spec.observability as Record<string, unknown>) || {};
+  const langfuse = ((observability as Record<string, unknown>).langfuse as Record<string, unknown>) || {};
+  const otel = (observability.otel as Record<string, unknown>) || {};
+  const routing = (spec.routing as Record<string, unknown>) || {};
+  const cache = (spec.cache as Record<string, unknown>) || {};
+  const guard = (spec.guard as Record<string, unknown>) || {};
+  const safety = (spec.safety as Record<string, unknown>) || {};
+  const pii = (spec.pii as Record<string, unknown>) || {};
+  const abTesting = (spec.abTesting as Record<string, unknown>) || {};
+  const fallback = (spec.fallback as Record<string, unknown>) || {};
+  const costTracking = (spec.costTracking as Record<string, unknown>) || {};
+  const multiTenant = (spec.multiTenant as Record<string, unknown>) || {};
 
   return {
     name: metadata.name || (resource as ManagedResource).name || "",
     namespace: metadata.namespace || (resource as ManagedResource).namespace || "default",
-    provider: spec.provider || "",
-    format: spec.format || "",
-    model: spec.model || "",
-    authType: auth.type || "",
-    authSecret: auth.secret || "",
-    authKey: auth.key || "",
-    authHeader: auth.header || "",
-    timeout: spec.timeout || "",
-    maxRetries: typeof retry.maxRetries === "number" ? retry.maxRetries : 0,
-    backoff: retry.backoff || "",
-    langfuseHost: langfuse.host || "",
-    langfusePublicKey: langfuse.publicKey || "",
-    langfuseSecretKey: langfuse.secretKey || "",
-    otelEndpoint: otel.endpoint || "",
-    otelServiceName: otel.serviceName || "",
-    routingEnabled: routing.enabled === true,
+    provider: (spec.provider as string) || "",
+    format: (spec.format as string) || "",
+    model: (spec.model as string) || "",
+    authType: (auth.type as string) || "",
+    authSecret: (auth.secret as string) || "",
+    authKey: (auth.key as string) || "",
+    authHeader: (auth.header as string) || "",
+    timeout: (spec.timeout as string) || "",
+    maxRetries: (retry.maxRetries as number) || 0,
+    backoff: (retry.backoff as string) || "",
+    langfuseHost: (langfuse.host as string) || "",
+    langfusePublicKey: (langfuse.publicKey as string) || "",
+    langfuseSecretKey: (langfuse.secretKey as string) || "",
+    otelEndpoint: (otel.endpoint as string) || "",
+    otelServiceName: (otel.serviceName as string) || "",
+    routingEnabled: (routing.enabled as boolean) === true,
     routingComplexityThresholds: routing.complexityThresholds ? JSON.stringify(routing.complexityThresholds) : "",
     routingModelOverrides: routing.modelOverrides ? JSON.stringify(routing.modelOverrides) : "",
-    cacheEnabled: cache.enabled === true,
-    cacheTtl: cache.ttl || "",
-    cacheMaxTokens: typeof cache.maxTokens === "number" ? cache.maxTokens : 0,
-    guardEnabled: guard.enabled === true,
-    guardMode: guard.mode || "",
-    guardPatterns: Array.isArray(guard.patterns) ? guard.patterns.join("\n") : "",
-    guardKeywords: Array.isArray(guard.keywords) ? guard.keywords.join("\n") : "",
-    safetyEnabled: safety.enabled === true,
-    safetyBlockMode: safety.blockMode === true,
-    safetyCategories: Array.isArray(safety.categories) ? safety.categories : [],
-    piiEnabled: pii.enabled === true,
-    piiMode: pii.mode || "",
-    piiEntityTypes: Array.isArray(pii.entityTypes) ? pii.entityTypes : [],
-    abTestingEnabled: abTesting.enabled === true,
-    abTestingExperimentId: abTesting.experimentId || "",
+    cacheEnabled: (cache.enabled as boolean) === true,
+    cacheTtl: (cache.ttl as string) || "",
+    cacheMaxTokens: (cache.maxTokens as number) || 0,
+    guardEnabled: (guard.enabled as boolean) === true,
+    guardMode: (guard.mode as string) || "",
+    guardPatterns: Array.isArray(guard.patterns) ? (guard.patterns as string[]).join("\n") : "",
+    guardKeywords: Array.isArray(guard.keywords) ? (guard.keywords as string[]).join("\n") : "",
+    safetyEnabled: (safety.enabled as boolean) === true,
+    safetyBlockMode: (safety.blockMode as boolean) === true,
+    safetyCategories: Array.isArray(safety.categories) ? (safety.categories as string[]) : [],
+    piiEnabled: (pii.enabled as boolean) === true,
+    piiMode: (pii.mode as string) || "",
+    piiEntityTypes: Array.isArray(pii.entityTypes) ? (pii.entityTypes as string[]) : [],
+    abTestingEnabled: (abTesting.enabled as boolean) === true,
+    abTestingExperimentId: (abTesting.experimentId as string) || "",
     abTestingVariants: abTesting.variants ? JSON.stringify(abTesting.variants) : "",
-    fallbackEnabled: fallback.enabled === true,
+    fallbackEnabled: (fallback.enabled as boolean) === true,
     fallbackChains: fallback.chains ? JSON.stringify(fallback.chains) : "",
-    costTrackingEnabled: costTracking.enabled === true,
-    costInputPricePer1K: costTracking.inputPricePer1K || "",
-    costOutputPricePer1K: costTracking.outputPricePer1K || "",
-    costCurrency: costTracking.currency || "",
-    multiTenantEnabled: multiTenant.enabled === true,
-    multiTenantId: multiTenant.id || "",
-    multiTenantAllowedModels: multiTenant.allowedModels || "",
-    multiTenantCostLimit: multiTenant.costLimit || "",
+    costTrackingEnabled: (costTracking.enabled as boolean) === true,
+    costInputPricePer1K: (costTracking.inputPricePer1K as string) || "",
+    costOutputPricePer1K: (costTracking.outputPricePer1K as string) || "",
+    costCurrency: (costTracking.currency as string) || "",
+    multiTenantEnabled: (multiTenant.enabled as boolean) === true,
+    multiTenantId: (multiTenant.id as string) || "",
+    multiTenantAllowedModels: (multiTenant.allowedModels as string) || "",
+    multiTenantCostLimit: (multiTenant.costLimit as string) || "",
   };
 }
 

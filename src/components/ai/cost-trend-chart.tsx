@@ -48,20 +48,12 @@ export const CostTrendChart = memo(function CostTrendChart({ data }: CostTrendCh
     };
   }, [data]);
 
-  const formatXAxis = useCallback((v: any) => {
+  const formatXAxis = useCallback((v: string | number) => {
     return new Date(v).toLocaleDateString(undefined, { month: "short", day: "numeric" });
   }, []);
 
-  const formatYAxis = useCallback((v: any) => {
+  const formatYAxis = useCallback((v: string | number) => {
     return `$${Number(v).toFixed(4)}`;
-  }, []);
-
-  const formatTooltipLabel = useCallback((label: any) => {
-    return new Date(label).toLocaleDateString();
-  }, []);
-
-  const formatTooltipValue = useCallback((value: any, name: any) => {
-    return [`$${Number(value).toFixed(6)}`, String(name)];
   }, []);
 
   return (
@@ -80,8 +72,12 @@ export const CostTrendChart = memo(function CostTrendChart({ data }: CostTrendCh
           tickFormatter={formatYAxis}
         />
         <Tooltip
-          labelFormatter={formatTooltipLabel}
-          formatter={formatTooltipValue}
+          labelFormatter={(label) => {
+            return new Date(label as string | number).toLocaleDateString();
+          }}
+          formatter={(value, name) => {
+            return [`$${Number(value).toFixed(6)}`, String(name)];
+          }}
           contentStyle={{
             backgroundColor: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",

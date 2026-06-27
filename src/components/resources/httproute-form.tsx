@@ -98,7 +98,7 @@ function HeaderModifierSection({
   label: string;
   config: HeaderModifier;
   onChange: (next: HeaderModifier) => void;
-  t: (key: string, opts?: any) => string;
+  t: ReturnType<typeof useTranslations>;
 }) {
   const [open, setOpen] = useState(false);
 

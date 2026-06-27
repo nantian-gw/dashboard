@@ -122,12 +122,12 @@ export default function GatewayDetailPage() {
         <KpiCard label={t("gateway_detail.listener_total")} value={listeners.length} />
         <KpiCard
           label={t("gateway_detail.listener_ready")}
-          value={listeners.filter((l: any) => l.status === "Ready").length}
+          value={listeners.filter((l: ListenerRow) => l.status === "Ready").length}
         />
         <KpiCard
           label={t("gateway_detail.listener_warning")}
           value={listeners.filter(
-            (l: any) =>
+            (l: ListenerRow) =>
               l.status !== "Ready" &&
               l.status !== "Unknown" &&
               !/invalid|error|refused|failed/i.test(l.status)
@@ -135,7 +135,7 @@ export default function GatewayDetailPage() {
         />
         <KpiCard
           label={t("gateway_detail.listener_failed")}
-          value={listeners.filter((l: any) => /invalid|error|refused|failed/i.test(l.status)).length}
+          value={listeners.filter((l: ListenerRow) => /invalid|error|refused|failed/i.test(l.status)).length}
         />
       </div>
 
@@ -156,7 +156,7 @@ export default function GatewayDetailPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {listeners.map((listener: any, idx: number) => {
+              {listeners.map((listener: ListenerRow, idx: number) => {
                 const isExpanded = expandedListeners.has(idx);
                 return (
                   <>
@@ -210,7 +210,7 @@ export default function GatewayDetailPage() {
                               <div>
                                 <div className="text-xs text-muted-foreground mb-1">{t("gateway_detail.allowed_route_kinds")}</div>
                                 <div className="flex flex-wrap gap-1">
-                                  {listener.allowedKinds.map((k: any, ki: number) => (
+                                  {listener.allowedKinds.map((k: { group: string; kind: string }, ki: number) => (
                                     <span key={ki} className="text-xs bg-muted px-2 py-0.5 rounded">
                                       {k.kind}
                                     </span>
@@ -224,7 +224,7 @@ export default function GatewayDetailPage() {
                                   <div>
                                     <div className="text-xs text-muted-foreground mb-1">TLS Certificate</div>
                                     <div className="font-mono text-sm">
-                                      {listener.tls.certificateRefs.map((c: any) => c.name).join(", ")}
+                                      {listener.tls.certificateRefs.map((c: Record<string, unknown>) => c.name as string).join(", ")}
                                     </div>
                                   </div>
                                 )}
@@ -240,9 +240,9 @@ export default function GatewayDetailPage() {
                               <div className="md:col-span-2 lg:col-span-3">
                                 <div className="text-xs text-muted-foreground mb-1">{t("gateway_detail.filters")}</div>
                                 <div className="space-y-2">
-                                  {listener.filters.map((f: any, fi: number) => (
+                                  {listener.filters.map((f: Record<string, unknown>, fi: number) => (
                                     <div key={fi} className="p-2 bg-muted rounded text-sm font-mono">
-                                      {f.type}: {JSON.stringify(f[f.type === "RequestRedirect" ? "requestRedirect" : "requestHeaderModifier"] || {})}
+                                      {String(f.type)}: {JSON.stringify(f[String(f.type) === "RequestRedirect" ? "requestRedirect" : "requestHeaderModifier"] || {})}
                                     </div>
                                   ))}
                                 </div>
@@ -282,7 +282,7 @@ export default function GatewayDetailPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {routes.map((route: any, idx: number) => (
+              {routes.map((route: RouteRow, idx: number) => (
                 <TableRow key={idx}>
                   <TableCell className="font-medium">
                     <LocalizedLink

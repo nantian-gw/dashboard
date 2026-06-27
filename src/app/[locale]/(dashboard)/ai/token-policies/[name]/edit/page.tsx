@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import { TokenPolicyForm, tokenPolicyResourceToFormData } from "@/components/resources/tokenpolicy-form";
 import { useTokenPolicies } from "@/hooks/use-api";
+import { type TokenPolicyRow } from "@/lib/admin-models";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -12,11 +13,11 @@ export default function EditTokenPolicyPage() {
 
   const { data, isLoading, error } = useTokenPolicies();
 
-  let resourceData: Record<string, any> | null = null;
+  let resourceData: Record<string, unknown> | null = null;
   if (data) {
     const policies = Array.isArray(data) ? data : data?.policies || [];
     const policy = policies.find(
-      (p: any) => p.name === name
+      (p: TokenPolicyRow) => p.name === name
     );
     resourceData = policy || null;
   }

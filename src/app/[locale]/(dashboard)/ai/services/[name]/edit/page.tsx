@@ -3,6 +3,8 @@
 import { useParams } from "next/navigation";
 import { AIServiceForm, aiserviceResourceToFormData } from "@/components/resources/aiservice-form";
 import { useAIServices } from "@/hooks/use-api";
+import { type AIServiceSummary } from "@/hooks/use-api/use-ai";
+import { type ManagedResource } from "@/lib/admin-models";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -13,11 +15,11 @@ export default function EditAIServicePage() {
 
   const { data, isLoading, error } = useAIServices();
 
-  let resourceData: Record<string, any> | null = null;
+  let resourceData: unknown = null;
   if (data) {
     const services = Array.isArray(data) ? data : [];
     const service = services.find(
-      (s: any) => s.name === name && (!namespace || s.namespace === namespace)
+      (s: AIServiceSummary) => s.name === name && (!namespace || s.namespace === namespace)
     );
     resourceData = service || null;
   }
@@ -44,7 +46,7 @@ export default function EditAIServicePage() {
   return (
     <AIServiceForm
       mode="edit"
-      initialData={aiserviceResourceToFormData(resourceData)}
+      initialData={aiserviceResourceToFormData(resourceData as ManagedResource)}
       onSuccess={() => {
         const locale = String(params.locale || "en");
         window.location.href = `/${locale}/ai/services`;

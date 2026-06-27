@@ -25,12 +25,8 @@ export const TokenChart = memo(function TokenChart({ data }: TokenChartProps) {
     }));
   }, [data]);
 
-  const formatXAxis = useCallback((v: any) => {
+  const formatXAxis = useCallback((v: string | number) => {
     return new Date(v).toLocaleDateString();
-  }, []);
-
-  const formatTooltipLabel = useCallback((label: any) => {
-    return new Date(label).toLocaleString();
   }, []);
 
   return (
@@ -45,7 +41,9 @@ export const TokenChart = memo(function TokenChart({ data }: TokenChartProps) {
         />
         <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" />
         <Tooltip
-          labelFormatter={formatTooltipLabel}
+          labelFormatter={(label) => {
+            return new Date(label as string | number).toLocaleString();
+          }}
           contentStyle={{
             backgroundColor: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",

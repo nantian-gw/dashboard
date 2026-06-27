@@ -39,7 +39,7 @@ export default function EditWasmPluginPage() {
     );
   }
 
-  const formData = wasmPluginResourceToFormData(data as Record<string, any>);
+  const formData = wasmPluginResourceToFormData(data as Record<string, unknown>);
 
   return (
     <WasmPluginForm

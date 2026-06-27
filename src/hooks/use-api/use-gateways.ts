@@ -4,7 +4,7 @@ import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { controlplane } from "@/lib/api";
 import { mapGatewayResource, mapRoutesPayload, mapBackendTlsPolicyResource, mapBackendLbPolicyResource, mapTokenPolicyResource, toYaml, asManagedResourceArray, type ManagedResource } from "@/lib/admin-models";
 
-const REFETCH_INTERVAL = (query: any) => {
+const REFETCH_INTERVAL = (query: { state: { error: unknown } }) => {
   if (typeof document !== "undefined" && document.hidden) return false;
   if (query.state.error) return 60000;
   return 30000 + Math.random() * 5000;
@@ -61,20 +61,23 @@ export function routeQueryOptions(namespace: string, name: string, kind: string)
         `/v1/resources/${kind.toLowerCase()}/${namespace}/${name}`
       );
       const rawSpec = (r.resource?.spec || {}) as Record<string, unknown>;
-      const rules = (rawSpec.rules as unknown[]) || [];
+      const rules = (rawSpec.rules as Record<string, unknown>[]) || [];
       const backends: unknown[] = [];
       const pathMatches: string[] = [];
 
-      rules.forEach((rule: any) => {
+      rules.forEach((rule: Record<string, unknown>) => {
         if (rule.matches) {
-          rule.matches.forEach((m: any) => {
-            if (m.path) pathMatches.push(`${m.path.type || "PathPrefix"}: ${m.path.value || "/"}`);
-            if (m.headers) pathMatches.push(`Headers: ${m.headers.length}`);
-            if (m.method) pathMatches.push(`Method: ${m.method}`);
+          (rule.matches as Record<string, unknown>[]).forEach((m: Record<string, unknown>) => {
+            if (m.path) {
+              const p = m.path as Record<string, unknown>;
+              pathMatches.push(`${String(p.type || "PathPrefix")}: ${String(p.value || "/")}`);
+            }
+            if (m.headers) pathMatches.push(`Headers: ${(m.headers as unknown[]).length}`);
+            if (m.method) pathMatches.push(`Method: ${String(m.method)}`);
           });
         }
         if (rule.backendRefs) {
-          rule.backendRefs.forEach((br: any) => {
+          (rule.backendRefs as Record<string, unknown>[]).forEach((br: Record<string, unknown>) => {
             backends.push({
               name: br.name,
               namespace: br.namespace || namespace,
@@ -91,12 +94,12 @@ export function routeQueryOptions(namespace: string, name: string, kind: string)
           name: r.name || name,
           namespace: r.namespace || namespace,
           status: "Accepted",
-          hostnames: rawSpec.hostnames || [],
-          parentRefs: rawSpec.parentRefs || [],
+          hostnames: (rawSpec.hostnames as string[]) || [],
+          parentRefs: (rawSpec.parentRefs as Record<string, unknown>[]) || [],
           rules,
           pathMatches,
           backends,
-          filters: rules.flatMap((rule: any) => rule.filters || []),
+          filters: rules.flatMap((rule: Record<string, unknown>) => (rule.filters as unknown[]) || []),
           timeouts: (rules[0] as Record<string, unknown> | undefined)?.timeouts,
           manifest: toYaml(r.resource || r),
         },

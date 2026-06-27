@@ -15,7 +15,7 @@ function createEmptyListener() {
 
 function readCertificateRefs(rawCertificateRefs: unknown) {
   return Array.isArray(rawCertificateRefs)
-    ? rawCertificateRefs.map((ref: any) => ({
+    ? rawCertificateRefs.map((ref: Record<string, unknown>) => ({
         name: String(ref.name ?? ""),
         namespace: String(ref.namespace ?? ""),
         kind: String(ref.kind ?? "Secret"),
@@ -43,10 +43,10 @@ export function gatewayResourceToFormData(
       ? resource.namespace
       : "default";
   const unwrapped = unwrapResource(resource) as ManifestRecord;
-  const spec = (unwrapped.spec ?? {}) as Record<string, any>;
-  const metadata = (unwrapped.metadata ?? {}) as Record<string, any>;
+  const spec = (unwrapped.spec ?? {}) as Record<string, unknown>;
+  const metadata = (unwrapped.metadata ?? {}) as Record<string, unknown>;
   const listeners = Array.isArray(spec.listeners)
-    ? spec.listeners.map((listener: any) => {
+    ? spec.listeners.map((listener: Record<string, unknown>) => {
         const protocol = String(listener.protocol ?? "HTTP");
         const entry = {
           name: String(listener.name ?? ""),
@@ -58,9 +58,10 @@ export function gatewayResourceToFormData(
         } as GatewayFormData["listeners"][number];
 
         if (listener.tls || protocol === "HTTPS" || protocol === "TLS") {
+          const tlsConfig = listener.tls as Record<string, unknown> | undefined;
           entry.tls = {
-            mode: String(listener.tls?.mode ?? "Terminate"),
-            certificateRefs: readCertificateRefs(listener.tls?.certificateRefs),
+            mode: String(tlsConfig?.mode ?? "Terminate"),
+            certificateRefs: readCertificateRefs(tlsConfig?.certificateRefs),
           };
         }
 

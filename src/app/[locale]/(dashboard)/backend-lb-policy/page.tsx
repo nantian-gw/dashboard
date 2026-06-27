@@ -92,7 +92,7 @@ function BackendLbPolicyContent() {
                 <TableCell className="text-sm">
                   {policy.targetRefs && policy.targetRefs.length > 0
                     ? policy.targetRefs
-                        .map((ref: any) => `${ref.kind}/${ref.name}`)
+                        .map((ref: Record<string, unknown>) => `${ref.kind}/${ref.name}`)
                         .join(", ")
                     : "—"}
                 </TableCell>

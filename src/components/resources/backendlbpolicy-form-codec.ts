@@ -38,21 +38,21 @@ export function backendLbPolicyResourceToFormData(
       ? resource.namespace
       : "default";
   const unwrapped = unwrapResource(resource) as ManifestRecord;
-  const spec = (unwrapped.spec ?? {}) as Record<string, any>;
-  const metadata = (unwrapped.metadata ?? {}) as Record<string, any>;
+  const spec = (unwrapped.spec ?? {}) as Record<string, unknown>;
+  const metadata = (unwrapped.metadata ?? {}) as Record<string, unknown>;
   const targetRefs = Array.isArray(spec.targetRefs)
-    ? spec.targetRefs.map((ref: any) => ({
+    ? spec.targetRefs.map((ref: Record<string, unknown>) => ({
         group: String(ref.group ?? ""),
         kind: String(ref.kind ?? "Service"),
         name: String(ref.name ?? ""),
       }))
     : createEmptyBackendLbPolicyFormData().targetRefs;
 
-  const sessionPersistence = (spec.sessionPersistence ?? {}) as Record<string, any>;
-  const cookieConfig = (sessionPersistence?.cookieConfig ?? {}) as Record<string, any>;
-  const loadBalancing = (spec.loadBalancing ?? {}) as Record<string, any>;
-  const consistentHash = (loadBalancing?.consistentHash ?? {}) as Record<string, any>;
-  const circuitBreaker = (spec.circuitBreaker ?? {}) as Record<string, any>;
+  const sessionPersistence = (spec.sessionPersistence ?? {}) as Record<string, unknown>;
+  const cookieConfig = (sessionPersistence?.cookieConfig ?? {}) as Record<string, unknown>;
+  const loadBalancing = (spec.loadBalancing ?? {}) as Record<string, unknown>;
+  const consistentHash = (loadBalancing?.consistentHash ?? {}) as Record<string, unknown>;
+  const circuitBreaker = (spec.circuitBreaker ?? {}) as Record<string, unknown>;
 
   return {
     name: String(metadata.name ?? fallbackName),

@@ -55,8 +55,8 @@ export default function ReferenceGrantDetailPage() {
   }
 
   const spec = (grant?.resource as Record<string, unknown> | undefined)?.spec as Record<string, unknown> | undefined;
-  const froms = (spec?.from as unknown[]) || [];
-  const tos = (spec?.to as unknown[]) || [];
+  const froms = (spec?.from as Record<string, unknown>[]) || [];
+  const tos = (spec?.to as Record<string, unknown>[]) || [];
 
   return (
     <div className="space-y-6">
@@ -93,14 +93,14 @@ export default function ReferenceGrantDetailPage() {
             {froms.length === 0 && (
               <p className="text-sm text-muted-foreground">No sources configured</p>
             )}
-            {froms.map((f: any, i: number) => (
+            {froms.map((f: Record<string, unknown>, i: number) => (
               <div key={i} className="border rounded-md p-3 space-y-1">
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{f.kind}</Badge>
-                  <span className="text-sm text-muted-foreground">{f.group || "core"}</span>
+                  <Badge variant="secondary">{String(f.kind)}</Badge>
+                  <span className="text-sm text-muted-foreground">{String(f.group || "core")}</span>
                 </div>
                 <p className="text-sm">
-                  Namespace: <code className="rounded bg-muted px-1">{f.namespace}</code>
+                  Namespace: <code className="rounded bg-muted px-1">{String(f.namespace)}</code>
                 </p>
               </div>
             ))}
@@ -115,15 +115,15 @@ export default function ReferenceGrantDetailPage() {
             {tos.length === 0 && (
               <p className="text-sm text-muted-foreground">No targets configured</p>
             )}
-            {tos.map((t: any, i: number) => (
+            {tos.map((t: Record<string, unknown>, i: number) => (
               <div key={i} className="border rounded-md p-3 space-y-1">
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{t.kind}</Badge>
-                  <span className="text-sm text-muted-foreground">{t.group || "core"}</span>
+                  <Badge variant="secondary">{String(t.kind)}</Badge>
+                  <span className="text-sm text-muted-foreground">{String(t.group || "core")}</span>
                 </div>
-                {t.name && (
+                {Boolean(t.name) && (
                   <p className="text-sm">
-                    Name: <code className="rounded bg-muted px-1">{t.name}</code>
+                    Name: <code className="rounded bg-muted px-1">{String(t.name)}</code>
                   </p>
                 )}
                 {!t.name && (

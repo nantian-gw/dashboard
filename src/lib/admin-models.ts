@@ -76,6 +76,7 @@ export type ListenerRow = {
     options?: JsonObject;
   };
   filters?: JsonObject[];
+  allowedKinds?: Array<{ group: string; kind: string }>;
 };
 
 export type RouteRow = {

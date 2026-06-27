@@ -28,12 +28,8 @@ export const AreaChart = memo(function AreaChart({
   fill = "#3b82f6",
   fillOpacity = 0.2,
 }: AreaChartProps) {
-  const formatTick = useCallback((v: any) => {
+  const formatTick = useCallback((v: string | number) => {
     return new Date(v).toLocaleTimeString();
-  }, []);
-
-  const formatLabel = useCallback((label: any) => {
-    return new Date(label).toLocaleString();
   }, []);
 
   return (
@@ -48,7 +44,9 @@ export const AreaChart = memo(function AreaChart({
         />
         <YAxis tick={{ fontSize: 11 }} className="text-muted-foreground" />
         <Tooltip
-          labelFormatter={formatLabel}
+          labelFormatter={(label) => {
+            return new Date(label as string | number).toLocaleString();
+          }}
           contentStyle={{
             backgroundColor: "hsl(var(--card))",
             border: "1px solid hsl(var(--border))",

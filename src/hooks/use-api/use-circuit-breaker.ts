@@ -24,7 +24,7 @@ export type CircuitBreakerRow = {
   status: "ok" | "warning" | "critical";
 };
 
-const REFETCH_INTERVAL = (query: any) => {
+const REFETCH_INTERVAL = (query: { state: { error: unknown } }) => {
   if (typeof document !== "undefined" && document.hidden) return false;
   if (query.state.error) return 60000;
   return 15000 + Math.random() * 5000;

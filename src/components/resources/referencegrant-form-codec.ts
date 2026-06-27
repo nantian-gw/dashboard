@@ -28,15 +28,15 @@ export function referenceGrantResourceToFormData(
       ? resource.namespace
       : "default";
   const unwrapped = unwrapResource(resource) as ManifestRecord;
-  const spec = (unwrapped.spec ?? {}) as Record<string, any>;
-  const metadata = (unwrapped.metadata ?? {}) as Record<string, any>;
+  const spec = (unwrapped.spec ?? {}) as Record<string, unknown>;
+  const metadata = (unwrapped.metadata ?? {}) as Record<string, unknown>;
 
   return {
     name: String(metadata.name ?? fallbackName),
     namespace: String(metadata.namespace ?? fallbackNamespace),
     froms:
       Array.isArray(spec.from) && spec.from.length > 0
-        ? spec.from.map((entry: any) => ({
+        ? spec.from.map((entry: Record<string, unknown>) => ({
             group: String(entry.group ?? "gateway.networking.k8s.io"),
             kind: String(entry.kind ?? "HTTPRoute"),
             namespace: String(entry.namespace ?? ""),
@@ -44,7 +44,7 @@ export function referenceGrantResourceToFormData(
         : createEmptyReferenceGrantFormData().froms,
     tos:
       Array.isArray(spec.to) && spec.to.length > 0
-        ? spec.to.map((entry: any) => ({
+        ? spec.to.map((entry: Record<string, unknown>) => ({
             group: String(entry.group ?? ""),
             kind: String(entry.kind ?? "Service"),
             name: String(entry.name ?? ""),

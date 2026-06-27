@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { useBackendTls } from "@/hooks/use-api";
+import { type BackendTlsPolicyRow } from "@/lib/admin-models";
 import { deleteResource } from "@/lib/api";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
 import { useLocalizedDashboardRouter } from "@/lib/use-localized-dashboard-router";
@@ -36,7 +37,7 @@ export default function BackendTlsDetailPage() {
   const { data, isLoading, error } = useBackendTls();
   const policies = Array.isArray(data) ? data : data?.policies || [];
   const policy = policies.find(
-    (p: any) => p.name === name && p.namespace === namespace
+    (p: BackendTlsPolicyRow) => p.name === name && p.namespace === namespace
   );
 
   if (isLoading) {

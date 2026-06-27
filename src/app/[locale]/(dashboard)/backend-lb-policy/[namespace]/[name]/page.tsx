@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { useBackendLb } from "@/hooks/use-api";
+import { type BackendLbPolicyRow } from "@/lib/admin-models";
 import { deleteResource } from "@/lib/api";
 import { ConfirmDialog } from "@/components/dashboard/confirm-dialog";
 import { useLocalizedDashboardRouter } from "@/lib/use-localized-dashboard-router";
@@ -36,7 +37,7 @@ export default function BackendLbPolicyDetailPage() {
   const { data, isLoading, error } = useBackendLb();
   const policies = Array.isArray(data) ? data : data?.policies || [];
   const policy = policies.find(
-    (p: any) => p.name === name && p.namespace === namespace
+    (p: BackendLbPolicyRow) => p.name === name && p.namespace === namespace
   );
 
   if (isLoading) {
@@ -101,15 +102,15 @@ export default function BackendLbPolicyDetailPage() {
             {(policy.targetRefs || []).length === 0 && (
               <p className="text-sm text-muted-foreground">—</p>
             )}
-            {(policy.targetRefs || []).map((ref: any, idx: number) => (
+            {(policy.targetRefs || []).map((ref: Record<string, unknown>, idx: number) => (
               <div key={idx} className="space-y-1">
                 <Label className="text-xs text-muted-foreground">
-                  {ref.kind || "Service"} #{idx + 1}
+                  {String(ref.kind || "Service")} #{idx + 1}
                 </Label>
-                <p className="text-sm font-medium">{ref.name}</p>
-                {ref.group && (
+                <p className="text-sm font-medium">{String(ref.name || "")}</p>
+                {!!ref.group && (
                   <p className="text-xs text-muted-foreground">
-                    Group: {ref.group}
+                    Group: {String(ref.group)}
                   </p>
                 )}
               </div>
