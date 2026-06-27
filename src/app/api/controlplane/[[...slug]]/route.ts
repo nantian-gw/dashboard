@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import {
   mapBackendTlsPolicyResource,
+  mapBackendLbPolicyResource,
   mapDiagnostics,
   mapGatewayResource,
   mapRoutesPayload,
@@ -113,6 +114,21 @@ async function legacyControlplanePayload(
       matched: true,
       payload: {
         policies: (resources as ManagedResource[]).map(mapBackendTlsPolicyResource),
+      },
+    };
+  }
+
+  if (slug === "/v1/backend-lb") {
+    const resources = await fetchAdminJson(
+      DEFAULT_TARGET,
+      "/v1/resources?kind=BackendLBPolicy",
+      headers,
+      signal
+    );
+    return {
+      matched: true,
+      payload: {
+        policies: (resources as ManagedResource[]).map(mapBackendLbPolicyResource),
       },
     };
   }

@@ -6,7 +6,7 @@ export {
   useDataplaneSummary,
   useDashboardCapabilities,
 } from "./use-api/use-summary";
-export { useGateways, useGateway, useRoutes, useRoute, useBackendTls, useTokenPolicies } from "./use-api/use-gateways";
+export { useGateways, useGateway, useRoutes, useRoute, useBackendTls, useBackendLb, useTokenPolicies } from "./use-api/use-gateways";
 export {
   useNodes,
   useReferenceGrants,
@@ -17,6 +17,8 @@ export {
 } from "./use-api/use-resources";
 export { useAIOverview, useAIServices, useAITokenUsage, useAITraces, useAICost, useAITokenTrend, useAILatencyTrend } from "./use-api/use-ai";
 export { useWasmPlugins, useWasmPlugin } from "./use-api/use-wasm";
+export { useCircuitBreakerBackends } from "./use-api/use-circuit-breaker";
+export type { CircuitBreakerRow } from "./use-api/use-circuit-breaker";
 export type {
   AIOverview,
   AIServiceSummary,

@@ -99,6 +99,16 @@ export type BackendTlsPolicyRow = {
   status: string;
 };
 
+export type BackendLbPolicyRow = {
+  name: string;
+  namespace: string;
+  targetRefs: JsonObject[];
+  sessionPersistence?: string;
+  loadBalancing?: string;
+  circuitBreaker?: string;
+  status: string;
+};
+
 export type TokenPolicyRow = {
   name: string;
   namespace: string;
@@ -448,6 +458,30 @@ export function mapBackendTlsPolicyResource(item: ManagedResource): BackendTlsPo
     namespace: namedResourceValue(item, "namespace"),
     targetRef,
     caCertificate: caRefs.map((ref) => asString(ref.name)).filter(Boolean).join(", "),
+    status: statusFromConditions(status.conditions, "Accepted", "Accepted"),
+  };
+}
+
+export function mapBackendLbPolicyResource(item: ManagedResource): BackendLbPolicyRow {
+  const spec = resourceSpec(item);
+  const status = resourceStatus(item);
+  const targetRefs = asArray(spec.targetRefs).map(asObject);
+  const sessionPersistence = asObject(spec.sessionPersistence);
+  const loadBalancing = asObject(spec.loadBalancing);
+  const circuitBreaker = asObject(spec.circuitBreaker);
+
+  const lbType = asString(loadBalancing.type);
+  const spType = asString(sessionPersistence.type);
+  const cbMaxInflight = circuitBreaker.maxInflightRequests;
+
+  return {
+    name: namedResourceValue(item, "name"),
+    namespace: namedResourceValue(item, "namespace"),
+    targetRefs,
+    sessionPersistence: spType || undefined,
+    loadBalancing: lbType || undefined,
+    circuitBreaker:
+      typeof cbMaxInflight === "number" ? `maxInflight: ${cbMaxInflight}` : undefined,
     status: statusFromConditions(status.conditions, "Accepted", "Accepted"),
   };
 }

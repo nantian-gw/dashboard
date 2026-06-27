@@ -37,6 +37,7 @@
     "token_policies": "令牌策略",
     "nodes": "节点",
     "diagnostics": "诊断",
+    "circuit_breaker": "熔断器",
     "observability": "可观测性",
     "ai_gateway": "AI 网关",
     "ai_services": "AI 服务",
@@ -109,6 +110,20 @@
     "backendtls": { "title": "后端 TLS", "subtitle": "审查后端 TLS 策略状态和受影响的服务。" },
     "nodes": { "title": "节点", "subtitle": "追踪数据面就绪状态、ACK 状态和服务快照版本。" },
     "diagnostics": { "title": "诊断", "subtitle": "汇总管理源、快照、Gateway、Route、监听器和节点问题。" },
+    "circuitBreaker": {
+      "title": "熔断器",
+      "subtitle": "监控每个后端的熔断器状态、并发请求数和拒绝计数。",
+      "totalBackends": "配置熔断器的后端",
+      "underLimit": "低于限制",
+      "nearLimit": "接近限制",
+      "atLimit": "已达限制",
+      "rejectedTotal": "总拒绝数",
+      "maxInflight": "最大并发请求",
+      "currentInflight": "当前并发请求",
+      "rejected": "已拒绝",
+      "empty": "没有配置熔断器的后端。",
+      "loadError": "加载熔断器数据失败: {message}"
+    },
     "observability": {
     "title": "可观测性",
     "subtitle": "探索请求量、成功率、延迟和保护信号。",

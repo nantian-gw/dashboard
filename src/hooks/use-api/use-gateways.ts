@@ -2,7 +2,7 @@
 
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { controlplane } from "@/lib/api";
-import { mapGatewayResource, mapRoutesPayload, mapBackendTlsPolicyResource, mapTokenPolicyResource, toYaml, asManagedResourceArray, type ManagedResource } from "@/lib/admin-models";
+import { mapGatewayResource, mapRoutesPayload, mapBackendTlsPolicyResource, mapBackendLbPolicyResource, mapTokenPolicyResource, toYaml, asManagedResourceArray, type ManagedResource } from "@/lib/admin-models";
 
 const REFETCH_INTERVAL = (query: any) => {
   if (typeof document !== "undefined" && document.hidden) return false;
@@ -197,4 +197,27 @@ export function useBackendTls(enabled = true) {
     ...backendTlsQueryOptions(),
     enabled,
   }) as UseQueryResult<{ policies: ReturnType<typeof mapBackendTlsPolicyResource>[] }>;
+}
+
+export function backendLbQueryOptions() {
+  return {
+    queryKey: ["backend-lb"] as const,
+    queryFn: async () => {
+      const resources = asManagedResourceArray(
+        await controlplane.get<ManagedResource[]>("/v1/resources", {
+          kind: "BackendLBPolicy",
+        })
+      );
+      return { policies: resources.map(mapBackendLbPolicyResource) };
+    },
+    staleTime: STALE_TIME,
+    gcTime: GC_TIME,
+  };
+}
+
+export function useBackendLb(enabled = true) {
+  return useQuery({
+    ...backendLbQueryOptions(),
+    enabled,
+  }) as UseQueryResult<{ policies: ReturnType<typeof mapBackendLbPolicyResource>[] }>;
 }

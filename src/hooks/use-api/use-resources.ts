@@ -92,6 +92,7 @@ export type PrometheusResponse = {
   data: {
     resultType: string;
     result: Array<{
+      metric: Record<string, string>;
       value: [number, string];
     }>;
   };
@@ -102,6 +103,7 @@ export type PrometheusRangeResponse = {
   data: {
     resultType: string;
     result: Array<{
+      metric: Record<string, string>;
       values: Array<[number, string]>;
     }>;
   };

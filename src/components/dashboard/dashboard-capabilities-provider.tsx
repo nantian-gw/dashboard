@@ -19,6 +19,7 @@ const DashboardCapabilitiesContext =
 const DASHBOARD_ROUTE_SEGMENTS = new Set([
   "ai",
   "backend-tls",
+  "backend-lb-policy",
   "chatbot",
   "diagnostics",
   "gateways",

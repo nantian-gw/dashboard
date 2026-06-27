@@ -4,6 +4,7 @@ export type DashboardCapabilityKey =
   | "routes"
   | "referenceGrants"
   | "backendTls"
+  | "backendLb"
   | "nodes"
   | "diagnostics"
   | "observability"
@@ -15,7 +16,8 @@ export type DashboardCapabilityKey =
   | "aiTraces"
   | "aiUsage"
   | "wasmPlugins"
-  | "chatbot";
+  | "chatbot"
+  | "circuitBreaker";
 
 export type DashboardCapabilities = Record<DashboardCapabilityKey, boolean>;
 
@@ -25,6 +27,7 @@ export const DEFAULT_DASHBOARD_CAPABILITIES: DashboardCapabilities = {
   routes: true,
   referenceGrants: true,
   backendTls: true,
+  backendLb: true,
   nodes: true,
   diagnostics: true,
   observability: true,
@@ -37,4 +40,5 @@ export const DEFAULT_DASHBOARD_CAPABILITIES: DashboardCapabilities = {
   aiUsage: false,
   wasmPlugins: false,
   chatbot: false,
+  circuitBreaker: true,
 };

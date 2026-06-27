@@ -9,6 +9,7 @@ import {
   MessageSquareCode,
   Puzzle,
   Route,
+  Scale,
   Server,
   Settings,
   ShieldAlert,
@@ -31,6 +32,12 @@ export const dashboardPlugins: DashboardPlugin[] = [
         capability: "referenceGrants",
       },
       { href: "/backend-tls", labelKey: "nav.backend_tls", icon: ShieldCheck, capability: "backendTls" },
+      {
+        href: "/backend-lb-policy",
+        labelKey: "nav.backend_lb",
+        icon: Scale,
+        capability: "backendLb",
+      },
       { href: "/nodes", labelKey: "nav.nodes", icon: Server, capability: "nodes" },
       { href: "/diagnostics", labelKey: "nav.diagnostics", icon: Activity, capability: "diagnostics" },
       {
