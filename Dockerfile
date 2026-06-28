@@ -3,7 +3,7 @@ ARG NODE_IMAGE=docker.io/library/node:22-alpine
 FROM ${NODE_IMAGE} AS builder
 WORKDIR /app
 COPY dashboard/package.json dashboard/package-lock.json ./
-RUN npm install --ignore-scripts
+RUN --mount=type=cache,target=/root/.npm npm ci --ignore-scripts
 COPY dashboard/src/ ./src/
 COPY dashboard/public/ ./public/
 COPY dashboard/types/ ./types/
