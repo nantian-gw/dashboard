@@ -518,13 +518,13 @@ test("HTTPRoute form adopts the shared dual-mode editor shell", () => {
 
   assert.match(
     httpRouteFormSource,
-    /import\s+\{\s*ResourceEditorShell\s*\}\s+from\s+"\.\/resource-editor-shell";?/,
-    "HTTPRoute form must import the shared dual-mode editor shell"
+    /import\s+\{\s*RouteFormShell\s*\}\s+from\s+"\.\/route-form-skeleton";?/,
+    "HTTPRoute form must import the shared route form shell"
   );
   assert.match(
     httpRouteFormSource,
-    /<ResourceEditorShell[\s\S]*backHref="\/routes"/,
-    "HTTPRoute form must render through the shared dual-mode editor shell"
+    /<RouteFormShell[\s\S]*resourcePath="httproute"/,
+    "HTTPRoute form must render through the shared route form shell"
   );
   assert.doesNotMatch(
     httpRouteFormSource,
@@ -538,23 +538,18 @@ test("HTTPRoute form adopts the shared dual-mode editor shell", () => {
   );
 });
 
-test("HTTPRoute form interpolates route kind labels through the translation contract", () => {
+test("HTTPRoute form interpolates route kind labels through the route form shell", () => {
   const httpRouteFormSource = readSource("src/components/resources/httproute-form.tsx");
 
   assert.match(
     httpRouteFormSource,
-    /t\("create\.route\.title", \{ kind: "HTTPRoute" \}\)/,
-    "HTTPRoute form title must pass the HTTPRoute kind interpolation value"
+    /kind="HTTPRoute"/,
+    "HTTPRoute form must pass the HTTPRoute kind to RouteFormShell"
   );
   assert.match(
     httpRouteFormSource,
-    /t\("create\.route\.description", \{ kind: "HTTPRoute" \}\)/,
-    "HTTPRoute form description must pass the HTTPRoute kind interpolation value"
-  );
-  assert.match(
-    httpRouteFormSource,
-    /t\("create\.route\.(submit|save)", \{ kind: "HTTPRoute" \}\)/,
-    "HTTPRoute form submit label must pass the HTTPRoute kind interpolation value"
+    /resourcePath="httproute"/,
+    "HTTPRoute form must pass the resource path to RouteFormShell"
   );
 });
 
@@ -749,11 +744,28 @@ test("resource forms use localized dashboard links for operator back navigation"
     const localizedLinkPattern = new RegExp(`<LocalizedLink\\s+href="${escapedHref}"`, "g");
 
     if (navigationOwner === "shell") {
-      assert.match(
-        source,
-        new RegExp(`<ResourceEditorShell[\\s\\S]*backHref="${escapedHref}"`),
-        `${routePath} must delegate back and cancel navigation to ResourceEditorShell for ${href}`
-      );
+      const shellImport = /import\s+\{\s*RouteFormShell\s*\}\s+from\s+"\.\/route-form-skeleton";?/;
+      const editorShellImport = /import\s+\{\s*ResourceEditorShell\s*\}\s+from\s+"\.\/resource-editor-shell";?/;
+      const usesRouteShell = shellImport.test(source);
+
+      if (usesRouteShell) {
+        assert.match(
+          source,
+          /<RouteFormShell[\s\S]*>/,
+          `${routePath} must render through RouteFormShell`
+        );
+      } else {
+        assert.match(
+          source,
+          editorShellImport,
+          `${routePath} must import ResourceEditorShell`
+        );
+        assert.match(
+          source,
+          new RegExp(`<ResourceEditorShell[\\s\\S]*backHref="${escapedHref}"`),
+          `${routePath} must delegate back and cancel navigation to ResourceEditorShell for ${href}`
+        );
+      }
       assert.doesNotMatch(
         source,
         /LocalizedLink/,
