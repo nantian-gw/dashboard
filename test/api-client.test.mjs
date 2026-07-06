@@ -1,28 +1,5 @@
 import assert from "node:assert/strict";
-import { createRequire } from "node:module";
-import { dirname, resolve } from "node:path";
 import test, { describe } from "node:test";
-import { fileURLToPath } from "node:url";
-import vm from "node:vm";
-
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const realRequire = createRequire(import.meta.url);
-const ts = realRequire("typescript");
-
-function loadApiModule() {
-  const source = `const originalFetch = globalThis.fetch;
-export function setFetch(fn) { globalThis.fetch = fn; }
-export function resetFetch() { globalThis.fetch = originalFetch; }
-` + `\n//# sourceURL=api-test-setup.mjs`;
-
-  // Transpile api.ts
-  const apiSource = `const { readFileSync } = require("fs");
-const { resolve } = require("path");
-const apiCode = readFileSync(resolve("${root}", "src/lib/api.ts"), "utf8");
-module.exports = { apiCode };
-`;
-  // Actually, let's just read and transpile directly
-}
 
 describe("api client", () => {
   test("controlplane get constructs URL with /api/controlplane prefix", () => {
