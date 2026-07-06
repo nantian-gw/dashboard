@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
@@ -8,7 +9,7 @@ interface KpiCardProps {
   className?: string;
 }
 
-export function KpiCard({ label, value, foot, className }: KpiCardProps) {
+export const KpiCard = memo(function KpiCard({ label, value, foot, className }: KpiCardProps) {
   return (
     <Card className={cn("", className)}>
       <CardHeader className="pb-2">
@@ -22,4 +23,4 @@ export function KpiCard({ label, value, foot, className }: KpiCardProps) {
       </CardContent>
     </Card>
   );
-}
+});

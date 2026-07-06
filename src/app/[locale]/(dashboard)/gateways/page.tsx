@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useGateways } from "@/hooks/use-api";
 import type { GatewayRow } from "@/lib/admin-models";
@@ -47,16 +47,27 @@ function GatewaysContent({ search }: { search: string }) {
   const { data, isLoading, error } = useGateways();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const rows = Array.isArray(data) ? data : data?.gateways || [];
+  const rows = useMemo(
+    () => (Array.isArray(data) ? data : data?.gateways || []),
+    [data]
+  );
 
-  const filtered = search
-    ? rows.filter(
-        (r) =>
-          `${r.name} ${r.namespace} ${r.address} ${r.status}`
-            .toLowerCase()
-            .includes(search.toLowerCase())
-      )
-    : rows;
+  const filtered = useMemo(() =>
+    search
+      ? rows.filter(
+          (r) =>
+            `${r.name} ${r.namespace} ${r.address} ${r.status}`
+              .toLowerCase()
+              .includes(search.toLowerCase())
+        )
+      : rows,
+    [rows, search]
+  );
+
+  const readyCount = useMemo(
+    () => rows.filter((r) => r.status === "Ready").length,
+    [rows]
+  );
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -123,8 +134,6 @@ function GatewaysContent({ search }: { search: string }) {
       </Card>
     );
   }
-
-  const readyCount = rows.filter((r) => r.status === "Ready").length;
 
   return (
     <>

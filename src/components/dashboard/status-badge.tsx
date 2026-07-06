@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
@@ -18,7 +19,7 @@ const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondar
   Drifted: { label: "Drifted", variant: "destructive", className: "bg-red-100 text-red-800" },
 };
 
-export function StatusBadge({ status, className }: StatusBadgeProps) {
+export const StatusBadge = memo(function StatusBadge({ status, className }: StatusBadgeProps) {
   const mapped = STATUS_MAP[status] || STATUS_MAP.Unknown;
   return (
     <Badge
@@ -28,4 +29,4 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
       {mapped.label}
     </Badge>
   );
-}
+});

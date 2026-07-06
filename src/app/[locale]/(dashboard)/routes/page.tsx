@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRoutes } from "@/hooks/use-api";
 import { type RouteRow } from "@/lib/admin-models";
@@ -117,13 +117,23 @@ function RoutesContent({ search }: { search: string }) {
   const [namespaceFilter, setNamespaceFilter] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<Set<string>>(new Set());
 
-  const rows = Array.isArray(data) ? data : data?.routes || [];
+  const rows = useMemo(
+    () => (Array.isArray(data) ? data : data?.routes || []),
+    [data]
+  );
 
-  const allKinds = [...new Set(rows.map((r: RouteRow) => r.kind))].sort();
-  const allNamespaces = [...new Set(rows.map((r: RouteRow) => r.namespace))].sort();
-  const allStatuses = [
-    ...new Set(rows.map((r: RouteRow) => r.status || "Unknown")),
-  ].sort();
+  const allKinds = useMemo(
+    () => [...new Set(rows.map((r: RouteRow) => r.kind))].sort(),
+    [rows]
+  );
+  const allNamespaces = useMemo(
+    () => [...new Set(rows.map((r: RouteRow) => r.namespace))].sort(),
+    [rows]
+  );
+  const allStatuses = useMemo(
+    () => [...new Set(rows.map((r: RouteRow) => r.status || "Unknown"))].sort(),
+    [rows]
+  );
 
   const toggleSet = useCallback(
     (
@@ -140,22 +150,38 @@ function RoutesContent({ search }: { search: string }) {
     []
   );
 
-  const filtered = rows.filter((r) => {
-    if (kindFilter.size > 0 && !kindFilter.has(r.kind)) return false;
-    if (namespaceFilter.size > 0 && !namespaceFilter.has(r.namespace))
-      return false;
-    if (
-      statusFilter.size > 0 &&
-      !statusFilter.has(r.status || "Unknown")
-    )
-      return false;
-    if (search) {
-      const s = `${r.name} ${r.namespace} ${r.kind} ${r.parent || ""} ${r.backend || ""}`
-        .toLowerCase();
-      if (!s.includes(search.toLowerCase())) return false;
-    }
-    return true;
-  });
+  const filtered = useMemo(() =>
+    rows.filter((r) => {
+      if (kindFilter.size > 0 && !kindFilter.has(r.kind)) return false;
+      if (namespaceFilter.size > 0 && !namespaceFilter.has(r.namespace))
+        return false;
+      if (
+        statusFilter.size > 0 &&
+        !statusFilter.has(r.status || "Unknown")
+      )
+        return false;
+      if (search) {
+        const s = `${r.name} ${r.namespace} ${r.kind} ${r.parent || ""} ${r.backend || ""}`
+          .toLowerCase();
+        if (!s.includes(search.toLowerCase())) return false;
+      }
+      return true;
+    }),
+    [rows, kindFilter, namespaceFilter, statusFilter, search]
+  );
+
+  const acceptedCount = useMemo(
+    () => rows.filter((r) => r.status === "Accepted").length,
+    [rows]
+  );
+  const hostnameCount = useMemo(
+    () => rows.reduce((sum: number, r: RouteRow) => sum + (r.hostnames?.length || 0), 0),
+    [rows]
+  );
+  const backendCount = useMemo(
+    () => rows.reduce((sum: number, r: RouteRow) => sum + (r.backendCount || 0), 0),
+    [rows]
+  );
 
   if (isLoading) {
     return (
@@ -186,16 +212,6 @@ function RoutesContent({ search }: { search: string }) {
       </Card>
     );
   }
-
-  const acceptedCount = rows.filter((r) => r.status === "Accepted").length;
-  const hostnameCount = rows.reduce(
-    (sum: number, r: RouteRow) => sum + (r.hostnames?.length || 0),
-    0
-  );
-  const backendCount = rows.reduce(
-    (sum: number, r: RouteRow) => sum + (r.backendCount || 0),
-    0
-  );
 
   return (
     <>
