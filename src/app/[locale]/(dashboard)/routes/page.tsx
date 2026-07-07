@@ -117,10 +117,7 @@ function RoutesContent({ search }: { search: string }) {
   const [namespaceFilter, setNamespaceFilter] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<Set<string>>(new Set());
 
-  const rows = useMemo(
-    () => (Array.isArray(data) ? data : data?.routes || []),
-    [data]
-  );
+  const rows = useMemo(() => data?.routes || [], [data]);
 
   const allKinds = useMemo(
     () => [...new Set(rows.map((r: RouteRow) => r.kind))].sort(),

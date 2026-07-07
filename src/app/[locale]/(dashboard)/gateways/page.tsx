@@ -47,10 +47,7 @@ function GatewaysContent({ search }: { search: string }) {
   const { data, isLoading, error } = useGateways();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const rows = useMemo(
-    () => (Array.isArray(data) ? data : data?.gateways || []),
-    [data]
-  );
+  const rows = useMemo(() => data?.gateways || [], [data]);
 
   const filtered = useMemo(() =>
     search
