@@ -860,7 +860,9 @@
       "urlRequired": "请输入 Prometheus 服务地址。",
       "urlInvalid": "地址必须以 http:// 或 https:// 开头",
       "saveFailed": "保存设置失败。",
-      "loadError": "加载 Prometheus 配置失败"
+      "loadError": "加载 Prometheus 配置失败",
+      "notConfigured": "未配置",
+      "configured": "已配置"
     },
     "llm": {
       "title": "AI 大模型",
@@ -875,7 +877,9 @@
       "save": "保存",
       "saved": "已保存",
       "saveFailed": "保存配置失败。",
-      "loadError": "加载聊天机器人配置失败"
+      "loadError": "加载聊天机器人配置失败",
+      "notConfigured": "未配置",
+      "configured": "已配置"
     }
   },
   "timeRange": {

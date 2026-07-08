@@ -1,7 +1,9 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { useCallback } from "react";
 import type { ReactElement } from "react";
+import { useLocalizedDashboardRouter } from "@/lib/use-localized-dashboard-router";
 import { useQuery } from "@tanstack/react-query";
 import { controlplane } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,65 +22,49 @@ import { udpRouteResourceToFormData } from "@/components/resources/udproute-form
 type SupportedRouteKind = "HTTPRoute" | "GRPCRoute" | "TCPRoute" | "TLSRoute" | "UDPRoute";
 type RouteEditorInput = Parameters<typeof httpRouteResourceToFormData>[0];
 
-type RouteEditorParams = {
-  locale: string;
-  kind: SupportedRouteKind;
-  namespace: string;
-  name: string;
-};
-
 type RouteEditorRenderer = (
-  resource: Record<string, unknown>,
-  params: RouteEditorParams
+  resource: Record<string, unknown>
 ) => ReactElement;
 
-const ROUTE_EDITORS: Record<SupportedRouteKind, RouteEditorRenderer> = {
-  HTTPRoute: (resource, params) => (
-    <HTTPRouteForm
-      initialData={httpRouteResourceToFormData(resource as RouteEditorInput)}
-      mode="edit"
-      onSuccess={() => {
-        window.location.href = `/${params.locale}/routes/${params.kind}/${params.namespace}/${params.name}`;
-      }}
-    />
-  ),
-  GRPCRoute: (resource, params) => (
-    <GRPCRouteForm
-      initialData={grpcRouteResourceToFormData(resource as RouteEditorInput)}
-      mode="edit"
-      onSuccess={() => {
-        window.location.href = `/${params.locale}/routes/${params.kind}/${params.namespace}/${params.name}`;
-      }}
-    />
-  ),
-  TCPRoute: (resource, params) => (
-    <TCPRouteForm
-      initialData={tcpRouteResourceToFormData(resource as RouteEditorInput)}
-      mode="edit"
-      onSuccess={() => {
-        window.location.href = `/${params.locale}/routes/${params.kind}/${params.namespace}/${params.name}`;
-      }}
-    />
-  ),
-  TLSRoute: (resource, params) => (
-    <TLSRouteForm
-      initialData={tlsRouteResourceToFormData(resource as RouteEditorInput)}
-      mode="edit"
-      onSuccess={() => {
-        window.location.href = `/${params.locale}/routes/${params.kind}/${params.namespace}/${params.name}`;
-      }}
-    />
-  ),
-  UDPRoute: (resource, params) => (
-    <UDPRouteForm
-      initialData={udpRouteResourceToFormData(resource as RouteEditorInput)}
-      mode="edit"
-      onSuccess={() => {
-        window.location.href = `/${params.locale}/routes/${params.kind}/${params.namespace}/${params.name}`;
-      }}
-    />
-  ),
-};
+function createRouteEditors(onSuccess: () => void): Record<SupportedRouteKind, RouteEditorRenderer> {
+  return {
+    HTTPRoute: (resource) => (
+      <HTTPRouteForm
+        initialData={httpRouteResourceToFormData(resource as RouteEditorInput)}
+        mode="edit"
+        onSuccess={onSuccess}
+      />
+    ),
+    GRPCRoute: (resource) => (
+      <GRPCRouteForm
+        initialData={grpcRouteResourceToFormData(resource as RouteEditorInput)}
+        mode="edit"
+        onSuccess={onSuccess}
+      />
+    ),
+    TCPRoute: (resource) => (
+      <TCPRouteForm
+        initialData={tcpRouteResourceToFormData(resource as RouteEditorInput)}
+        mode="edit"
+        onSuccess={onSuccess}
+      />
+    ),
+    TLSRoute: (resource) => (
+      <TLSRouteForm
+        initialData={tlsRouteResourceToFormData(resource as RouteEditorInput)}
+        mode="edit"
+        onSuccess={onSuccess}
+      />
+    ),
+    UDPRoute: (resource) => (
+      <UDPRouteForm
+        initialData={udpRouteResourceToFormData(resource as RouteEditorInput)}
+        mode="edit"
+        onSuccess={onSuccess}
+      />
+    ),
+  };
+}
 
 export default function EditRoutePage() {
   const params = useParams();
@@ -91,6 +77,11 @@ export default function EditRoutePage() {
     queryFn: () => controlplane.get(`/v1/resources/${kind.toLowerCase()}/${namespace}/${name}`),
     enabled: !!namespace && !!name,
   });
+
+  const router = useLocalizedDashboardRouter();
+  const handleSuccess = useCallback(() => {
+    router.push(`/routes/${kind}/${namespace}/${name}`);
+  }, [router, kind, namespace, name]);
 
   if (isLoading) {
     return (
@@ -113,7 +104,8 @@ export default function EditRoutePage() {
     );
   }
 
-  const renderEditor = ROUTE_EDITORS[kind as SupportedRouteKind];
+  const routeEditors = createRouteEditors(handleSuccess);
+  const renderEditor = routeEditors[kind as SupportedRouteKind];
   if (!renderEditor) {
     return (
       <div className="flex justify-center py-8">
@@ -126,11 +118,5 @@ export default function EditRoutePage() {
     );
   }
 
-  const locale = (params as { locale: string }).locale;
-  return renderEditor(data as Record<string, unknown>, {
-    locale,
-    kind: kind as SupportedRouteKind,
-    namespace,
-    name,
-  });
+  return renderEditor(data as Record<string, unknown>);
 }

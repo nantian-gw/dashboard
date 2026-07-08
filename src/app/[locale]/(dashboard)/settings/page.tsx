@@ -77,6 +77,7 @@ function PrometheusCard() {
   const [url, setUrl] = useState("");
   const [loadedUrl, setLoadedUrl] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [prometheusLoaded, setPrometheusLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<"ok" | "fail" | null>(null);
@@ -91,10 +92,12 @@ function PrometheusCard() {
         if (cancelled) return;
         const configuredUrl = cfg.prometheusUrl || "";
         setLoadedUrl(configuredUrl);
+        setPrometheusLoaded(true);
         setLoaded(true);
       })
       .catch(() => {
         if (!cancelled) {
+          setPrometheusLoaded(true);
           setLoaded(true);
           toast.error(t("settings.prometheus.loadError"));
         }
@@ -176,9 +179,19 @@ placeholder={
               onChange={(e) => setUrl(e.target.value)}
               className="h-9 pr-8 text-sm"
             />
-            {loadedUrl && !url && (
-              <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                <CheckCircle className="h-4 w-4 text-emerald-500" />
+            {!prometheusLoaded ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+              </div>
+            ) : !loadedUrl ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <XCircle className="h-4 w-4" />
+                {t("settings.prometheus.notConfigured")}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-emerald-600">
+                <CheckCircle className="h-4 w-4" />
+                {t("settings.prometheus.configured")}
               </div>
             )}
           </div>
@@ -251,6 +264,7 @@ function LLMConfigCard() {
   const [model, setModel] = useState("");
   const [temp, setTemp] = useState("0.7");
   const [loaded, setLoaded] = useState(false);
+  const [llmLoaded, setLlmloaded] = useState(false);
   const [loadedEndpoint, setLoadedEndpoint] = useState("");
   const [loadedModel, setLoadedModel] = useState("");
   const [hasKey, setHasKey] = useState(false);
@@ -271,10 +285,12 @@ function LLMConfigCard() {
         setTemp(
           cfg.temperature !== undefined ? String(cfg.temperature) : "0.7"
         );
+        setLlmloaded(true);
         setLoaded(true);
       })
       .catch(() => {
         if (!cancelled) {
+          setLlmloaded(true);
           setLoaded(true);
           toast.error(t("settings.llm.loadError"));
         }
@@ -323,6 +339,22 @@ function LLMConfigCard() {
       </CardHeader>
       <Separator />
       <CardContent className="space-y-4 pt-4">
+        {/* Loading / Not Configured Status */}
+        {!llmLoaded ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+          </div>
+        ) : !loadedEndpoint && !hasKey ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <XCircle className="h-4 w-4" />
+            {t("settings.llm.notConfigured")}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-sm text-emerald-600">
+            <CheckCircle className="h-4 w-4" />
+            {t("settings.llm.configured")}
+          </div>
+        )}
         <div className="space-y-2">
           <Label htmlFor="llm-endpoint" className="text-xs font-medium">
             {t("settings.llm.endpoint")}

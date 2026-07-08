@@ -909,7 +909,9 @@
       "urlRequired": "Prometheus URL is required.",
       "urlInvalid": "URL must start with http:// or https://",
       "saveFailed": "Failed to save settings.",
-      "loadError": "Failed to load Prometheus configuration"
+      "loadError": "Failed to load Prometheus configuration",
+      "notConfigured": "Not configured",
+      "configured": "Configured"
     },
     "llm": {
       "title": "AI Model",
@@ -924,7 +926,9 @@
       "save": "Save",
       "saved": "Saved",
       "saveFailed": "Failed to save configuration.",
-      "loadError": "Failed to load chatbot configuration"
+      "loadError": "Failed to load chatbot configuration",
+      "notConfigured": "Not configured",
+      "configured": "Configured"
     }
   },
   "timeRange": {

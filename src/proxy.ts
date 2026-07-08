@@ -81,7 +81,10 @@ export default async function proxy(request: NextRequest) {
 
   const session = await auth();
   if (!session) {
-    const locale = pathname.match(/^\/([a-z]{2})/)?.[1] ?? routing.defaultLocale;
+    const match = pathname.match(/^\/([a-z]{2})/);
+    const locale = match && routing.locales.includes(match[1] as "en" | "zh")
+      ? match[1]
+      : routing.defaultLocale;
     const loginUrl = new URL(`/${locale}/login`, request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return withRuntimeSecurityHeaders(NextResponse.redirect(loginUrl), nonce);
