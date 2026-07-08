@@ -46,8 +46,15 @@ describe("csrf", () => {
     assert.notEqual(a, b);
   });
 
-  test("cookie header has correct format", () => {
+  test("cookie header has correct format (Secure off by default)", () => {
     const header = csrf.getCsrfCookieHeader("test-token");
+    assert.match(header, /^x-csrf-token=test-token;/);
+    assert.match(header, /SameSite=Strict/);
+    assert.doesNotMatch(header, /Secure/);
+  });
+
+  test("cookie header adds Secure flag when requested", () => {
+    const header = csrf.getCsrfCookieHeader("test-token", { secure: true });
     assert.match(header, /^x-csrf-token=test-token;/);
     assert.match(header, /SameSite=Strict/);
     assert.match(header, /Secure/);

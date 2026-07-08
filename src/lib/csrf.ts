@@ -14,14 +14,14 @@ import { randomBytes } from "node:crypto";
 
 const CSRF_COOKIE_NAME = "x-csrf-token";
 const CSRF_HEADER_NAME = "x-csrf-token";
-const CSRF_COOKIE_OPTIONS = "Path=/; SameSite=Strict; Secure";
 
 export function generateCsrfToken(): string {
   return randomBytes(32).toString("base64url");
 }
 
-export function getCsrfCookieHeader(token: string): string {
-  return `${CSRF_COOKIE_NAME}=${token}; ${CSRF_COOKIE_OPTIONS}`;
+export function getCsrfCookieHeader(token: string, opts?: { secure?: boolean }): string {
+  const cookieOpts = `Path=/; SameSite=Strict${opts?.secure ? "; Secure" : ""}`;
+  return `${CSRF_COOKIE_NAME}=${token}; ${cookieOpts}`;
 }
 
 /**

@@ -122,7 +122,8 @@ function loadProxy({ parentEnv = {}, env = {}, authImpl = async () => null } = {
       const url = new URL(pathname, "http://dashboard.test");
       return {
         url: url.toString(),
-        nextUrl: { pathname },
+        nextUrl: { pathname, protocol: "http:" },
+        headers: new Headers(),
       };
     },
   };
@@ -192,10 +193,10 @@ test("dashboard proxy sets CSP with per-request nonce", async () => {
   const response = await proxy(createRequest("/en/login"));
   const csp = response.headers.get("Content-Security-Policy");
   assert.ok(csp, "CSP header must be present");
-  assert.match(csp, /script-src 'self' 'nonce-/);
-  assert.match(csp, /'strict-dynamic'/);
-  // script-src must not contain unsafe-inline (replaced by nonce+strict-dynamic)
-  assert.doesNotMatch(csp, /script-src[^;]*'unsafe-inline'/);
+  assert.match(csp, /script-src 'self' 'unsafe-inline' 'nonce-/);
+  assert.doesNotMatch(csp, /'strict-dynamic'/);
+  // script-src must contain unsafe-inline for Next.js inline scripts
+  assert.match(csp, /script-src[^;]*'unsafe-inline'/);
   assert.match(csp, /default-src 'self'/);
   assert.match(csp, /frame-ancestors 'none'/);
   assert.match(csp, /object-src 'none'/);

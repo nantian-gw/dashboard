@@ -28,21 +28,26 @@ function cspWithNonce(nonce: string): string {
     "img-src 'self' data: blob:",
     "font-src 'self' data:",
     "style-src 'self' 'unsafe-inline'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `script-src 'self' 'unsafe-inline' 'nonce-${nonce}'`,
     "worker-src 'self' blob:",
     "connect-src 'self'",
   ].join("; ");
 }
 
-function withRuntimeSecurityHeaders(response: NextResponse, nonce?: string): NextResponse {
+function withRuntimeSecurityHeaders(response: NextResponse, nonce: string | undefined, request: NextRequest): NextResponse {
   if (nonce) {
     response.headers.set("Content-Security-Policy", cspWithNonce(nonce));
   }
 
   // Set CSRF token cookie on page responses (not API routes).
   // Use append() to avoid overwriting NextAuth's session cookie.
+  // Secure flag is only set when the request arrives over HTTPS (or
+  // X-Forwarded-Proto: https), so the cookie works on HTTP dev setups too.
+  const isSecure =
+    request.nextUrl.protocol === "https:" ||
+    request.headers.get("x-forwarded-proto") === "https";
   const csrfToken = generateCsrfToken();
-  response.headers.append("Set-Cookie", getCsrfCookieHeader(csrfToken));
+  response.headers.append("Set-Cookie", getCsrfCookieHeader(csrfToken, { secure: isSecure }));
 
   if (process.env.DASHBOARD_ENABLE_HSTS === "true") {
     response.headers.set("Strict-Transport-Security", HSTS_HEADER_VALUE);
@@ -56,13 +61,13 @@ export default async function proxy(request: NextRequest) {
   const nonce = generateNonce();
 
   if (isI18nExcluded(pathname)) {
-    return withRuntimeSecurityHeaders(NextResponse.next(), nonce);
+    return withRuntimeSecurityHeaders(NextResponse.next(), nonce, request);
   }
 
   if (pathname === "/") {
     return withRuntimeSecurityHeaders(
       NextResponse.redirect(new URL(`/${routing.defaultLocale}/login`, request.url)),
-      nonce
+      nonce, request
     );
   }
 
@@ -73,10 +78,10 @@ export default async function proxy(request: NextRequest) {
     if (session) {
       return withRuntimeSecurityHeaders(
         NextResponse.redirect(new URL(`/${locale}/overview`, request.url)),
-        nonce
+        nonce, request
       );
     }
-    return withRuntimeSecurityHeaders(intlMiddleware(request), nonce);
+    return withRuntimeSecurityHeaders(intlMiddleware(request), nonce, request);
   }
 
   const session = await auth();
@@ -87,10 +92,10 @@ export default async function proxy(request: NextRequest) {
       : routing.defaultLocale;
     const loginUrl = new URL(`/${locale}/login`, request.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
-    return withRuntimeSecurityHeaders(NextResponse.redirect(loginUrl), nonce);
+    return withRuntimeSecurityHeaders(NextResponse.redirect(loginUrl), nonce, request);
   }
 
-  return withRuntimeSecurityHeaders(intlMiddleware(request), nonce);
+  return withRuntimeSecurityHeaders(intlMiddleware(request), nonce, request);
 }
 
 export const config = {
