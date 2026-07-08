@@ -32,6 +32,78 @@ export default function AICostPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
   const { data, isLoading, error } = useAICost(timeRange);
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">{t("pages.ai.cost.title")}</h1>
+          <p className="text-muted-foreground">{t("pages.ai.cost.subtitle")}</p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {(["24h", "7d", "30d"] as TimeRange[]).map((range) => (
+            <Button
+              key={range}
+              variant={timeRange === range ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setTimeRange(range)}
+              className={cn(timeRange === range && "font-medium")}
+            >
+              {t(`ai.time_${range}`)}
+            </Button>
+          ))}
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-20" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Skeleton className="h-[320px] w-full" />
+        <Skeleton className="h-[320px] w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">{t("pages.ai.cost.title")}</h1>
+          <p className="text-muted-foreground">{t("pages.ai.cost.subtitle")}</p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {(["24h", "7d", "30d"] as TimeRange[]).map((range) => (
+            <Button
+              key={range}
+              variant={timeRange === range ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setTimeRange(range)}
+              className={cn(timeRange === range && "font-medium")}
+            >
+              {t(`ai.time_${range}`)}
+            </Button>
+          ))}
+        </div>
+
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            Failed to load cost data: {(error as Error).message}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -53,71 +125,39 @@ export default function AICostPage() {
         ))}
       </div>
 
-      {isLoading && (
-        <>
-          <div className="grid gap-4 md:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i}>
-                <CardHeader className="pb-2">
-                  <Skeleton className="h-4 w-20" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-8 w-16" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          <Skeleton className="h-[320px] w-full" />
-          <Skeleton className="h-[320px] w-full" />
-          <Skeleton className="h-64 w-full" />
-        </>
-      )}
+      <CostSummaryCards
+        totalCost={data!.totalCost}
+        todayCost={data!.todayCost}
+        monthCost={data!.monthCost}
+      />
 
-      {error && (
+      <div className="grid gap-6 lg:grid-cols-2">
         <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            Failed to load cost data: {(error as Error).message}
+          <CardHeader>
+            <CardTitle>{t("ai.cost.cost_by_model")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CostByModelChart data={data!.byModel} />
           </CardContent>
         </Card>
-      )}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("ai.cost.cost_trend")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CostTrendChart data={data!.trend} />
+          </CardContent>
+        </Card>
+      </div>
 
-      {data && (
-        <>
-          <CostSummaryCards
-            totalCost={data.totalCost}
-            todayCost={data.todayCost}
-            monthCost={data.monthCost}
-          />
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("ai.cost.cost_by_model")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CostByModelChart data={data.byModel} />
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("ai.cost.cost_trend")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CostTrendChart data={data.trend} />
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("ai.cost.model_cost_table")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ModelCostTable data={data.byModel} />
-            </CardContent>
-          </Card>
-        </>
-      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("ai.cost.model_cost_table")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ModelCostTable data={data!.byModel} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

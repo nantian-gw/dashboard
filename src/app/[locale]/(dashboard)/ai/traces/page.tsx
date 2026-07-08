@@ -20,6 +20,38 @@ export default function AITracesPage() {
 
   const traces = Array.isArray(data) ? data : [];
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">{t("pages.ai.traces.title")}</h1>
+          <p className="text-muted-foreground">{t("pages.ai.traces.subtitle")}</p>
+        </div>
+        <Card>
+          <CardContent className="py-4">
+            <Skeleton className="h-64 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">{t("pages.ai.traces.title")}</h1>
+          <p className="text-muted-foreground">{t("pages.ai.traces.subtitle")}</p>
+        </div>
+        <Card>
+          <CardContent className="py-8 text-center text-muted-foreground">
+            Failed to load AI traces: {(error as Error).message}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -27,55 +59,37 @@ export default function AITracesPage() {
         <p className="text-muted-foreground">{t("pages.ai.traces.subtitle")}</p>
       </div>
 
-      {isLoading && (
-        <Card>
-          <CardContent className="py-4">
-            <Skeleton className="h-64 w-full" />
-          </CardContent>
-        </Card>
-      )}
-
-      {error && (
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            Failed to load AI traces: {(error as Error).message}
-          </CardContent>
-        </Card>
-      )}
-
-      {data && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("ai.traces")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("ai.traces")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("ai.id")}</TableHead>
+                <TableHead>{t("ai.model")}</TableHead>
+                <TableHead>{t("ai.duration")}</TableHead>
+                <TableHead>{t("ai.tokens")}</TableHead>
+                <TableHead>{t("ai.status")}</TableHead>
+                <TableHead>{t("ai.timestamp")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {traces.map((trace) => (
+                <TraceRow key={trace.id} trace={trace} />
+              ))}
+              {traces.length === 0 && (
                 <TableRow>
-                  <TableHead>{t("ai.id")}</TableHead>
-                  <TableHead>{t("ai.model")}</TableHead>
-                  <TableHead>{t("ai.duration")}</TableHead>
-                  <TableHead>{t("ai.tokens")}</TableHead>
-                  <TableHead>{t("ai.status")}</TableHead>
-                  <TableHead>{t("ai.timestamp")}</TableHead>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    No traces found.
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {traces.map((trace) => (
-                  <TraceRow key={trace.id} trace={trace} />
-                ))}
-                {traces.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      No traces found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -170,18 +170,17 @@ export default function CircuitBreakerPage() {
   const t = useTranslations();
   const { data, isLoading, error } = useCircuitBreakerBackends();
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">
-          {t("pages.circuitBreaker.title")}
-        </h1>
-        <p className="text-muted-foreground">
-          {t("pages.circuitBreaker.subtitle")}
-        </p>
-      </div>
-
-      {isLoading && (
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">
+            {t("pages.circuitBreaker.title")}
+          </h1>
+          <p className="text-muted-foreground">
+            {t("pages.circuitBreaker.subtitle")}
+          </p>
+        </div>
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -195,9 +194,21 @@ export default function CircuitBreakerPage() {
           </div>
           <Skeleton className="h-64 w-full" />
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {error && (
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">
+            {t("pages.circuitBreaker.title")}
+          </h1>
+          <p className="text-muted-foreground">
+            {t("pages.circuitBreaker.subtitle")}
+          </p>
+        </div>
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             {t("pages.circuitBreaker.loadError", {
@@ -205,14 +216,22 @@ export default function CircuitBreakerPage() {
             })}
           </CardContent>
         </Card>
-      )}
+      </div>
+    );
+  }
 
-      {data && (
-        <>
-          <SummaryCards rows={data} />
-          <CircuitBreakerTable rows={data} />
-        </>
-      )}
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">
+          {t("pages.circuitBreaker.title")}
+        </h1>
+        <p className="text-muted-foreground">
+          {t("pages.circuitBreaker.subtitle")}
+        </p>
+      </div>
+      <SummaryCards rows={data!} />
+      <CircuitBreakerTable rows={data!} />
     </div>
   );
 }

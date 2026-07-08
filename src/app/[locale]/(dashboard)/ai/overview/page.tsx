@@ -23,14 +23,13 @@ export default function AIOverviewPage() {
   const { data: tokenTrend, isLoading: tokenLoading } = useAITokenTrend();
   const { data: latencyTrend, isLoading: latencyLoading } = useAILatencyTrend();
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">{t("pages.ai.overview.title")}</h1>
-        <p className="text-muted-foreground">{t("pages.ai.overview.subtitle")}</p>
-      </div>
-
-      {isLoading && (
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">{t("pages.ai.overview.title")}</h1>
+          <p className="text-muted-foreground">{t("pages.ai.overview.subtitle")}</p>
+        </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}>
@@ -43,56 +42,69 @@ export default function AIOverviewPage() {
             </Card>
           ))}
         </div>
-      )}
+      </div>
+    );
+  }
 
-      {error && (
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold">{t("pages.ai.overview.title")}</h1>
+          <p className="text-muted-foreground">{t("pages.ai.overview.subtitle")}</p>
+        </div>
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             Failed to load AI overview: {(error as Error).message}
           </CardContent>
         </Card>
-      )}
+      </div>
+    );
+  }
 
-      {data && (
-        <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <KpiCard label={t("ai.total_services")} value={data.totalServices} />
-            <KpiCard label={t("ai.total_tokens")} value={data.totalTokens} />
-            <KpiCard label={t("ai.total_requests")} value={data.totalRequests} />
-            <KpiCard
-              label={t("ai.avg_latency")}
-              value={`${data.averageLatency.toFixed(1)} ms`}
-            />
-          </div>
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">{t("pages.ai.overview.title")}</h1>
+        <p className="text-muted-foreground">{t("pages.ai.overview.subtitle")}</p>
+      </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("ai.token_usage_trend")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {tokenLoading ? (
-                  <Skeleton className="h-[300px] w-full" />
-                ) : (
-                  <TokenChart data={tokenTrend ?? []} />
-                )}
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("ai.latency_performance")}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {latencyLoading ? (
-                  <Skeleton className="h-[250px] w-full" />
-                ) : (
-                  <LatencyChart data={latencyTrend ?? []} />
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </>
-      )}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <KpiCard label={t("ai.total_services")} value={data!.totalServices} />
+        <KpiCard label={t("ai.total_tokens")} value={data!.totalTokens} />
+        <KpiCard label={t("ai.total_requests")} value={data!.totalRequests} />
+        <KpiCard
+          label={t("ai.avg_latency")}
+          value={`${data!.averageLatency.toFixed(1)} ms`}
+        />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("ai.token_usage_trend")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {tokenLoading ? (
+              <Skeleton className="h-[300px] w-full" />
+            ) : (
+              <TokenChart data={tokenTrend ?? []} />
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("ai.latency_performance")}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {latencyLoading ? (
+              <Skeleton className="h-[250px] w-full" />
+            ) : (
+              <LatencyChart data={latencyTrend ?? []} />
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
