@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { LocalizedLink } from "@/components/dashboard/localized-link";
@@ -15,7 +16,7 @@ import {
 } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 
-function NavContent() {
+const NavContent = memo(function NavContent() {
   const t = useTranslations();
   const pathname = usePathname();
   const { capabilities } = useDashboardCapabilitiesState();
@@ -47,7 +48,7 @@ function NavContent() {
       })}
     </nav>
   );
-}
+});
 
 export function SidebarNav() {
   return (

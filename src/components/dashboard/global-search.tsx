@@ -2,9 +2,11 @@
 
 import {
   startTransition,
+  useCallback,
   useDeferredValue,
   useId,
   useMemo,
+  useRef,
   useState,
   type KeyboardEvent,
 } from "react";
@@ -58,12 +60,26 @@ export function GlobalSearch() {
   const t = useTranslations();
   const { push, prefetch } = useLocalizedDashboardRouter();
   const listboxId = useId();
-  const [search, setSearch] = useAtom(searchAtom);
-  const deferredSearch = useDeferredValue(search);
+  const [localSearch, setLocalSearch] = useState("");
+  const [, setGlobalSearch] = useAtom(searchAtom);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setLocalSearch(value);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        setGlobalSearch(value);
+      }, 300);
+    },
+    [setGlobalSearch]
+  );
+
+  const deferredLocal = useDeferredValue(localSearch);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const query = deferredSearch.trim();
-  const typedQuery = search.trim();
+  const query = deferredLocal.trim();
+  const typedQuery = localSearch.trim();
   const querySettled = query === typedQuery;
   const shouldFetch = open && typedQuery.length > 0;
 
@@ -83,7 +99,7 @@ export function GlobalSearch() {
 
   function openResult(href: string) {
     setOpen(false);
-    setSearch("");
+    handleSearchChange("");
     void prefetch(href);
     startTransition(() => {
       push(href);
@@ -150,9 +166,9 @@ export function GlobalSearch() {
         className="pl-8"
         placeholder={t("topbar.search_placeholder")}
         role="combobox"
-        value={search}
+        value={localSearch}
         onChange={(event) => {
-          setSearch(event.target.value);
+          handleSearchChange(event.target.value);
           setActiveIndex(0);
           setOpen(true);
         }}
