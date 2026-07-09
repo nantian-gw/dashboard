@@ -27,6 +27,7 @@ export interface AIServiceFormData {
   provider: string;
   format: string;
   model: string;
+  endpoint: string;
   authType: string;
   authSecret: string;
   authKey: string;
@@ -92,6 +93,7 @@ function emptyAIServiceForm(): AIServiceFormData {
     provider: "",
     format: "",
     model: "",
+    endpoint: "",
     authType: "",
     authSecret: "",
     authKey: "",
@@ -161,6 +163,7 @@ export function aiserviceResourceToFormData(resource: ManagedResource | Kubernet
     provider: (spec.provider as string) || "",
     format: (spec.format as string) || "",
     model: (spec.model as string) || "",
+    endpoint: (spec.endpoint as string) || "",
     authType: (auth.type as string) || "",
     authSecret: (auth.secret as string) || "",
     authKey: (auth.key as string) || "",
@@ -216,6 +219,7 @@ export function AIServiceForm({ initialData, mode, onSuccess }: AIServiceFormPro
   const [provider, setProvider] = useState(defaults.provider);
   const [format, setFormat] = useState(defaults.format);
   const [model, setModel] = useState(defaults.model);
+  const [endpoint, setEndpoint] = useState(defaults.endpoint);
   const [authType, setAuthType] = useState(defaults.authType);
   const [authSecret, setAuthSecret] = useState(defaults.authSecret);
   const [authKey, setAuthKey] = useState(defaults.authKey);
@@ -420,7 +424,7 @@ metadata:
   namespace: ${namespace}
 spec:
   provider: ${provider.trim()}${format.trim() ? `\n  format: ${format.trim()}` : ""}
-  model: ${model.trim()}${timeout.trim() ? `\n  timeout: ${timeout.trim()}` : ""}${authYaml}${retryYaml}${observabilityYaml}${routingYaml}${cacheYaml}${guardYaml}${safetyYaml}${piiYaml}${abTestingYaml}${fallbackYaml}${costTrackingYaml}${multiTenantYaml}
+  model: ${model.trim()}${endpoint.trim() ? `\n  endpoint: ${endpoint.trim()}` : ""}${timeout.trim() ? `\n  timeout: ${timeout.trim()}` : ""}${authYaml}${retryYaml}${observabilityYaml}${routingYaml}${cacheYaml}${guardYaml}${safetyYaml}${piiYaml}${abTestingYaml}${fallbackYaml}${costTrackingYaml}${multiTenantYaml}
 `;
 
     try {
@@ -462,6 +466,7 @@ spec:
               provider={provider} onProviderChange={setProvider}
               format={format} onFormatChange={setFormat}
               model={model} onModelChange={setModel}
+              endpoint={endpoint} onEndpointChange={setEndpoint}
               authType={authType} onAuthTypeChange={setAuthType}
               authSecret={authSecret} onAuthSecretChange={setAuthSecret}
               authKey={authKey} onAuthKeyChange={setAuthKey}

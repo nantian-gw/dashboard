@@ -17,6 +17,8 @@ export interface AIServiceBasicInfoProps {
   onFormatChange: (v: string) => void;
   model: string;
   onModelChange: (v: string) => void;
+  endpoint: string;
+  onEndpointChange: (v: string) => void;
   authType: string;
   onAuthTypeChange: (v: string) => void;
   authSecret: string;
@@ -41,6 +43,7 @@ export function AIServiceBasicInfo({
   provider, onProviderChange,
   format, onFormatChange,
   model, onModelChange,
+  endpoint, onEndpointChange,
   authType, onAuthTypeChange,
   authSecret, onAuthSecretChange,
   authKey, onAuthKeyChange,
@@ -86,7 +89,7 @@ export function AIServiceBasicInfo({
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="provider">{t("aiservice.create.provider")} *</Label>
               <Input
@@ -119,6 +122,15 @@ export function AIServiceBasicInfo({
                 onChange={(e) => onModelChange(e.target.value)}
                 placeholder={t("aiservice.create.model_placeholder")}
                 required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="endpoint">{t("aiservice.create.endpoint")}</Label>
+              <Input
+                id="endpoint"
+                value={endpoint}
+                onChange={(e) => onEndpointChange(e.target.value)}
+                placeholder={t("aiservice.create.endpoint_placeholder")}
               />
             </div>
           </div>

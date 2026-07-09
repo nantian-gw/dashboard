@@ -413,6 +413,8 @@
       "format_placeholder": "Select format",
       "model": "Model",
       "model_placeholder": "gpt-4o, claude-3-opus",
+      "endpoint": "Provider Endpoint",
+      "endpoint_placeholder": "e.g. https://api.openai.com (leave empty for default)",
       "auth_title": "Authentication",
       "auth_desc": "Configure API authentication for the AI provider",
       "auth_type": "Type",

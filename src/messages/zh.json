@@ -369,6 +369,8 @@
       "format_placeholder": "选择格式",
       "model": "模型",
       "model_placeholder": "gpt-4o, claude-3-opus",
+      "endpoint": "提供商端点",
+      "endpoint_placeholder": "例如 https://api.openai.com（留空使用默认值）",
       "auth_title": "认证",
       "auth_desc": "配置 AI 提供商的 API 认证",
       "auth_type": "类型",
