@@ -1,7 +1,12 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { HTTPRouteForm } from "@/components/resources/httproute-form";
+import dynamic from "next/dynamic";
+import PageSkeleton from "@/components/dashboard/page-skeleton";
+
+const HTTPRouteForm = dynamic(() => import("@/components/resources/httproute-form").then((mod) => mod.HTTPRouteForm), {
+  loading: () => <PageSkeleton />,
+});
 
 export default function CreateRoutePage() {
   const locale = (useParams() as { locale: string }).locale;

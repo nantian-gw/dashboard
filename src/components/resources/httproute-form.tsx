@@ -22,12 +22,7 @@ import { RulesSection } from "./httproute-form/rules-section";
 
 export { httpRouteResourceToFormData } from "./httproute-form-codec";
 
-export interface BackendRef {
-  name: string;
-  namespace: string;
-  port: number;
-  weight: number;
-}
+import { BackendRef } from "./shared-types";
 
 export interface HeaderMatch {
   type: "Exact" | "RegularExpression";

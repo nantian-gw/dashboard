@@ -1,5 +1,3 @@
-"use client";
-
 import { CapabilityGate } from "@/components/dashboard/capability-gate";
 
 export default function AICostLayout({

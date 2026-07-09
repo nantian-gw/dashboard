@@ -1,8 +1,14 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { AIServiceForm, aiserviceResourceToFormData } from "@/components/resources/aiservice-form";
+import dynamic from "next/dynamic";
+import { aiserviceResourceToFormData } from "@/components/resources/aiservice-form";
+import PageSkeleton from "@/components/dashboard/page-skeleton";
 import { useAIServices } from "@/hooks/use-api";
+
+const AIServiceForm = dynamic(() => import("@/components/resources/aiservice-form").then((mod) => mod.AIServiceForm), {
+  loading: () => <PageSkeleton />,
+});
 import { type AIServiceSummary } from "@/hooks/use-api/use-ai";
 import { type ManagedResource } from "@/lib/admin-models";
 import { Skeleton } from "@/components/ui/skeleton";

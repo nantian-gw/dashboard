@@ -1,12 +1,17 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { BackendLbPolicyForm } from "@/components/resources/backendlbpolicy-form";
+import dynamic from "next/dynamic";
+import PageSkeleton from "@/components/dashboard/page-skeleton";
 import { backendLbPolicyResourceToFormData } from "@/components/resources/backendlbpolicy-form-codec";
 import { useBackendLb } from "@/hooks/use-api";
 import { type BackendLbPolicyRow } from "@/lib/admin-models";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+
+const BackendLbPolicyForm = dynamic(() => import("@/components/resources/backendlbpolicy-form").then((mod) => mod.BackendLbPolicyForm), {
+  loading: () => <PageSkeleton />,
+});
 
 export default function EditBackendLbPolicyPage() {
   const params = useParams();

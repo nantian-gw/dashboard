@@ -1,12 +1,17 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { BackendTlsForm } from "@/components/resources/backendtls-form";
+import dynamic from "next/dynamic";
+import PageSkeleton from "@/components/dashboard/page-skeleton";
 import { backendTlsResourceToFormData } from "@/components/resources/backendtls-form-codec";
 import { useBackendTls } from "@/hooks/use-api";
 import { type BackendTlsPolicyRow } from "@/lib/admin-models";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+
+const BackendTlsForm = dynamic(() => import("@/components/resources/backendtls-form").then((mod) => mod.BackendTlsForm), {
+  loading: () => <PageSkeleton />,
+});
 
 export default function EditBackendTlsPage() {
   const params = useParams();

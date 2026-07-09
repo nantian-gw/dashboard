@@ -1,7 +1,12 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { GRPCRouteForm } from "@/components/resources/grpcroute-form";
+import dynamic from "next/dynamic";
+import PageSkeleton from "@/components/dashboard/page-skeleton";
+
+const GRPCRouteForm = dynamic(() => import("@/components/resources/grpcroute-form").then((mod) => mod.GRPCRouteForm), {
+  loading: () => <PageSkeleton />,
+});
 
 export default function CreateGRPCRoutePage() {
   const locale = (useParams() as { locale: string }).locale;

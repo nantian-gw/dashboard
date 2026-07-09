@@ -31,7 +31,9 @@ export default async function DashboardLayout({
       <link rel="preconnect" href="/api/dataplane" />
       <OnboardingWizard />
       <div className="flex h-full">
-        <SidebarNav />
+        <Suspense fallback={<div className="w-56 border-r bg-card" />}>
+          <SidebarNav />
+        </Suspense>
         <div className="flex flex-1 flex-col overflow-hidden">
           <TopBar />
           <main className="flex-1 overflow-auto p-6 min-h-0">

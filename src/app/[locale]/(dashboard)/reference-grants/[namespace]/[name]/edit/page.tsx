@@ -1,11 +1,16 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { ReferenceGrantForm } from "@/components/resources/referencegrant-form";
+import dynamic from "next/dynamic";
+import PageSkeleton from "@/components/dashboard/page-skeleton";
 import { referenceGrantResourceToFormData } from "@/components/resources/referencegrant-form-codec";
 import { useReferenceGrant } from "@/hooks/use-api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
+
+const ReferenceGrantForm = dynamic(() => import("@/components/resources/referencegrant-form").then((mod) => mod.ReferenceGrantForm), {
+  loading: () => <PageSkeleton />,
+});
 
 export default function EditReferenceGrantPage() {
   const params = useParams();

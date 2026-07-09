@@ -279,7 +279,7 @@ export default function RouteDetailPage() {
                 const rewrite = filter.urlRewrite as Record<string, unknown> | undefined;
                 const mirror = filter.requestMirror as Record<string, unknown> | undefined;
                 return (
-                <div key={idx} className="p-3 border rounded-md bg-slate-50/50">
+                <div key={idx} className="p-3 border rounded-md bg-muted">
                   <div className="font-mono text-sm font-medium">{String(filter.type)}</div>
                   {!!reqHdr && (
                     <div className="mt-2 text-sm text-muted-foreground">

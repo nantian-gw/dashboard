@@ -20,12 +20,7 @@ import {
 import { RouteFormShell } from "./route-form-skeleton";
 import { RulesSection } from "./grpcroute-form/rules-section";
 
-export interface BackendRef {
-  name: string;
-  namespace: string;
-  port: number;
-  weight: number;
-}
+import { BackendRef } from "./shared-types";
 
 export interface MethodMatch {
   service: string;

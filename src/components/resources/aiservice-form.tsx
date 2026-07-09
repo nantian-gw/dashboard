@@ -3,23 +3,23 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
 import { LocalizedLink } from "@/components/dashboard/localized-link";
 import { applyResource } from "@/lib/api";
 import { useNamespaces } from "@/hooks/use-api";
 import { ManagedResource, KubernetesResource, unwrapResource } from "@/lib/admin-models";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { AIServiceBasicInfo } from "./aiservice-form/basic-info-section";
+import { AIServiceObservability } from "./aiservice-form/observability-section";
+import { AIServiceModelRouting } from "./aiservice-form/model-routing-section";
+import { PromptGuardSection } from "./aiservice-form/prompt-guard-section";
+import { ContentSafetySection } from "./aiservice-form/content-safety-section";
+import { PIIMaskingSection } from "./aiservice-form/pii-masking-section";
+import { SemanticCacheSection } from "./aiservice-form/semantic-cache-section";
+import { ABTestingSection } from "./aiservice-form/ab-testing-section";
+import { FallbackChainsSection } from "./aiservice-form/fallback-chains-section";
+import { CostTrackingSection } from "./aiservice-form/cost-tracking-section";
+import { MultiTenantSection } from "./aiservice-form/multi-tenant-section";
 
 export interface AIServiceFormData {
   name: string;
@@ -456,616 +456,112 @@ spec:
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">{t("aiservice.create.basic_info")}</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="name">{t("aiservice.create.name")} *</Label>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder={t("aiservice.create.name_placeholder")}
-                      required
-                      disabled={isEdit}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="namespace">{t("aiservice.create.namespace")} *</Label>
-                    <Select value={namespace} onValueChange={setNamespace} disabled={isEdit}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {namespaces.map((ns) => (
-                          <SelectItem key={ns} value={ns}>{ns}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="provider">{t("aiservice.create.provider")} *</Label>
-                    <Input
-                      id="provider"
-                      value={provider}
-                      onChange={(e) => setProvider(e.target.value)}
-                      placeholder={t("aiservice.create.provider_placeholder")}
-                      required
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="format">{t("aiservice.create.format")}</Label>
-                    <Select value={format} onValueChange={setFormat}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("aiservice.create.format_placeholder")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="openai">openai</SelectItem>
-                        <SelectItem value="anthropic">anthropic</SelectItem>
-                        <SelectItem value="google">google</SelectItem>
-                        <SelectItem value="aws-bedrock">aws-bedrock</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="model">{t("aiservice.create.model")} *</Label>
-                    <Input
-                      id="model"
-                      value={model}
-                      onChange={(e) => setModel(e.target.value)}
-                      placeholder={t("aiservice.create.model_placeholder")}
-                      required
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AIServiceBasicInfo
+              name={name} onNameChange={setName}
+              namespace={namespace} onNamespaceChange={setNamespace}
+              provider={provider} onProviderChange={setProvider}
+              format={format} onFormatChange={setFormat}
+              model={model} onModelChange={setModel}
+              authType={authType} onAuthTypeChange={setAuthType}
+              authSecret={authSecret} onAuthSecretChange={setAuthSecret}
+              authKey={authKey} onAuthKeyChange={setAuthKey}
+              authHeader={authHeader} onAuthHeaderChange={setAuthHeader}
+              timeout={timeout} onTimeoutChange={setTimeout_}
+              maxRetries={maxRetries} onMaxRetriesChange={setMaxRetries}
+              backoff={backoff} onBackoffChange={setBackoff}
+              isEdit={isEdit}
+              namespaces={namespaces}
+            />
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">{t("aiservice.create.auth_title")}</CardTitle>
-                <CardDescription>{t("aiservice.create.auth_desc")}</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid grid-cols-4 gap-4">
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.auth_type")}</Label>
-                    <Select value={authType} onValueChange={setAuthType}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("aiservice.create.auth_type_placeholder")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="apiKey">apiKey</SelectItem>
-                        <SelectItem value="bearer">bearer</SelectItem>
-                        <SelectItem value="basic">basic</SelectItem>
-                        <SelectItem value="custom">custom</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.auth_secret")}</Label>
-                    <Input
-                      value={authSecret}
-                      onChange={(e) => setAuthSecret(e.target.value)}
-                      placeholder={t("aiservice.create.auth_secret_placeholder")}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.auth_key")}</Label>
-                    <Input
-                      value={authKey}
-                      onChange={(e) => setAuthKey(e.target.value)}
-                      placeholder={t("aiservice.create.auth_key_placeholder")}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.auth_header")}</Label>
-                    <Input
-                      value={authHeader}
-                      onChange={(e) => setAuthHeader(e.target.value)}
-                      placeholder={t("aiservice.create.auth_header_placeholder")}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AIServiceObservability
+              langfuseHost={langfuseHost} onLangfuseHostChange={setLangfuseHost}
+              langfusePublicKey={langfusePublicKey} onLangfusePublicKeyChange={setLangfusePublicKey}
+              langfuseSecretKey={langfuseSecretKey} onLangfuseSecretKeyChange={setLangfuseSecretKey}
+              otelEndpoint={otelEndpoint} onOtelEndpointChange={setOtelEndpoint}
+              otelServiceName={otelServiceName} onOtelServiceNameChange={setOtelServiceName}
+            />
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">{t("aiservice.create.settings_title")}</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.timeout")}</Label>
-                    <Input
-                      value={timeout}
-                      onChange={(e) => setTimeout_(e.target.value)}
-                      placeholder={t("aiservice.create.timeout_placeholder")}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.max_retries")}</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={maxRetries}
-                      onChange={(e) => setMaxRetries(parseInt(e.target.value, 10) || 0)}
-                      placeholder="3"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.backoff")}</Label>
-                    <Input
-                      value={backoff}
-                      onChange={(e) => setBackoff(e.target.value)}
-                      placeholder={t("aiservice.create.backoff_placeholder")}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <AIServiceModelRouting
+              routingEnabled={routingEnabled} onRoutingEnabledChange={setRoutingEnabled}
+              routingComplexityThresholds={routingComplexityThresholds} onRoutingComplexityThresholdsChange={setRoutingComplexityThresholds}
+              routingModelOverrides={routingModelOverrides} onRoutingModelOverridesChange={setRoutingModelOverrides}
+            />
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">{t("aiservice.create.observability_title")}</CardTitle>
-                <CardDescription>{t("aiservice.create.observability_desc")}</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-6">
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium">{t("aiservice.create.langfuse_title")}</h4>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="grid gap-2">
-                      <Label>{t("aiservice.create.langfuse_host")}</Label>
-                      <Input
-                        value={langfuseHost}
-                        onChange={(e) => setLangfuseHost(e.target.value)}
-                        placeholder={t("aiservice.create.langfuse_host_placeholder")}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>{t("aiservice.create.langfuse_public_key")}</Label>
-                      <Input
-                        value={langfusePublicKey}
-                        onChange={(e) => setLangfusePublicKey(e.target.value)}
-                        placeholder="pk-..."
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>{t("aiservice.create.langfuse_secret_key")}</Label>
-                      <Input
-                        type="password"
-                        value={langfuseSecretKey}
-                        onChange={(e) => setLangfuseSecretKey(e.target.value)}
-                        placeholder="sk-..."
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium">{t("aiservice.create.otel_title")}</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label>{t("aiservice.create.otel_endpoint")}</Label>
-                      <Input
-                        value={otelEndpoint}
-                        onChange={(e) => setOtelEndpoint(e.target.value)}
-                        placeholder={t("aiservice.create.otel_endpoint_placeholder")}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>{t("aiservice.create.otel_service_name")}</Label>
-                      <Input
-                        value={otelServiceName}
-                        onChange={(e) => setOtelServiceName(e.target.value)}
-                        placeholder={t("aiservice.create.otel_service_name_placeholder")}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <SemanticCacheSection
+              cacheEnabled={cacheEnabled}
+              onCacheEnabledChange={setCacheEnabled}
+              cacheTtl={cacheTtl}
+              onCacheTtlChange={setCacheTtl}
+              cacheMaxTokens={cacheMaxTokens}
+              onCacheMaxTokensChange={setCacheMaxTokens}
+            />
 
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">{t("aiservice.create.routing_title")}</CardTitle>
-                    <CardDescription>{t("aiservice.create.routing_desc")}</CardDescription>
-                  </div>
-                  <Checkbox
-                    checked={routingEnabled}
-                    onCheckedChange={setRoutingEnabled}
-                  />
-                </div>
-              </CardHeader>
-              {routingEnabled && (
-                <CardContent className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.routing_thresholds")}</Label>
-                    <Textarea
-                      value={routingComplexityThresholds}
-                      onChange={(e) => setRoutingComplexityThresholds(e.target.value)}
-                      placeholder='{"simple": 100, "medium": 500}'
-                      rows={2}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.routing_overrides")}</Label>
-                    <Textarea
-                      value={routingModelOverrides}
-                      onChange={(e) => setRoutingModelOverrides(e.target.value)}
-                      placeholder='{"simple": "gpt-4o-mini", "medium": "gpt-4o", "complex": "o1"}'
-                      rows={3}
-                    />
-                  </div>
-                </CardContent>
-              )}
-            </Card>
+            <PromptGuardSection
+              guardEnabled={guardEnabled}
+              onGuardEnabledChange={setGuardEnabled}
+              guardMode={guardMode}
+              onGuardModeChange={setGuardMode}
+              guardPatterns={guardPatterns}
+              onGuardPatternsChange={setGuardPatterns}
+              guardKeywords={guardKeywords}
+              onGuardKeywordsChange={setGuardKeywords}
+            />
 
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">{t("aiservice.create.cache_title")}</CardTitle>
-                    <CardDescription>{t("aiservice.create.cache_desc")}</CardDescription>
-                  </div>
-                  <Checkbox
-                    checked={cacheEnabled}
-                    onCheckedChange={setCacheEnabled}
-                  />
-                </div>
-              </CardHeader>
-              {cacheEnabled && (
-                <CardContent className="grid gap-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label>{t("aiservice.create.cache_ttl")}</Label>
-                      <Input
-                        value={cacheTtl}
-                        onChange={(e) => setCacheTtl(e.target.value)}
-                        placeholder="3600s"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>{t("aiservice.create.cache_max_tokens")}</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={cacheMaxTokens}
-                        onChange={(e) => setCacheMaxTokens(parseInt(e.target.value, 10) || 0)}
-                        placeholder="4096"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              )}
-            </Card>
+            <ContentSafetySection
+              safetyEnabled={safetyEnabled}
+              onSafetyEnabledChange={setSafetyEnabled}
+              safetyBlockMode={safetyBlockMode}
+              onSafetyBlockModeChange={setSafetyBlockMode}
+              safetyCategories={safetyCategories}
+              onSafetyCategoriesChange={setSafetyCategories}
+            />
 
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">{t("aiservice.create.guard_title")}</CardTitle>
-                    <CardDescription>{t("aiservice.create.guard_desc")}</CardDescription>
-                  </div>
-                  <Checkbox
-                    checked={guardEnabled}
-                    onCheckedChange={setGuardEnabled}
-                  />
-                </div>
-              </CardHeader>
-              {guardEnabled && (
-                <CardContent className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.guard_mode")}</Label>
-                    <Select value={guardMode} onValueChange={setGuardMode}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("aiservice.create.guard_mode_placeholder")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="block">block</SelectItem>
-                        <SelectItem value="warn">warn</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.guard_patterns")}</Label>
-                    <Textarea
-                      value={guardPatterns}
-                      onChange={(e) => setGuardPatterns(e.target.value)}
-                      placeholder="^DROP\s+TABLE|^DELETE\s+FROM"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.guard_keywords")}</Label>
-                    <Textarea
-                      value={guardKeywords}
-                      onChange={(e) => setGuardKeywords(e.target.value)}
-                      placeholder="password\nsecret\napi_key"
-                      rows={3}
-                    />
-                  </div>
-                </CardContent>
-              )}
-            </Card>
+            <PIIMaskingSection
+              piiEnabled={piiEnabled}
+              onPiiEnabledChange={setPiiEnabled}
+              piiMode={piiMode}
+              onPiiModeChange={setPiiMode}
+              piiEntityTypes={piiEntityTypes}
+              onPiiEntityTypesChange={setPiiEntityTypes}
+            />
 
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">{t("aiservice.create.safety_title")}</CardTitle>
-                    <CardDescription>{t("aiservice.create.safety_desc")}</CardDescription>
-                  </div>
-                  <Checkbox
-                    checked={safetyEnabled}
-                    onCheckedChange={setSafetyEnabled}
-                  />
-                </div>
-              </CardHeader>
-              {safetyEnabled && (
-                <CardContent className="grid gap-4">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={safetyBlockMode}
-                      onCheckedChange={setSafetyBlockMode}
-                    />
-                    <Label>{t("aiservice.create.safety_block_mode")}</Label>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{t("aiservice.create.safety_categories")}</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { value: "violence", labelKey: "aiservice.create.safety_violence" as const },
-                        { value: "hate", labelKey: "aiservice.create.safety_hate" as const },
-                        { value: "self_harm", labelKey: "aiservice.create.safety_self_harm" as const },
-                        { value: "exploitation", labelKey: "aiservice.create.safety_exploitation" as const },
-                        { value: "illegal", labelKey: "aiservice.create.safety_illegal" as const },
-                      ].map((cat) => (
-                        <div key={cat.value} className="flex items-center gap-2">
-                          <Checkbox
-                            checked={safetyCategories.includes(cat.value)}
-                            onCheckedChange={(checked) =>
-                              setSafetyCategories(
-                                checked
-                                  ? [...safetyCategories, cat.value]
-                                  : safetyCategories.filter((c) => c !== cat.value)
-                              )
-                            }
-                          />
-                          <Label className="font-normal">{t(cat.labelKey)}</Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              )}
-            </Card>
+            <ABTestingSection
+              abTestingEnabled={abTestingEnabled}
+              onAbTestingEnabledChange={setAbTestingEnabled}
+              abTestingExperimentId={abTestingExperimentId}
+              onAbTestingExperimentIdChange={setAbTestingExperimentId}
+              abTestingVariants={abTestingVariants}
+              onAbTestingVariantsChange={setAbTestingVariants}
+            />
 
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">{t("aiservice.create.pii_title")}</CardTitle>
-                    <CardDescription>{t("aiservice.create.pii_desc")}</CardDescription>
-                  </div>
-                  <Checkbox
-                    checked={piiEnabled}
-                    onCheckedChange={setPiiEnabled}
-                  />
-                </div>
-              </CardHeader>
-              {piiEnabled && (
-                <CardContent className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.pii_mode")}</Label>
-                    <Select value={piiMode} onValueChange={setPiiMode}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("aiservice.create.pii_mode_placeholder")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="mask">mask</SelectItem>
-                        <SelectItem value="redact">redact</SelectItem>
-                        <SelectItem value="anonymize">anonymize</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{t("aiservice.create.pii_entity_types")}</Label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {[
-                        { value: "email", labelKey: "aiservice.create.pii_email" as const },
-                        { value: "phone", labelKey: "aiservice.create.pii_phone" as const },
-                        { value: "credit-card", labelKey: "aiservice.create.pii_credit_card" as const },
-                        { value: "id-card", labelKey: "aiservice.create.pii_id_card" as const },
-                        { value: "url", labelKey: "aiservice.create.pii_url" as const },
-                        { value: "ip", labelKey: "aiservice.create.pii_ip" as const },
-                      ].map((ent) => (
-                        <div key={ent.value} className="flex items-center gap-2">
-                          <Checkbox
-                            checked={piiEntityTypes.includes(ent.value)}
-                            onCheckedChange={(checked) =>
-                              setPiiEntityTypes(
-                                checked
-                                  ? [...piiEntityTypes, ent.value]
-                                  : piiEntityTypes.filter((e) => e !== ent.value)
-                              )
-                            }
-                          />
-                          <Label className="font-normal">{t(ent.labelKey)}</Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </CardContent>
-              )}
-            </Card>
+            <FallbackChainsSection
+              fallbackEnabled={fallbackEnabled}
+              onFallbackEnabledChange={setFallbackEnabled}
+              fallbackChains={fallbackChains}
+              onFallbackChainsChange={setFallbackChains}
+            />
 
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">{t("aiservice.create.ab_testing_title")}</CardTitle>
-                    <CardDescription>{t("aiservice.create.ab_testing_desc")}</CardDescription>
-                  </div>
-                  <Checkbox
-                    checked={abTestingEnabled}
-                    onCheckedChange={setAbTestingEnabled}
-                  />
-                </div>
-              </CardHeader>
-              {abTestingEnabled && (
-                <CardContent className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.ab_testing_experiment_id")}</Label>
-                    <Input
-                      value={abTestingExperimentId}
-                      onChange={(e) => setAbTestingExperimentId(e.target.value)}
-                      placeholder="exp-001"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.ab_testing_variants")}</Label>
-                    <Textarea
-                      value={abTestingVariants}
-                      onChange={(e) => setAbTestingVariants(e.target.value)}
-                      placeholder='[{"name": "A", "model": "gpt-4o", "weight": 50}, {"name": "B", "model": "claude-3", "weight": 50}]'
-                      rows={4}
-                    />
-                  </div>
-                </CardContent>
-              )}
-            </Card>
+            <CostTrackingSection
+              costTrackingEnabled={costTrackingEnabled}
+              onCostTrackingEnabledChange={setCostTrackingEnabled}
+              costInputPricePer1K={costInputPricePer1K}
+              onCostInputPricePer1KChange={setCostInputPricePer1K}
+              costOutputPricePer1K={costOutputPricePer1K}
+              onCostOutputPricePer1KChange={setCostOutputPricePer1K}
+              costCurrency={costCurrency}
+              onCostCurrencyChange={setCostCurrency}
+            />
 
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">{t("aiservice.create.fallback_title")}</CardTitle>
-                    <CardDescription>{t("aiservice.create.fallback_desc")}</CardDescription>
-                  </div>
-                  <Checkbox
-                    checked={fallbackEnabled}
-                    onCheckedChange={setFallbackEnabled}
-                  />
-                </div>
-              </CardHeader>
-              {fallbackEnabled && (
-                <CardContent className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.fallback_chains")}</Label>
-                    <Textarea
-                      value={fallbackChains}
-                      onChange={(e) => setFallbackChains(e.target.value)}
-                      placeholder='[{"primary": "gpt-4o", "fallbacks": [{"model": "claude-3", "timeout": true, "statusCodes": [429, 500]}]}]'
-                      rows={4}
-                    />
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">{t("aiservice.create.cost_title")}</CardTitle>
-                    <CardDescription>{t("aiservice.create.cost_desc")}</CardDescription>
-                  </div>
-                  <Checkbox
-                    checked={costTrackingEnabled}
-                    onCheckedChange={setCostTrackingEnabled}
-                  />
-                </div>
-              </CardHeader>
-              {costTrackingEnabled && (
-                <CardContent className="grid gap-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="grid gap-2">
-                      <Label>{t("aiservice.create.cost_input_price")}</Label>
-                      <Input
-                        value={costInputPricePer1K}
-                        onChange={(e) => setCostInputPricePer1K(e.target.value)}
-                        placeholder="0.03"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>{t("aiservice.create.cost_output_price")}</Label>
-                      <Input
-                        value={costOutputPricePer1K}
-                        onChange={(e) => setCostOutputPricePer1K(e.target.value)}
-                        placeholder="0.06"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>{t("aiservice.create.cost_currency")}</Label>
-                      <Select value={costCurrency} onValueChange={setCostCurrency}>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t("aiservice.create.cost_currency_placeholder")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="USD">USD</SelectItem>
-                          <SelectItem value="EUR">EUR</SelectItem>
-                          <SelectItem value="CNY">CNY</SelectItem>
-                          <SelectItem value="JPY">JPY</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-base">{t("aiservice.create.multi_tenant_title")}</CardTitle>
-                    <CardDescription>{t("aiservice.create.multi_tenant_desc")}</CardDescription>
-                  </div>
-                  <Checkbox
-                    checked={multiTenantEnabled}
-                    onCheckedChange={setMultiTenantEnabled}
-                  />
-                </div>
-              </CardHeader>
-              {multiTenantEnabled && (
-                <CardContent className="grid gap-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label>{t("aiservice.create.multi_tenant_id")}</Label>
-                      <Input
-                        value={multiTenantId}
-                        onChange={(e) => setMultiTenantId(e.target.value)}
-                        placeholder="tenant-001"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label>{t("aiservice.create.multi_tenant_cost_limit")}</Label>
-                      <Input
-                        value={multiTenantCostLimit}
-                        onChange={(e) => setMultiTenantCostLimit(e.target.value)}
-                        placeholder="1000"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label>{t("aiservice.create.multi_tenant_models")}</Label>
-                    <Input
-                      value={multiTenantAllowedModels}
-                      onChange={(e) => setMultiTenantAllowedModels(e.target.value)}
-                      placeholder="gpt-4o,claude-3,gemini-pro"
-                    />
-                  </div>
-                </CardContent>
-              )}
-            </Card>
+            <MultiTenantSection
+              multiTenantEnabled={multiTenantEnabled}
+              onMultiTenantEnabledChange={setMultiTenantEnabled}
+              multiTenantId={multiTenantId}
+              onMultiTenantIdChange={setMultiTenantId}
+              multiTenantAllowedModels={multiTenantAllowedModels}
+              onMultiTenantAllowedModelsChange={setMultiTenantAllowedModels}
+              multiTenantCostLimit={multiTenantCostLimit}
+              onMultiTenantCostLimitChange={setMultiTenantCostLimit}
+            />
 
             {error && (
               <Card className="border-red-500">

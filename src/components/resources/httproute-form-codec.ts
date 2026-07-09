@@ -7,8 +7,8 @@ import {
   type ManifestRecord,
 } from "@/lib/resource-manifest";
 import type { ResourceEditorCodec } from "./resource-editor-types";
+import type { BackendRef } from "./shared-types";
 import type {
-  BackendRef,
   HeaderMatch,
   HeaderModifier,
   HTTPRouteFormData,

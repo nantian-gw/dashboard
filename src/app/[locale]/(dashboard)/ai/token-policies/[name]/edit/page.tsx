@@ -1,8 +1,14 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { TokenPolicyForm, tokenPolicyResourceToFormData } from "@/components/resources/tokenpolicy-form";
+import dynamic from "next/dynamic";
+import { tokenPolicyResourceToFormData } from "@/components/resources/tokenpolicy-form";
+import PageSkeleton from "@/components/dashboard/page-skeleton";
 import { useTokenPolicies } from "@/hooks/use-api";
+
+const TokenPolicyForm = dynamic(() => import("@/components/resources/tokenpolicy-form").then((mod) => mod.TokenPolicyForm), {
+  loading: () => <PageSkeleton />,
+});
 import { type TokenPolicyRow } from "@/lib/admin-models";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";

@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useCallback } from "react";
 import type { ReactElement } from "react";
 import { useLocalizedDashboardRouter } from "@/lib/use-localized-dashboard-router";
@@ -8,16 +9,27 @@ import { useQuery } from "@tanstack/react-query";
 import { controlplane } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { GRPCRouteForm } from "@/components/resources/grpcroute-form";
 import { grpcRouteResourceToFormData } from "@/components/resources/grpcroute-form-codec";
-import { HTTPRouteForm } from "@/components/resources/httproute-form";
 import { httpRouteResourceToFormData } from "@/components/resources/httproute-form-codec";
-import { TCPRouteForm } from "@/components/resources/tcproute-form";
 import { tcpRouteResourceToFormData } from "@/components/resources/tcproute-form-codec";
-import { TLSRouteForm } from "@/components/resources/tlsroute-form";
 import { tlsRouteResourceToFormData } from "@/components/resources/tlsroute-form-codec";
-import { UDPRouteForm } from "@/components/resources/udproute-form";
 import { udpRouteResourceToFormData } from "@/components/resources/udproute-form-codec";
+
+const GRPCRouteForm = dynamic(() => import("@/components/resources/grpcroute-form").then((mod) => mod.GRPCRouteForm), {
+  loading: () => <Skeleton className="h-64 w-full" />,
+});
+const HTTPRouteForm = dynamic(() => import("@/components/resources/httproute-form").then((mod) => mod.HTTPRouteForm), {
+  loading: () => <Skeleton className="h-64 w-full" />,
+});
+const TCPRouteForm = dynamic(() => import("@/components/resources/tcproute-form").then((mod) => mod.TCPRouteForm), {
+  loading: () => <Skeleton className="h-64 w-full" />,
+});
+const TLSRouteForm = dynamic(() => import("@/components/resources/tlsroute-form").then((mod) => mod.TLSRouteForm), {
+  loading: () => <Skeleton className="h-64 w-full" />,
+});
+const UDPRouteForm = dynamic(() => import("@/components/resources/udproute-form").then((mod) => mod.UDPRouteForm), {
+  loading: () => <Skeleton className="h-64 w-full" />,
+});
 
 type SupportedRouteKind = "HTTPRoute" | "GRPCRoute" | "TCPRoute" | "TLSRoute" | "UDPRoute";
 type RouteEditorInput = Parameters<typeof httpRouteResourceToFormData>[0];

@@ -3,9 +3,15 @@
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { controlplane } from "@/lib/api";
-import { WasmPluginForm, wasmPluginResourceToFormData } from "@/components/resources/wasmplugin-form";
+import dynamic from "next/dynamic";
+import { wasmPluginResourceToFormData } from "@/components/resources/wasmplugin-form";
+import PageSkeleton from "@/components/dashboard/page-skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const WasmPluginForm = dynamic(() => import("@/components/resources/wasmplugin-form").then((mod) => mod.WasmPluginForm), {
+  loading: () => <PageSkeleton />,
+});
 
 export default function EditWasmPluginPage() {
   const params = useParams();

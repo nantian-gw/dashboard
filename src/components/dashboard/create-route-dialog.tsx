@@ -255,7 +255,7 @@ ${rulesYaml}`;
               </CardHeader>
               <CardContent className="grid gap-4">
                 {backends.map((backend, index) => (
-                  <div key={index} className="flex gap-2 items-end p-3 border rounded-md bg-slate-50/50">
+                  <div key={index} className="flex gap-2 items-end p-3 border rounded-md bg-muted">
                     <div className="grid gap-1 flex-1">
                       <Label className="text-xs text-muted-foreground">Service</Label>
                       <Input

@@ -13,7 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
-import type { BackendRef, GRPCRule, MethodMatch } from "../grpcroute-form";
+import type { BackendRef } from "../shared-types";
+import type { GRPCRule, MethodMatch } from "../grpcroute-form";
 
 interface RulesSectionProps {
   rules: GRPCRule[];
@@ -115,7 +116,7 @@ export function RulesSection({
             {rule.backends.map((backend, backendIndex) => (
               <div
                 key={backendIndex}
-                className="flex items-end gap-2 rounded-md border bg-slate-50/50 p-3"
+                className="flex items-end gap-2 rounded-md border bg-muted p-3"
               >
                 <div className="grid flex-1 gap-1">
                   <Label className="text-xs text-muted-foreground">

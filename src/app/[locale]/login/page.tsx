@@ -18,15 +18,13 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import {
-  Eye,
-  EyeOff,
-  Upload,
-  Loader2,
-  AlertCircle,
-  ShieldCheck,
-  FileText,
-} from "lucide-react";
+import { Eye } from "lucide-react";
+import { EyeOff } from "lucide-react";
+import { Upload } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { AlertCircle } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
+import { FileText } from "lucide-react";
 import jsyaml from "js-yaml";
 
 export default function LoginPage() {

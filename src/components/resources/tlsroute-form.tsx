@@ -23,12 +23,7 @@ import {
 } from "./tlsroute-form-codec";
 import { ResourceEditorShell } from "./resource-editor-shell";
 
-export interface BackendRef {
-  name: string;
-  namespace: string;
-  port: number;
-  weight: number;
-}
+import { BackendRef } from "./shared-types";
 
 export interface TLSRouteFormData {
   name: string;
@@ -219,7 +214,7 @@ function TLSRouteFormFields({
           {value.backends.map((backend, index) => (
             <div
               key={index}
-              className="flex items-end gap-2 rounded-md border bg-slate-50/50 p-3"
+              className="flex items-end gap-2 rounded-md border bg-muted p-3"
             >
               <div className="grid flex-1 gap-1">
                 <Label className="text-xs text-muted-foreground">

@@ -1,7 +1,12 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { TokenPolicyForm } from "@/components/resources/tokenpolicy-form";
+import dynamic from "next/dynamic";
+import PageSkeleton from "@/components/dashboard/page-skeleton";
+
+const TokenPolicyForm = dynamic(() => import("@/components/resources/tokenpolicy-form").then((mod) => mod.TokenPolicyForm), {
+  loading: () => <PageSkeleton />,
+});
 
 export default function CreateTokenPolicyPage() {
   const locale = (useParams() as { locale: string }).locale;
