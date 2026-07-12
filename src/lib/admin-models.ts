@@ -428,6 +428,16 @@ export function mapRoutesPayload(payload: unknown): RouteRow[] {
   ];
 }
 
+// Derives a route's status from its resource `status.parents[0].conditions`,
+// mirroring the first-parent Accepted logic used by the routes list (mapRoute).
+// Accepts a ManagedResource wrapper or a raw resource; "Unknown" when absent.
+export function deriveRouteStatus(resource: ManagedResource | KubernetesResource | undefined): string {
+  const k8s = resource ? unwrapResource(resource) : {};
+  const parents = asArray(asObject(asObject(k8s).status).parents);
+  const conditions = asObject(parents[0]).conditions;
+  return statusFromConditions(conditions, "Accepted", "Accepted");
+}
+
 export function mapTokenPolicyResource(item: ManagedResource): TokenPolicyRow {
   const spec = resourceSpec(item);
   const status = resourceStatus(item);

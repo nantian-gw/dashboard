@@ -2,7 +2,7 @@
 
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { controlplane } from "@/lib/api";
-import { mapGatewayResource, mapRoutesPayload, mapBackendTlsPolicyResource, mapBackendLbPolicyResource, mapTokenPolicyResource, toYaml, asManagedResourceArray, type ManagedResource } from "@/lib/admin-models";
+import { mapGatewayResource, mapRoutesPayload, mapBackendTlsPolicyResource, mapBackendLbPolicyResource, mapTokenPolicyResource, deriveRouteStatus, toYaml, asManagedResourceArray, type ManagedResource } from "@/lib/admin-models";
 
 const REFETCH_INTERVAL = (query: { state: { error: unknown } }) => {
   if (typeof document !== "undefined" && document.hidden) return false;
@@ -93,7 +93,7 @@ export function routeQueryOptions(namespace: string, name: string, kind: string)
           kind,
           name: r.name || name,
           namespace: r.namespace || namespace,
-          status: "Accepted",
+          status: deriveRouteStatus(r),
           hostnames: (rawSpec.hostnames as string[]) || [],
           parentRefs: (rawSpec.parentRefs as Record<string, unknown>[]) || [],
           rules,

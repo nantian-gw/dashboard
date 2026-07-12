@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { CONTROLPLANE_ADMIN_URL } from "@/lib/admin-urls";
+import { buildProxyHeaders } from "@/lib/proxy-headers";
+import {
+  validateCsrfToken,
+  getCsrfTokenFromCookies,
+  CSRF_HEADER_NAME,
+} from "@/lib/csrf";
 
 const DEFAULT_TARGET = CONTROLPLANE_ADMIN_URL;
 
@@ -14,23 +20,26 @@ export async function POST(request: NextRequest): Promise<Response> {
       { status: 401 }
     );
   }
+  // CSRF validation: this POST triggers backend LLM calls, so it must carry the
+  // double-submit token like the other state-changing proxy routes.
+  const cookieToken = getCsrfTokenFromCookies(request.headers.get("cookie"));
+  const headerToken = request.headers.get(CSRF_HEADER_NAME);
+  if (!validateCsrfToken(cookieToken, headerToken)) {
+    return NextResponse.json(
+      { error: "csrf_invalid", message: "Invalid or missing CSRF token" },
+      { status: 403 }
+    );
+  }
+
   const token = session.user.token;
 
   const targetUrl = new URL("/v1/chatbot/chat", DEFAULT_TARGET);
 
-  const headers: Record<string, string> = {};
-  request.headers.forEach((value, key) => {
-    if (
-      !["host", "connection", "content-length", "transfer-encoding"].includes(
-        key.toLowerCase()
-      )
-    ) {
-      headers[key] = value;
-    }
+  // Force the session token; buildProxyHeaders applies the shared allowlist and
+  // makes the injected Authorization win over any client-supplied variant.
+  const headers = buildProxyHeaders(request.headers, {
+    Authorization: `Bearer ${token}`,
   });
-  if (token && !headers["authorization"]) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), STREAM_TIMEOUT_MS);

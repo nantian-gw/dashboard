@@ -57,7 +57,17 @@ export function buildProxyHeaders(
   });
 
   if (extraHeaders) {
-    Object.assign(headers, extraHeaders);
+    for (const [key, value] of Object.entries(extraHeaders)) {
+      // Injected headers (e.g. Authorization) must win over any client-supplied
+      // variant regardless of header-name casing, so a client cannot override
+      // the session token by forwarding its own Authorization header.
+      for (const existing of Object.keys(headers)) {
+        if (existing.toLowerCase() === key.toLowerCase()) {
+          delete headers[existing];
+        }
+      }
+      headers[key] = value;
+    }
   }
 
   return headers;

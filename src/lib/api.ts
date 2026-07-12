@@ -13,7 +13,7 @@ interface RequestOptions extends RequestInit {
  * Uses the double-submit cookie pattern: the cookie value is sent as a
  * request header so the server can verify they match.
  */
-function readCsrfTokenFromCookies(): string | undefined {
+export function readCsrfTokenFromCookies(): string | undefined {
   if (typeof document === "undefined") return undefined;
   const match = document.cookie.match(
     new RegExp(`(?:^|;\\s*)${CSRF_COOKIE_NAME}=([^;]*)`)

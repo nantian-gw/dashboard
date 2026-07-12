@@ -135,7 +135,9 @@ export function logAuthError(error: Error): void {
   }
 
   if (error.stack) {
-    console.error(error.stack.replace(/.*/, "").substring(1));
+    // Log the stack without its first line; the name/message is logged above.
+    const stackBody = error.stack.split("\n").slice(1).join("\n");
+    if (stackBody) console.error(stackBody);
   }
 }
 

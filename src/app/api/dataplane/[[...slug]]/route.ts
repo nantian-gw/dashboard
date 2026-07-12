@@ -121,20 +121,20 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
     clearTimeout(timeout);
 
     const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
+    // The legacy /v1/nodes path rewrites the JSON payload; every other request
+    // is a transparent stream pass-through (no parse + re-serialize).
+    if (legacyTarget && contentType.includes("application/json")) {
       const data = await response.json();
-      const payload = legacyTarget ? legacyDataplanePayload(slug, data) : data;
+      const payload = legacyDataplanePayload(slug, data);
       return new NextResponse(JSON.stringify(payload), {
         status: response.status,
         headers: proxyResponseHeaders(response),
       });
-    } else {
-      const data = await response.text();
-      return new NextResponse(data, {
-        status: response.status,
-        headers: proxyResponseHeaders(response),
-      });
     }
+    return new NextResponse(response.body, {
+      status: response.status,
+      headers: proxyResponseHeaders(response),
+    });
   } catch {
     clearTimeout(timeout);
     return NextResponse.json(

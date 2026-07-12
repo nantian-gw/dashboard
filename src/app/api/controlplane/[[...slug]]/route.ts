@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import {
+  asManagedResourceArray,
   mapBackendTlsPolicyResource,
   mapBackendLbPolicyResource,
   mapDiagnostics,
@@ -76,7 +77,7 @@ async function legacyControlplanePayload(
     return {
       matched: true,
       payload: {
-        gateways: (resources as ManagedResource[]).map((resource) =>
+        gateways: asManagedResourceArray(resources).map((resource) =>
           mapGatewayResource(resource, routes)
         ),
         httpRouteCount: numericField(summaryObject.httpRouteCount),
@@ -113,7 +114,7 @@ async function legacyControlplanePayload(
     return {
       matched: true,
       payload: {
-        policies: (resources as ManagedResource[]).map(mapBackendTlsPolicyResource),
+        policies: asManagedResourceArray(resources).map(mapBackendTlsPolicyResource),
       },
     };
   }
@@ -128,7 +129,7 @@ async function legacyControlplanePayload(
     return {
       matched: true,
       payload: {
-        policies: (resources as ManagedResource[]).map(mapBackendLbPolicyResource),
+        policies: asManagedResourceArray(resources).map(mapBackendLbPolicyResource),
       },
     };
   }
@@ -219,20 +220,13 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
 
     clearTimeout(timeout);
 
-    const contentType = response.headers.get("content-type") || "";
-    if (contentType.includes("application/json")) {
-      const data = await response.json();
-      return new NextResponse(JSON.stringify(data), {
-        status: response.status,
-        headers: proxyResponseHeaders(response),
-      });
-    } else {
-      const data = await response.text();
-      return new NextResponse(data, {
-        status: response.status,
-        headers: proxyResponseHeaders(response),
-      });
-    }
+    // Transparent pass-through: stream the upstream body instead of
+    // parse + re-serialize. proxyResponseHeaders strips content-length/encoding
+    // so chunked streaming stays correct for large snapshots/manifests.
+    return new NextResponse(response.body, {
+      status: response.status,
+      headers: proxyResponseHeaders(response),
+    });
   } catch {
     clearTimeout(timeout);
     return NextResponse.json(

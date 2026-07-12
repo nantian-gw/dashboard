@@ -127,3 +127,30 @@ test("empty dataplane summary stays quiet", () => {
   const issues = mapDiagnostics({}, {}, {});
   assert.equal(issues.length, 0);
 });
+
+test("route status derives from parent conditions instead of a hardcoded Accepted", () => {
+  const { deriveRouteStatus } = loadAdminModels();
+
+  assert.equal(
+    deriveRouteStatus({
+      resource: { status: { parents: [{ conditions: [{ type: "Accepted", status: "True" }] }] } },
+    }),
+    "Accepted"
+  );
+
+  assert.equal(
+    deriveRouteStatus({
+      resource: {
+        status: {
+          parents: [
+            { conditions: [{ type: "Accepted", status: "False", reason: "NoMatchingParent" }] },
+          ],
+        },
+      },
+    }),
+    "NoMatchingParent"
+  );
+
+  assert.equal(deriveRouteStatus({ resource: {} }), "Unknown");
+  assert.equal(deriveRouteStatus(undefined), "Unknown");
+});

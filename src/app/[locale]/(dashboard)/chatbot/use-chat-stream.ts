@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import { readCsrfTokenFromCookies } from "@/lib/api";
 import type { ChatMessage, StreamEvent } from "./page";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -58,9 +59,16 @@ export function useChatStream() {
       setStreaming(true);
 
       try {
+        const csrfToken = readCsrfTokenFromCookies();
+        const headers: Record<string, string> = {
+          "Content-Type": "application/json",
+        };
+        if (csrfToken) headers["x-csrf-token"] = csrfToken;
+
         const res = await fetch("/api/chatbot/chat", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers,
+          credentials: "include",
           body: JSON.stringify({ prompt: content }),
         });
 
