@@ -182,6 +182,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     jwt: async ({ token, user }) => {
       if (user?.token) {
         token.accessToken = user.token;
+        token.expiresAt = Date.now() + 3600 * 1000; // 1 hour from login
+      }
+      if (
+        token.expiresAt &&
+        Date.now() > (token.expiresAt as number) - 300_000
+      ) {
+        token = await refreshAccessToken(token);
       }
       return token;
     },
@@ -191,6 +198,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return session;
     },
+  },
+  session: {
+    maxAge: 8 * 60 * 60, // 8 hours
+    updateAge: 30 * 60, // 30 minutes
   },
 });
 
@@ -229,6 +240,21 @@ async function verifyTokenAgainstControlplaneDetailed(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function refreshAccessToken(token: import("@auth/core/jwt").JWT): Promise<import("@auth/core/jwt").JWT> {
+  if (!token.accessToken) return token;
+
+  const verification = await verifyTokenAgainstControlplaneDetailed(
+    token.accessToken as string
+  );
+
+  if (verification.result === "valid") {
+    token.expiresAt = Date.now() + 3600 * 1000;
+  }
+  // If invalid or network error, keep existing token (session will expire naturally)
+
+  return token;
 }
 
 export async function verifyTokenAgainstControlplane(
