@@ -71,6 +71,10 @@ Tests live in `test/` as `.mjs` files using Node's native test runner. They veri
 
 Tests transpile TypeScript at runtime using the `typescript` package — no build step needed.
 
+## Dependency Notes
+
+- **next-auth v5 beta** (`^5.0.0-beta.31`): No stable v5 release exists yet (latest stable is v4 `4.24.14`). v5 is used because it provides App Router–native APIs (`NextAuth()` → `{ handlers, auth, signIn, signOut }`, `CredentialsSignin`, isomorphic JWT/session callbacks) that v4 lacks. The auth implementation in `src/lib/auth.ts` depends on these v5 signatures — downgrading to v4 would require a full rewrite. Monitor the [`next-auth` npm page](https://www.npmjs.com/package/next-auth) for a v5 stable release and upgrade when available.
+
 ## Conventions
 
 - `@/*` = `./src/*`
