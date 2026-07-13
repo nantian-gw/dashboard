@@ -15,6 +15,9 @@ import {
 import { Plus, Trash2 } from "lucide-react";
 import type { RouteRule } from "../httproute-form";
 import { HeaderModifierSection, emptyFilter } from "./filters-section";
+import { HeaderMatchEditor } from "./rules-section/header-match-editor";
+import { QueryParamEditor } from "./rules-section/query-param-editor";
+import { BackendRefsEditor } from "./rules-section/backend-refs-editor";
 
 const HTTP_METHODS = ["__any__", "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"];
 const FILTER_TYPES = ["RequestHeaderModifier", "ResponseHeaderModifier"];
@@ -126,170 +129,18 @@ export function RulesSection({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs">{t("create.route.header_matches")}</Label>
-                  {rule.headerMatches.map((headerMatch, headerIndex) => (
-                    <div key={headerIndex} className="flex items-center gap-1">
-                      <Select
-                        value={headerMatch.type}
-                        onValueChange={(type) =>
-                          onUpdateRule(ruleIndex, {
-                            headerMatches: rule.headerMatches.map((entry, entryIndex) =>
-                              entryIndex === headerIndex
-                                ? { ...entry, type: type as "Exact" | "RegularExpression" }
-                                : entry
-                            ),
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-8 w-24 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Exact">Exact</SelectItem>
-                          <SelectItem value="RegularExpression">Regex</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        className="h-8 w-24 text-xs"
-                        placeholder="name"
-                        value={headerMatch.name}
-                        onChange={(event) =>
-                          onUpdateRule(ruleIndex, {
-                            headerMatches: rule.headerMatches.map((entry, entryIndex) =>
-                              entryIndex === headerIndex ? { ...entry, name: event.target.value } : entry
-                            ),
-                          })
-                        }
-                      />
-                      <Input
-                        className="h-8 w-24 text-xs"
-                        placeholder="value"
-                        value={headerMatch.value}
-                        onChange={(event) =>
-                          onUpdateRule(ruleIndex, {
-                            headerMatches: rule.headerMatches.map((entry, entryIndex) =>
-                              entryIndex === headerIndex ? { ...entry, value: event.target.value } : entry
-                            ),
-                          })
-                        }
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() =>
-                          onUpdateRule(ruleIndex, {
-                            headerMatches: rule.headerMatches.filter(
-                              (_, entryIndex) => entryIndex !== headerIndex
-                            ),
-                          })
-                        }
-                      >
-                        <Trash2 className="h-3 w-3 text-red-500" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() =>
-                      onUpdateRule(ruleIndex, {
-                        headerMatches: [
-                          ...rule.headerMatches,
-                          { type: "Exact", name: "", value: "" },
-                        ],
-                      })
-                    }
-                  >
-                    <Plus className="mr-1 h-3 w-3" /> Add Header Match
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">{t("create.route.query_param_matches")}</Label>
-                  {rule.queryParamMatches.map((queryParamMatch, queryParamIndex) => (
-                    <div key={queryParamIndex} className="flex items-center gap-1">
-                      <Select
-                        value={queryParamMatch.type}
-                        onValueChange={(type) =>
-                          onUpdateRule(ruleIndex, {
-                            queryParamMatches: rule.queryParamMatches.map((entry, entryIndex) =>
-                              entryIndex === queryParamIndex
-                                ? { ...entry, type: type as "Exact" | "RegularExpression" }
-                                : entry
-                            ),
-                          })
-                        }
-                      >
-                        <SelectTrigger className="h-8 w-24 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Exact">Exact</SelectItem>
-                          <SelectItem value="RegularExpression">Regex</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Input
-                        className="h-8 w-20 text-xs"
-                        placeholder="name"
-                        value={queryParamMatch.name}
-                        onChange={(event) =>
-                          onUpdateRule(ruleIndex, {
-                            queryParamMatches: rule.queryParamMatches.map((entry, entryIndex) =>
-                              entryIndex === queryParamIndex ? { ...entry, name: event.target.value } : entry
-                            ),
-                          })
-                        }
-                      />
-                      <Input
-                        className="h-8 w-20 text-xs"
-                        placeholder="value"
-                        value={queryParamMatch.value}
-                        onChange={(event) =>
-                          onUpdateRule(ruleIndex, {
-                            queryParamMatches: rule.queryParamMatches.map((entry, entryIndex) =>
-                              entryIndex === queryParamIndex ? { ...entry, value: event.target.value } : entry
-                            ),
-                          })
-                        }
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() =>
-                          onUpdateRule(ruleIndex, {
-                            queryParamMatches: rule.queryParamMatches.filter(
-                              (_, entryIndex) => entryIndex !== queryParamIndex
-                            ),
-                          })
-                        }
-                      >
-                        <Trash2 className="h-3 w-3 text-red-500" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() =>
-                      onUpdateRule(ruleIndex, {
-                        queryParamMatches: [
-                          ...rule.queryParamMatches,
-                          { type: "Exact", name: "", value: "" },
-                        ],
-                      })
-                    }
-                  >
-                    <Plus className="mr-1 h-3 w-3" /> Add Query Param
-                  </Button>
-                </div>
+                <HeaderMatchEditor
+                  matches={rule.headerMatches}
+                  ruleIndex={ruleIndex}
+                  t={t}
+                  onUpdate={onUpdateRule}
+                />
+                <QueryParamEditor
+                  matches={rule.queryParamMatches}
+                  ruleIndex={ruleIndex}
+                  t={t}
+                  onUpdate={onUpdateRule}
+                />
               </div>
 
               <div className="grid gap-2">
@@ -373,86 +224,15 @@ export function RulesSection({
                 </Button>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">{t("create.route.backend_refs")}</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => addBackendToRule(ruleIndex)}
-                  >
-                    <Plus className="mr-1 h-3 w-3" /> {t("create.route.add_backend")}
-                  </Button>
-                </div>
-                {rule.backends.map((backend, backendIndex) => (
-                  <div key={backendIndex} className="flex items-center gap-2">
-                    <Input
-                      className="h-8 w-36 text-xs"
-                      placeholder="Service name"
-                      value={backend.name}
-                      onChange={(event) =>
-                        updateBackend(ruleIndex, backendIndex, "name", event.target.value)
-                      }
-                    />
-                    <Select
-                      value={backend.namespace}
-                      onValueChange={(namespace) =>
-                        updateBackend(ruleIndex, backendIndex, "namespace", namespace)
-                      }
-                    >
-                      <SelectTrigger className="h-8 w-28 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {namespaces.map((namespace) => (
-                          <SelectItem key={namespace} value={namespace}>
-                            {namespace}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      className="h-8 w-20 text-xs"
-                      type="number"
-                      placeholder="Port"
-                      value={backend.port}
-                      onChange={(event) =>
-                        updateBackend(
-                          ruleIndex,
-                          backendIndex,
-                          "port",
-                          parseInt(event.target.value, 10) || 0
-                        )
-                      }
-                    />
-                    <Input
-                      className="h-8 w-20 text-xs"
-                      type="number"
-                      placeholder="Weight"
-                      value={backend.weight}
-                      onChange={(event) =>
-                        updateBackend(
-                          ruleIndex,
-                          backendIndex,
-                          "weight",
-                          parseInt(event.target.value, 10) || 0
-                        )
-                      }
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={() => removeBackendFromRule(ruleIndex, backendIndex)}
-                    >
-                      <Trash2 className="h-3 w-3 text-red-500" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
+              <BackendRefsEditor
+                backends={rule.backends}
+                namespaces={namespaces}
+                ruleIndex={ruleIndex}
+                t={t}
+                onUpdateBackend={updateBackend}
+                onAddBackend={addBackendToRule}
+                onRemoveBackend={removeBackendFromRule}
+              />
             </CardContent>
           </Card>
         ))}

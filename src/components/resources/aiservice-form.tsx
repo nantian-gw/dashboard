@@ -9,6 +9,7 @@ import { applyResource } from "@/lib/api";
 import { useNamespaces } from "@/hooks/use-api";
 import { ManagedResource, KubernetesResource, unwrapResource } from "@/lib/admin-models";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { buildAIServiceYaml } from "./aiservice-form/build-yaml";
 import { AIServiceBasicInfo } from "./aiservice-form/basic-info-section";
 import { AIServiceObservability } from "./aiservice-form/observability-section";
 import { AIServiceModelRouting } from "./aiservice-form/model-routing-section";
@@ -288,144 +289,22 @@ export function AIServiceForm({ initialData, mode, onSuccess }: AIServiceFormPro
       return;
     }
 
-    const authYaml = authType.trim()
-      ? `\n  auth:
-    type: ${authType.trim()}${authSecret.trim() ? `\n    secret: ${authSecret.trim()}` : ""}${authKey.trim() ? `\n    key: ${authKey.trim()}` : ""}${authHeader.trim() ? `\n    header: ${authHeader.trim()}` : ""}`
-      : "";
-
-    const retryYaml = maxRetries > 0
-      ? `\n  retry:
-    maxRetries: ${maxRetries}${backoff.trim() ? `\n    backoff: ${backoff.trim()}` : ""}`
-      : maxRetries === 0 && backoff.trim()
-        ? `\n  retry:\n    backoff: ${backoff.trim()}`
-        : "";
-
-    let observabilityYaml = "";
-    const hasLangfuse = langfuseHost.trim() || langfusePublicKey.trim() || langfuseSecretKey.trim();
-    const hasOtel = otelEndpoint.trim() || otelServiceName.trim();
-
-    if (hasLangfuse || hasOtel) {
-      observabilityYaml = "\n  observability:";
-      if (hasLangfuse) {
-        observabilityYaml += `\n    langfuse:${langfuseHost.trim() ? `\n      host: ${langfuseHost.trim()}` : ""}${langfusePublicKey.trim() ? `\n      publicKey: ${langfusePublicKey.trim()}` : ""}${langfuseSecretKey.trim() ? `\n      secretKey: ${langfuseSecretKey.trim()}` : ""}`;
-      }
-      if (hasOtel) {
-        observabilityYaml += `\n    otel:${otelEndpoint.trim() ? `\n      endpoint: ${otelEndpoint.trim()}` : ""}${otelServiceName.trim() ? `\n      serviceName: ${otelServiceName.trim()}` : ""}`;
-      }
-    }
-
-    let routingYaml = "";
-    if (routingEnabled) {
-      routingYaml = "\n  routing:\n    enabled: true";
-      if (routingComplexityThresholds.trim()) {
-        routingYaml += `\n    complexityThresholds: ${routingComplexityThresholds.trim()}`;
-      }
-      if (routingModelOverrides.trim()) {
-        routingYaml += `\n    modelOverrides: ${routingModelOverrides.trim()}`;
-      }
-    }
-
-    let cacheYaml = "";
-    if (cacheEnabled) {
-      cacheYaml = "\n  cache:\n    enabled: true";
-      if (cacheTtl.trim()) {
-        cacheYaml += `\n    ttl: ${cacheTtl.trim()}`;
-      }
-      if (cacheMaxTokens > 0) {
-        cacheYaml += `\n    maxTokens: ${cacheMaxTokens}`;
-      }
-    }
-
-    let guardYaml = "";
-    if (guardEnabled) {
-      guardYaml = "\n  guard:\n    enabled: true";
-      if (guardMode.trim()) {
-        guardYaml += `\n    mode: ${guardMode.trim()}`;
-      }
-      if (guardPatterns.trim()) {
-        guardYaml += `\n    patterns:${guardPatterns.trim().split("\n").filter(Boolean).map((p) => `\n      - ${p}`).join("")}`;
-      }
-      if (guardKeywords.trim()) {
-        guardYaml += `\n    keywords:${guardKeywords.trim().split("\n").filter(Boolean).map((k) => `\n      - ${k}`).join("")}`;
-      }
-    }
-
-    let safetyYaml = "";
-    if (safetyEnabled) {
-      safetyYaml = "\n  safety:\n    enabled: true";
-      safetyYaml += `\n    blockMode: ${safetyBlockMode}`;
-      if (safetyCategories.length > 0) {
-        safetyYaml += `\n    categories:${safetyCategories.map((c) => `\n      - ${c}`).join("")}`;
-      }
-    }
-
-    let piiYaml = "";
-    if (piiEnabled) {
-      piiYaml = "\n  pii:\n    enabled: true";
-      if (piiMode.trim()) {
-        piiYaml += `\n    mode: ${piiMode.trim()}`;
-      }
-      if (piiEntityTypes.length > 0) {
-        piiYaml += `\n    entityTypes:${piiEntityTypes.map((e) => `\n      - ${e}`).join("")}`;
-      }
-    }
-
-    let abTestingYaml = "";
-    if (abTestingEnabled) {
-      abTestingYaml = "\n  abTesting:\n    enabled: true";
-      if (abTestingExperimentId.trim()) {
-        abTestingYaml += `\n    experimentId: ${abTestingExperimentId.trim()}`;
-      }
-      if (abTestingVariants.trim()) {
-        abTestingYaml += `\n    variants: ${abTestingVariants.trim()}`;
-      }
-    }
-
-    let fallbackYaml = "";
-    if (fallbackEnabled) {
-      fallbackYaml = "\n  fallback:\n    enabled: true";
-      if (fallbackChains.trim()) {
-        fallbackYaml += `\n    chains: ${fallbackChains.trim()}`;
-      }
-    }
-
-    let costTrackingYaml = "";
-    if (costTrackingEnabled) {
-      costTrackingYaml = "\n  costTracking:\n    enabled: true";
-      if (costInputPricePer1K.trim()) {
-        costTrackingYaml += `\n    inputPricePer1K: ${costInputPricePer1K.trim()}`;
-      }
-      if (costOutputPricePer1K.trim()) {
-        costTrackingYaml += `\n    outputPricePer1K: ${costOutputPricePer1K.trim()}`;
-      }
-      if (costCurrency.trim()) {
-        costTrackingYaml += `\n    currency: ${costCurrency.trim()}`;
-      }
-    }
-
-    let multiTenantYaml = "";
-    if (multiTenantEnabled) {
-      multiTenantYaml = "\n  multiTenant:\n    enabled: true";
-      if (multiTenantId.trim()) {
-        multiTenantYaml += `\n    id: ${multiTenantId.trim()}`;
-      }
-      if (multiTenantAllowedModels.trim()) {
-        multiTenantYaml += `\n    allowedModels: ${multiTenantAllowedModels.trim()}`;
-      }
-      if (multiTenantCostLimit.trim()) {
-        multiTenantYaml += `\n    costLimit: ${multiTenantCostLimit.trim()}`;
-      }
-    }
-
-    const yaml = `apiVersion: gateway.nantian.dev/v1alpha1
-kind: AIService
-metadata:
-  name: ${name.trim()}
-  namespace: ${namespace}
-spec:
-  provider: ${provider.trim()}${format.trim() ? `\n  format: ${format.trim()}` : ""}
-  model: ${model.trim()}${endpoint.trim() ? `\n  endpoint: ${endpoint.trim()}` : ""}${timeout.trim() ? `\n  timeout: ${timeout.trim()}` : ""}${authYaml}${retryYaml}${observabilityYaml}${routingYaml}${cacheYaml}${guardYaml}${safetyYaml}${piiYaml}${abTestingYaml}${fallbackYaml}${costTrackingYaml}${multiTenantYaml}
-`;
+    const yaml = buildAIServiceYaml({
+      name, namespace, provider, format, model, endpoint,
+      authType, authSecret, authKey, authHeader,
+      timeout, maxRetries, backoff,
+      langfuseHost, langfusePublicKey, langfuseSecretKey,
+      otelEndpoint, otelServiceName,
+      routingEnabled, routingComplexityThresholds, routingModelOverrides,
+      cacheEnabled, cacheTtl, cacheMaxTokens,
+      guardEnabled, guardMode, guardPatterns, guardKeywords,
+      safetyEnabled, safetyBlockMode, safetyCategories,
+      piiEnabled, piiMode, piiEntityTypes,
+      abTestingEnabled, abTestingExperimentId, abTestingVariants,
+      fallbackEnabled, fallbackChains,
+      costTrackingEnabled, costInputPricePer1K, costOutputPricePer1K, costCurrency,
+      multiTenantEnabled, multiTenantId, multiTenantAllowedModels, multiTenantCostLimit,
+    });
 
     try {
       const path = isEdit

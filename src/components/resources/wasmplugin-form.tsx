@@ -3,21 +3,18 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { applyResource } from "@/lib/api";
 import { useNamespaces } from "@/hooks/use-api";
 import { ManagedResource, KubernetesResource, unwrapResource } from "@/lib/admin-models";
 import { Loader2 } from "lucide-react";
+import { WasmPluginBasicInfo } from "./wasmplugin-form/basic-info-section";
+import { WasmPluginWasmSource } from "./wasmplugin-form/wasm-source-section";
+import { WasmPluginTargetRefs } from "./wasmplugin-form/target-refs-section";
+import { WasmPluginHooks } from "./wasmplugin-form/hooks-section";
+import { WasmPluginSandbox } from "./wasmplugin-form/sandbox-section";
 
 interface TargetRef {
   group: string;
@@ -48,8 +45,6 @@ interface WasmPluginFormProps {
   mode: "create" | "edit";
   onSuccess?: () => void;
 }
-
-const HOOK_OPTIONS = ["onRequest", "onResponse", "onStreamChunk"];
 
 function emptyWasmPluginForm(): WasmPluginFormData {
   return {
@@ -250,192 +245,41 @@ ${sandboxLines.join("\n")}`);
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">{t("wasm.plugins.form.basic_info_title")}</CardTitle>
-                <CardDescription>{t("wasm.plugins.form.basic_info_desc")}</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="name">{t("wasm.plugins.form.name")}</Label>
-                    <Input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder={t("wasm.plugins.form.name_placeholder")}
-                      required
-                      disabled={isEdit}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="namespace">{t("wasm.plugins.form.namespace")}</Label>
-                    <Select value={namespace} onValueChange={setNamespace} disabled={isEdit}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("wasm.plugins.form.namespace_placeholder")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {namespaces.map((ns) => (
-                          <SelectItem key={ns} value={ns}>{ns}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <WasmPluginBasicInfo
+              name={name}
+              namespace={namespace}
+              namespaces={namespaces}
+              isEdit={isEdit}
+              onNameChange={setName}
+              onNamespaceChange={setNamespace}
+            />
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">{t("wasm.plugins.form.wasm_source_title")}</CardTitle>
-                <CardDescription>{t("wasm.plugins.form.wasm_source_desc")}</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label>{t("wasm.plugins.form.source_type")}</Label>
-                  <Select value={wasmSourceType} onValueChange={(v) => setWasmSourceType(v as "url" | "configMap" | "inline")}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="url">{t("wasm.plugins.form.source_type_url")}</SelectItem>
-                      <SelectItem value="configMap">{t("wasm.plugins.form.source_type_configmap")}</SelectItem>
-                      <SelectItem value="inline">{t("wasm.plugins.form.source_type_inline")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <WasmPluginWasmSource
+              wasmSourceType={wasmSourceType}
+              wasmUrl={wasmUrl}
+              wasmConfigMapName={wasmConfigMapName}
+              wasmConfigMapKey={wasmConfigMapKey}
+              wasmInline={wasmInline}
+              wasmSha256={wasmSha256}
+              onSourceTypeChange={setWasmSourceType}
+              onWasmUrlChange={setWasmUrl}
+              onConfigMapNameChange={setWasmConfigMapName}
+              onConfigMapKeyChange={setWasmConfigMapKey}
+              onWasmInlineChange={setWasmInline}
+              onWasmSha256Change={setWasmSha256}
+            />
 
-                {wasmSourceType === "url" && (
-                  <div className="grid gap-2">
-                    <Label htmlFor="wasmUrl">{t("wasm.plugins.form.wasm_url")}</Label>
-                    <Input
-                      id="wasmUrl"
-                      value={wasmUrl}
-                      onChange={(e) => setWasmUrl(e.target.value)}
-                      placeholder="https://example.com/plugin.wasm"
-                    />
-                  </div>
-                )}
+            <WasmPluginTargetRefs
+              targetRefs={targetRefs}
+              onAdd={addTargetRef}
+              onRemove={removeTargetRef}
+              onUpdate={updateTargetRef}
+            />
 
-                {wasmSourceType === "configMap" && (
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="cm-name">{t("wasm.plugins.form.configmap_name")}</Label>
-                      <Input
-                        id="cm-name"
-                        value={wasmConfigMapName}
-                        onChange={(e) => setWasmConfigMapName(e.target.value)}
-                        placeholder="my-wasm-plugin"
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="cm-key">{t("wasm.plugins.form.configmap_key")}</Label>
-                      <Input
-                        id="cm-key"
-                        value={wasmConfigMapKey}
-                        onChange={(e) => setWasmConfigMapKey(e.target.value)}
-                        placeholder="plugin.wasm"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {wasmSourceType === "inline" && (
-                  <div className="grid gap-2">
-                    <Label htmlFor="wasmInline">{t("wasm.plugins.form.inline")}</Label>
-                    <Textarea
-                      id="wasmInline"
-                      value={wasmInline}
-                      onChange={(e) => setWasmInline(e.target.value)}
-                      placeholder={t("wasm.plugins.form.inline_placeholder")}
-                      rows={4}
-                    />
-                  </div>
-                )}
-
-                <div className="grid gap-2">
-                  <Label htmlFor="wasmSha256">{t("wasm.plugins.form.sha256")}</Label>
-                  <Input
-                    id="wasmSha256"
-                    value={wasmSha256}
-                    onChange={(e) => setWasmSha256(e.target.value)}
-                    placeholder={t("wasm.plugins.form.sha256_placeholder")}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">{t("wasm.plugins.form.target_title")}</CardTitle>
-                <CardDescription>{t("wasm.plugins.form.target_desc")}</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                {targetRefs.map((ref, idx) => (
-                  <div key={idx} className="flex items-end gap-4">
-                    <div className="grid gap-2 flex-1">
-                      <Label className="text-xs">{t("wasm.plugins.form.target_group")}</Label>
-                      <Input
-                        value={ref.group}
-                        onChange={(e) => updateTargetRef(idx, "group", e.target.value)}
-                        placeholder={t("wasm.plugins.form.target_group_placeholder")}
-                      />
-                    </div>
-                    <div className="grid gap-2 flex-1">
-                      <Label className="text-xs">{t("wasm.plugins.form.target_kind")}</Label>
-                      <Select value={ref.kind} onValueChange={(v) => updateTargetRef(idx, "kind", v)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Service">Service</SelectItem>
-                          <SelectItem value="HTTPRoute">HTTPRoute</SelectItem>
-                          <SelectItem value="GRPCRoute">GRPCRoute</SelectItem>
-                          <SelectItem value="Gateway">Gateway</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="grid gap-2 flex-1">
-                      <Label className="text-xs">{t("wasm.plugins.form.target_name")}</Label>
-                      <Input
-                        value={ref.name}
-                        onChange={(e) => updateTargetRef(idx, "name", e.target.value)}
-                        placeholder={t("wasm.plugins.form.target_name_placeholder")}
-                      />
-                    </div>
-                    <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => removeTargetRef(idx)}>
-                      <span className="text-red-500 text-lg">&times;</span>
-                    </Button>
-                  </div>
-                ))}
-                <Button type="button" variant="outline" size="sm" onClick={addTargetRef}>
-                  + {t("wasm.plugins.form.add_target")}
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">{t("wasm.plugins.form.hooks_title")}</CardTitle>
-                <CardDescription>{t("wasm.plugins.form.hooks_desc")}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                {HOOK_OPTIONS.map((hook) => {
-                  const selected = hooks.includes(hook);
-                  return (
-                    <Button
-                      key={hook}
-                      type="button"
-                      variant={selected ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => toggleHook(hook)}
-                    >
-                      {hook}
-                    </Button>
-                  );
-                })}
-              </CardContent>
-            </Card>
+            <WasmPluginHooks
+              hooks={hooks}
+              onToggle={toggleHook}
+            />
 
             <Card>
               <CardHeader className="pb-3">
@@ -455,62 +299,16 @@ ${sandboxLines.join("\n")}`);
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">{t("wasm.plugins.form.sandbox_title")}</CardTitle>
-                <CardDescription>{t("wasm.plugins.form.sandbox_desc")}</CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="maxMemory">{t("wasm.plugins.form.max_memory")}</Label>
-                    <Input
-                      id="maxMemory"
-                      type="number"
-                      value={sandboxMaxMemoryBytes}
-                      onChange={(e) => setSandboxMaxMemoryBytes(parseInt(e.target.value, 10) || 0)}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="maxExec">{t("wasm.plugins.form.max_exec_time")}</Label>
-                    <Input
-                      id="maxExec"
-                      type="number"
-                      value={sandboxMaxExecutionTimeMs}
-                      onChange={(e) => setSandboxMaxExecutionTimeMs(parseInt(e.target.value, 10) || 0)}
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="allowNet">{t("wasm.plugins.form.allow_network")}</Label>
-                    <Select value={sandboxAllowNetwork ? "true" : "false"} onValueChange={(v) => setSandboxAllowNetwork(v === "true")}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">{t("wasm.plugins.form.enabled")}</SelectItem>
-                        <SelectItem value="false">{t("wasm.plugins.form.disabled")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="allowFs">{t("wasm.plugins.form.allow_filesystem")}</Label>
-                    <Select value={sandboxAllowFileSystem ? "true" : "false"} onValueChange={(v) => setSandboxAllowFileSystem(v === "true")}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">{t("wasm.plugins.form.enabled")}</SelectItem>
-                        <SelectItem value="false">{t("wasm.plugins.form.disabled")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <WasmPluginSandbox
+              maxMemoryBytes={sandboxMaxMemoryBytes}
+              maxExecutionTimeMs={sandboxMaxExecutionTimeMs}
+              allowNetwork={sandboxAllowNetwork}
+              allowFileSystem={sandboxAllowFileSystem}
+              onMaxMemoryBytesChange={setSandboxMaxMemoryBytes}
+              onMaxExecutionTimeMsChange={setSandboxMaxExecutionTimeMs}
+              onAllowNetworkChange={setSandboxAllowNetwork}
+              onAllowFileSystemChange={setSandboxAllowFileSystem}
+            />
 
             {error && (
               <Card className="border-red-500">
