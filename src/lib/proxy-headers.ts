@@ -23,6 +23,9 @@ export const PROXY_FORWARD_HEADERS = [
   "x-correlation-id",
 ] as const;
 
+/** Cache-Control header applied to all proxied GET/HEAD responses. */
+export const PROXY_CACHE_CONTROL = "public, s-maxage=10";
+
 export const PROXY_STRIP_HEADERS = [
   "connection",
   "content-encoding",
@@ -81,5 +84,10 @@ export function proxyResponseHeaders(response: Response): Headers {
   for (const key of PROXY_STRIP_HEADERS) {
     headers.delete(key);
   }
+  return headers;
+}
+
+export function withProxyCacheControl(headers: Headers): Headers {
+  headers.set("Cache-Control", PROXY_CACHE_CONTROL);
   return headers;
 }

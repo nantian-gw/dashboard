@@ -15,7 +15,7 @@ import {
   DATAPLANE_BEARER_TOKEN,
   ADMIN_API_TIMEOUT_MS,
 } from "@/lib/admin-urls";
-import { buildProxyHeaders, proxyResponseHeaders } from "@/lib/proxy-headers";
+import { buildProxyHeaders, proxyResponseHeaders, withProxyCacheControl, PROXY_CACHE_CONTROL } from "@/lib/proxy-headers";
 import {
   validateCsrfToken,
   getCsrfTokenFromCookies,
@@ -201,7 +201,9 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
       const legacyPayload = await legacyControlplanePayload(slug, headers, token, controller.signal);
       if (legacyPayload.matched) {
         clearTimeout(timeout);
-        return NextResponse.json(legacyPayload.payload);
+        return NextResponse.json(legacyPayload.payload, {
+          headers: { "Cache-Control": PROXY_CACHE_CONTROL },
+        });
       }
     }
 
@@ -225,7 +227,7 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
     // so chunked streaming stays correct for large snapshots/manifests.
     return new NextResponse(response.body, {
       status: response.status,
-      headers: proxyResponseHeaders(response),
+      headers: withProxyCacheControl(proxyResponseHeaders(response)),
     });
   } catch {
     clearTimeout(timeout);
