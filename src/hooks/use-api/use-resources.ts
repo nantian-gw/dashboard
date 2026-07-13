@@ -19,6 +19,7 @@ export function useNodes(enabled = true) {
       const payload = await controlplane.get("/v1/nodes");
       return { nodes: mapNodePayload(payload) };
     },
+    refetchOnWindowFocus: true,
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
@@ -80,6 +81,7 @@ export function useDiagnostics(enabled = true) {
         issues: mapDiagnostics(controlplaneSummary, infrastructure, dataplaneSummary),
       };
     },
+    refetchOnWindowFocus: true,
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
@@ -116,7 +118,8 @@ export function usePrometheusQuery(query: string, enabled = true) {
       const res = await controlplane.post<PrometheusResponse>("/v1/metrics/query", { query });
       return res;
     },
-    refetchInterval: 15_000,
+    refetchOnWindowFocus: true,
+    refetchInterval: REFETCH_INTERVAL,
     staleTime: 10_000,
     retry: 1,
     retryDelay: 2000,
@@ -141,6 +144,7 @@ export function usePrometheusRangeQuery(query: string, hours = 1, enabled = true
       });
       return res;
     },
+    refetchOnWindowFocus: true,
     refetchInterval: REFETCH_INTERVAL,
     staleTime: 15_000,
     retry: 1,

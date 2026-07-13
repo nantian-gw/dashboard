@@ -31,6 +31,7 @@ export function gatewaysQueryOptions() {
         grpcRouteCount: (summaryObject.grpcRouteCount as number) ?? 0,
       };
     },
+    refetchOnWindowFocus: true,
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
@@ -47,6 +48,7 @@ export function gatewayQueryOptions(namespace: string, name: string) {
       ]);
       return mapGatewayResource(resource, mapRoutesPayload(routesPayload));
     },
+    refetchOnWindowFocus: true,
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
@@ -105,6 +107,7 @@ export function routeQueryOptions(namespace: string, name: string, kind: string)
         },
       };
     },
+    refetchOnWindowFocus: true,
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
@@ -118,6 +121,7 @@ export function routesQueryOptions() {
       const payload = await controlplane.get("/v1/routes");
       return { routes: mapRoutesPayload(payload) };
     },
+    refetchOnWindowFocus: true,
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,

@@ -116,6 +116,7 @@ export function useCircuitBreakerBackends(enabled = true) {
         };
       });
     },
+    refetchOnWindowFocus: true,
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     enabled,

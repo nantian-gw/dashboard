@@ -27,6 +27,7 @@ export function useControlplaneSummary() {
         return mapControlplaneSummary(summary);
       }
     },
+    refetchOnWindowFocus: true,
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
@@ -46,6 +47,7 @@ export function useDataplaneSummary() {
   return useQuery({
     queryKey: ["dataplane", "summary"],
     queryFn: () => dataplane.get("/v1/summary"),
+    refetchOnWindowFocus: true,
     refetchInterval: REFETCH_INTERVAL,
     staleTime: STALE_TIME,
     gcTime: GC_TIME,
