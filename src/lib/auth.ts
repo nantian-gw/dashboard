@@ -220,7 +220,16 @@ async function verifyTokenAgainstControlplaneDetailed(
       }
     );
 
-    if (response.ok) return { result: "valid" };
+    if (response.ok) {
+      // Ensure the response actually came from an authenticated context.
+      // noAuthHandler allows all GET requests, so a 200 doesn't prove token validity.
+      const body = await response.clone().json().catch(() => null);
+      if (body && typeof body === "object" && "snapshotVersion" in body) {
+        return { result: "valid" as const };
+      }
+      // If the response is not the expected summary shape, treat as auth not configured.
+      return { result: "network_error", responseStatus: 0 };
+    }
     if (response.status === 401 || response.status === 403) {
       return { result: "invalid" };
     }
