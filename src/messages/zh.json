@@ -92,6 +92,7 @@
     "auto_refresh": "自动刷新",
     "auto_refresh_on": "自动刷新开启",
     "auto_refresh_off": "自动刷新关闭",
+    "logout": "退出登录",
     "pause_refresh": "暂停",
     "resume_refresh": "继续",
     "every_seconds": "{seconds}秒",

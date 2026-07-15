@@ -93,6 +93,7 @@
     "auto_refresh": "Auto refresh",
     "auto_refresh_on": "Auto refresh on",
     "auto_refresh_off": "Auto refresh off",
+    "logout": "Sign out",
     "pause_refresh": "Pause",
     "resume_refresh": "Resume",
     "every_seconds": "{seconds}s",
