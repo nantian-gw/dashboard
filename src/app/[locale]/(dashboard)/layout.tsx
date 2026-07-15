@@ -1,7 +1,8 @@
 import { getMessages } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { routing } from "@/i18n/routing";
+import { auth } from "@/lib/auth";
 import { LocaleLayoutClient } from "./locale-layout-client";
 import { SidebarNav } from "@/components/dashboard/sidebar-nav";
 import { TopBar } from "@/components/dashboard/top-bar";
@@ -21,6 +22,11 @@ export default async function DashboardLayout({
 
   if (!routing.locales.includes(locale as "en" | "zh")) {
     notFound();
+  }
+
+  const session = await auth();
+  if (!session?.user?.token) {
+    redirect(`/${locale}/login`);
   }
 
   const messages = await getMessages();
