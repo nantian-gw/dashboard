@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "node .next/standalone/server.js",
     "test": "node --test",
+    "test:e2e": "playwright test",
     "lint": "eslint",
     "validate:app-router": "node scripts/validate-app-router.mjs",
     "check": "npm run validate:app-router && npm run test && npm run lint && npm run build"
@@ -40,6 +41,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^16.2.9",
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20",
