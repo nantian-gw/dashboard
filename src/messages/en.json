@@ -14,6 +14,8 @@
     "signing_in": "Signing in...",
     "error_invalid": "Invalid token — must match the control plane admin bearer token",
     "error_network": "Unable to reach control plane. Check your connection.",
+    "error_rate_limited": "Too many attempts. Please wait a moment.",
+    "error_empty": "Please enter your admin token.",
     "error_parse": "Could not extract token from kubeconfig file",
     "show_token": "Show token",
     "hide_token": "Hide token",

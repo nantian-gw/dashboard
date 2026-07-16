@@ -42,19 +42,30 @@ export default function LoginPage() {
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    const trimmed = token.trim();
+    if (!trimmed) {
+      setError(t("error_empty"));
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const result = await signIn("credentials", {
-        token,
+        token: trimmed,
         redirect: false,
       });
 
       if (result?.error) {
-        setError(
-          result.code === "network" ? t("error_network") : t("error_invalid")
-        );
+        if (result.code === "rate_limited") {
+          setError(t("error_rate_limited"));
+        } else if (result.code === "network") {
+          setError(t("error_network"));
+        } else {
+          setError(t("error_invalid"));
+        }
       } else {
         router.push(`/${locale}/overview`);
       }

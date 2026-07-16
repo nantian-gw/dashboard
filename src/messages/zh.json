@@ -14,6 +14,8 @@
     "signing_in": "登录中...",
     "error_invalid": "无效的令牌 — 需与控制平面管理员 Bearer 令牌匹配",
     "error_network": "无法连接到控制平面。请检查网络连接。",
+    "error_rate_limited": "尝试次数过多，请稍后再试。",
+    "error_empty": "请输入管理员令牌。",
     "error_parse": "无法从 kubeconfig 文件中提取令牌",
     "show_token": "显示令牌",
     "hide_token": "隐藏令牌",
