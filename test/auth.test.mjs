@@ -128,10 +128,12 @@ function loadAuth({ fetchImpl, consoleImpl = console }) {
 }
 
 function loadAuthWithStatus(status) {
+  const ok = status >= 200 && status < 300;
   return loadAuth({
     fetchImpl: async () => ({
-      ok: status >= 200 && status < 300,
+      ok,
       status,
+      json: async () => ok ? { authenticated: true } : null,
     }),
   });
 }
@@ -233,7 +235,7 @@ test("verification sends bearer token to controlplane summary with abort signal"
   const { verifyTokenAgainstControlplane } = loadAuth({
     fetchImpl: async (url, init) => {
       call = { url, init };
-      return { ok: true, status: 200 };
+      return { ok: true, status: 200, json: async () => ({ authenticated: true }) };
     },
   });
 
@@ -242,7 +244,7 @@ test("verification sends bearer token to controlplane summary with abort signal"
     "valid"
   );
 
-  assert.equal(call.url, "http://controlplane.test/v1/summary");
+  assert.equal(call.url, "http://controlplane.test/v1/auth/verify");
   assert.equal(call.init.headers.Authorization, "Bearer secret-token");
   assert.ok(call.init.signal instanceof AbortSignal);
 });
@@ -358,7 +360,7 @@ test("empty token does not consume rate-limit budget", async () => {
   const { credentialsConfig, resetAuthRateLimitForTests } = loadAuth({
     fetchImpl: async () => {
       fetchCalls += 1;
-      return { ok: true, status: 200 };
+      return { ok: true, status: 200, json: async () => ({ authenticated: true }) };
     },
   });
   resetAuthRateLimitForTests();
