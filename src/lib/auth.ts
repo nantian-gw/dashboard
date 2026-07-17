@@ -188,7 +188,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.expiresAt &&
         Date.now() > (token.expiresAt as number) - 300_000
       ) {
-        token = await refreshAccessToken(token);
+        token = await revalidateAccessToken(token);
       }
       return token;
     },
@@ -246,7 +246,7 @@ async function verifyTokenAgainstControlplaneDetailed(
   }
 }
 
-async function refreshAccessToken(token: import("@auth/core/jwt").JWT): Promise<import("@auth/core/jwt").JWT> {
+async function revalidateAccessToken(token: import("@auth/core/jwt").JWT): Promise<import("@auth/core/jwt").JWT> {
   if (!token.accessToken) return token;
 
   const verification = await verifyTokenAgainstControlplaneDetailed(

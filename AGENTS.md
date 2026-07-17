@@ -23,7 +23,9 @@ Browser → Next.js API routes (BFF) → Controlplane (:18081) / Dataplane (:190
 ```
 
 - **`src/lib/api.ts`**: Typed fetch wrappers (`controlplane.get/post/put/delete`, `dataplane.get`). All client data fetching goes through these.
-- **`src/lib/auth.ts`**: NextAuth v5 with credentials provider. Token verified against controlplane `/v1/summary`. Network errors or timeouts during verification deny login.
+- **`src/lib/auth.ts`**: NextAuth v5 with credentials provider. Token verified against controlplane `/v1/auth/verify`. Network errors or timeouts during verification deny login.
+
+  **Security — X-Forwarded-For Trust**: The Dashboard must be deployed behind a trusted reverse proxy that rewrites X-Forwarded-For headers. The rate limiter uses the first X-Forwarded-For value for IP-based rate limiting (10 requests/60s per IP). A forged X-Forwarded-For header can bypass rate limiting if deployed without a trusted proxy.
 - **`src/lib/admin-models.ts`**: Data transformation layer — maps raw API payloads to UI row types (`mapGatewayResource`, `mapRoutesPayload`, `mapControlplaneSummary`, `mapNodePayload`, `mapDiagnostics`).
 - **`src/lib/admin-urls.ts`**: Backend URLs and timeout config. Defaults: `CONTROLPLANE_ADMIN_URL=http://localhost:18081`, `DATAPLANE_ADMIN_URL=http://localhost:19080`.
 - **`src/hooks/use-api/`**: React Query hooks (`useGateways`, `useNodes`, `useDiagnostics`, etc.). All hooks re-exported from `src/hooks/use-api.ts`.

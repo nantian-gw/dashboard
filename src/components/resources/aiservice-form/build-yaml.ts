@@ -1,5 +1,3 @@
-import type { AIServiceFormData } from "../aiservice-form";
-
 /**
  * Builds a Kubernetes AIService YAML string from form data fields.
  */
