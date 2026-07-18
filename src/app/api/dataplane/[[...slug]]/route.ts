@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { trace, Span } from "@opentelemetry/api";
 import { auth } from "@/lib/auth";
 import {
   mapNodePayload,
@@ -97,12 +98,19 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
+  let getSpan: Span | undefined;
+
   try {
     if (request.method === "GET") {
+      getSpan = trace.getTracer("nantian-gw-dashboard").startSpan("proxy.dataplane.GET");
+      getSpan.setAttribute("http.url", request.nextUrl.pathname);
+
       const cacheKey = buildCacheKey(request.nextUrl.pathname, request.nextUrl.search);
       const cached = getCached(cacheKey);
       if (cached) {
         clearTimeout(timeout);
+        getSpan.setAttribute("http.cache", "hit");
+        getSpan.end();
         const respHeaders = new Headers(cached.headers);
         respHeaders.set("Cache-Control", PROXY_CACHE_CONTROL);
         return new NextResponse(cached.body, {
@@ -125,11 +133,16 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
       signal: controller.signal,
     });
 
+    if (getSpan) {
+      getSpan.setAttribute("http.status_code", response.status);
+    }
+
     if (
       slug === "/v1/summary" &&
       (response.status === 401 || response.status === 403)
     ) {
       clearTimeout(timeout);
+      getSpan?.end();
       return NextResponse.json(degradedDataplaneSummaryPayload(), {
         headers: { "Cache-Control": PROXY_CACHE_CONTROL },
       });
@@ -149,6 +162,7 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
           status: response.status,
           headers: Object.fromEntries(proxyResponseHeaders(response).entries()),
         });
+        getSpan?.end();
         return new NextResponse(responseBody, {
           status: response.status,
           headers: withProxyCacheControl(proxyResponseHeaders(response)),
@@ -159,6 +173,7 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
         status: response.status,
         headers: Object.fromEntries(proxyResponseHeaders(response).entries()),
       });
+      getSpan?.end();
       return new NextResponse(bodyText, {
         status: response.status,
         headers: withProxyCacheControl(proxyResponseHeaders(response)),
@@ -169,17 +184,20 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
     if (legacyTarget && contentType.includes("application/json")) {
       const data = await response.json();
       const payload = legacyDataplanePayload(slug, data);
+      getSpan?.end();
       return new NextResponse(JSON.stringify(payload), {
         status: response.status,
         headers: withProxyCacheControl(proxyResponseHeaders(response)),
       });
     }
+    getSpan?.end();
     return new NextResponse(response.body, {
       status: response.status,
       headers: withProxyCacheControl(proxyResponseHeaders(response)),
     });
   } catch {
     clearTimeout(timeout);
+    getSpan?.end();
     return NextResponse.json(
       {
         error: "admin_proxy_unavailable",

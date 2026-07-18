@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { trace, Span } from "@opentelemetry/api";
 import { auth } from "@/lib/auth";
 import {
   asManagedResourceArray,
@@ -197,12 +198,19 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
+  let getSpan: Span | undefined;
+
   try {
     if (request.method === "GET") {
+      getSpan = trace.getTracer("nantian-gw-dashboard").startSpan("proxy.controlplane.GET");
+      getSpan.setAttribute("http.url", request.nextUrl.pathname);
+
       const cacheKey = buildCacheKey(request.nextUrl.pathname, request.nextUrl.search);
       const cached = getCached(cacheKey);
       if (cached) {
         clearTimeout(timeout);
+        getSpan.setAttribute("http.cache", "hit");
+        getSpan.end();
         // Rebuild Cache-Control header from cached data so browsers also benefit.
         const respHeaders = new Headers(cached.headers);
         respHeaders.set("Cache-Control", PROXY_CACHE_CONTROL);
@@ -221,6 +229,8 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
           status: 200,
           headers: { "content-type": "application/json" },
         });
+        getSpan.setAttribute("http.cache", "miss");
+        getSpan.end();
         return new NextResponse(body, {
           headers: { "content-type": "application/json", "Cache-Control": PROXY_CACHE_CONTROL },
         });
@@ -242,6 +252,10 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
 
     clearTimeout(timeout);
 
+    if (getSpan) {
+      getSpan.setAttribute("http.status_code", response.status);
+    }
+
     if (request.method === "GET" && response.ok) {
       // Buffer the upstream body so we can cache it.
       const bodyText = await response.text();
@@ -251,18 +265,21 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
         status: response.status,
         headers: Object.fromEntries(proxyResponseHeaders(response).entries()),
       });
+      getSpan?.end();
       return new NextResponse(bodyText, {
         status: response.status,
         headers: withProxyCacheControl(proxyResponseHeaders(response)),
       });
     }
 
+    getSpan?.end();
     return new NextResponse(response.body, {
       status: response.status,
       headers: withProxyCacheControl(proxyResponseHeaders(response)),
     });
   } catch {
     clearTimeout(timeout);
+    getSpan?.end();
     return NextResponse.json(
       {
         error: "admin_proxy_unavailable",
