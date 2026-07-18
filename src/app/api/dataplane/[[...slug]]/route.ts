@@ -15,6 +15,7 @@ import {
   getCsrfTokenFromCookies,
   CSRF_HEADER_NAME,
 } from "@/lib/csrf";
+import { getCached, setCache, buildCacheKey } from "@/lib/bff-cache";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
@@ -97,6 +98,20 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
+    if (request.method === "GET") {
+      const cacheKey = buildCacheKey(request.nextUrl.pathname, request.nextUrl.search);
+      const cached = getCached(cacheKey);
+      if (cached) {
+        clearTimeout(timeout);
+        const respHeaders = new Headers(cached.headers);
+        respHeaders.set("Cache-Control", PROXY_CACHE_CONTROL);
+        return new NextResponse(cached.body, {
+          status: cached.status,
+          headers: respHeaders,
+        });
+      }
+    }
+
     const body =
       request.method === "GET" || request.method === "HEAD"
         ? undefined
@@ -122,9 +137,35 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
 
     clearTimeout(timeout);
 
+    if (request.method === "GET" && response.ok) {
+      const bodyText = await response.text();
+      const cacheKey = buildCacheKey(request.nextUrl.pathname, request.nextUrl.search);
+      const contentType = response.headers.get("content-type") || "";
+      if (legacyTarget && contentType.includes("application/json")) {
+        const payload = legacyDataplanePayload(slug, JSON.parse(bodyText));
+        const responseBody = JSON.stringify(payload);
+        setCache(cacheKey, {
+          body: responseBody,
+          status: response.status,
+          headers: Object.fromEntries(proxyResponseHeaders(response).entries()),
+        });
+        return new NextResponse(responseBody, {
+          status: response.status,
+          headers: withProxyCacheControl(proxyResponseHeaders(response)),
+        });
+      }
+      setCache(cacheKey, {
+        body: bodyText,
+        status: response.status,
+        headers: Object.fromEntries(proxyResponseHeaders(response).entries()),
+      });
+      return new NextResponse(bodyText, {
+        status: response.status,
+        headers: withProxyCacheControl(proxyResponseHeaders(response)),
+      });
+    }
+
     const contentType = response.headers.get("content-type") || "";
-    // The legacy /v1/nodes path rewrites the JSON payload; every other request
-    // is a transparent stream pass-through (no parse + re-serialize).
     if (legacyTarget && contentType.includes("application/json")) {
       const data = await response.json();
       const payload = legacyDataplanePayload(slug, data);

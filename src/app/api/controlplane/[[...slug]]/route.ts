@@ -21,6 +21,7 @@ import {
   getCsrfTokenFromCookies,
   CSRF_HEADER_NAME,
 } from "@/lib/csrf";
+import { getCached, setCache, buildCacheKey } from "@/lib/bff-cache";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
@@ -198,11 +199,30 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
 
   try {
     if (request.method === "GET") {
+      const cacheKey = buildCacheKey(request.nextUrl.pathname, request.nextUrl.search);
+      const cached = getCached(cacheKey);
+      if (cached) {
+        clearTimeout(timeout);
+        // Rebuild Cache-Control header from cached data so browsers also benefit.
+        const respHeaders = new Headers(cached.headers);
+        respHeaders.set("Cache-Control", PROXY_CACHE_CONTROL);
+        return new NextResponse(cached.body, {
+          status: cached.status,
+          headers: respHeaders,
+        });
+      }
+
       const legacyPayload = await legacyControlplanePayload(slug, headers, token, controller.signal);
       if (legacyPayload.matched) {
         clearTimeout(timeout);
-        return NextResponse.json(legacyPayload.payload, {
-          headers: { "Cache-Control": PROXY_CACHE_CONTROL },
+        const body = JSON.stringify(legacyPayload.payload);
+        setCache(cacheKey, {
+          body,
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+        return new NextResponse(body, {
+          headers: { "content-type": "application/json", "Cache-Control": PROXY_CACHE_CONTROL },
         });
       }
     }
@@ -222,9 +242,21 @@ export async function handler(request: NextRequest): Promise<NextResponse> {
 
     clearTimeout(timeout);
 
-    // Transparent pass-through: stream the upstream body instead of
-    // parse + re-serialize. proxyResponseHeaders strips content-length/encoding
-    // so chunked streaming stays correct for large snapshots/manifests.
+    if (request.method === "GET" && response.ok) {
+      // Buffer the upstream body so we can cache it.
+      const bodyText = await response.text();
+      const cacheKey = buildCacheKey(request.nextUrl.pathname, request.nextUrl.search);
+      setCache(cacheKey, {
+        body: bodyText,
+        status: response.status,
+        headers: Object.fromEntries(proxyResponseHeaders(response).entries()),
+      });
+      return new NextResponse(bodyText, {
+        status: response.status,
+        headers: withProxyCacheControl(proxyResponseHeaders(response)),
+      });
+    }
+
     return new NextResponse(response.body, {
       status: response.status,
       headers: withProxyCacheControl(proxyResponseHeaders(response)),
