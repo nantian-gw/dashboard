@@ -56,7 +56,8 @@ async function request<T>(base: string, path: string, options: RequestOptions = 
     headers,
   });
   if (!response.ok) {
-    throw new Error(`${base}${path} failed: ${response.status}`);
+    const body = await response.text().catch(() => "");
+    throw new Error(`${base}${path} failed: ${response.status}${body ? ` — ${body}` : ""}`);
   }
 
   const data = await response.json();
