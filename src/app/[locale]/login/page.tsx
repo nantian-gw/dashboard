@@ -18,13 +18,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { Eye } from "lucide-react";
-import { EyeOff } from "lucide-react";
-import { Upload } from "lucide-react";
-import { Loader2 } from "lucide-react";
-import { AlertCircle } from "lucide-react";
-import { ShieldCheck } from "lucide-react";
-import { FileText } from "lucide-react";
+import { Eye, EyeOff, Upload, Loader2, AlertCircle, ShieldCheck, FileText, Key } from "lucide-react";
 import jsyaml from "js-yaml";
 
 export default function LoginPage() {
@@ -247,23 +241,3 @@ export default function LoginPage() {
   );
 }
 
-function Key(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <circle cx="7.5" cy="15.5" r="5.5" />
-      <path d="m21 2-9.6 9.6" />
-      <path d="m15.5 7.5 3 3L22 7l-3-3Z" />
-    </svg>
-  );
-}

@@ -1,7 +1,7 @@
 /**
  * BFF-layer in-memory TTL cache for controlplane/dataplane API aggregation.
  *
- * Caches GET responses for 5 seconds with simple LRU eviction at 100 entries.
+ * Caches GET responses for 5 seconds with simple FIFO eviction at 100 entries.
  * Reduces redundant upstream fetches during dashboard page loads where the
  * same aggregated views are requested by multiple components.
  */
@@ -33,7 +33,7 @@ export function getCached(key: string): CachedResponse | undefined {
 
 export function setCache(key: string, data: CachedResponse, ttl = DEFAULT_TTL): void {
   cache.set(key, { data, expires: Date.now() + ttl });
-  // Simple LRU: evict oldest entry when cache grows too large.
+  // Simple FIFO: evict oldest-inserted entry when cache exceeds max size.
   if (cache.size > MAX_ENTRIES) {
     const firstKey = cache.keys().next().value;
     if (firstKey) cache.delete(firstKey);
