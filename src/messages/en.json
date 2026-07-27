@@ -1000,6 +1000,11 @@
     "step5_title": "AI Gateway & More",
     "step5_desc": "Manage AI service proxies, track token usage and costs, and use the chatbot assistant for configuration help."
   },
+  "error": {
+    "title": "Something went wrong",
+    "fallback_message": "An unexpected error occurred.",
+    "try_again": "Try again"
+  },
   "alerts": {
     "title": "Alert Rules",
     "subtitle": "Configure alert rules for monitoring metrics",
