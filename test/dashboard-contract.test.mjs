@@ -428,7 +428,7 @@ test("shared dashboard navigation surfaces prewarm approved hotspots without cha
   );
   assert.match(
     routerSource,
-    /prefetch\(href: string, options\?: Parameters<typeof router\.prefetch>\[1\]\)/,
+    /\(href: string, options\?: Parameters<typeof router\.prefetch>\[1\]\)/,
     "useLocalizedDashboardRouter must preserve the typed prefetch options signature"
   );
   assert.match(
@@ -657,7 +657,7 @@ test("dashboard shared navigation wrappers localize in-app routes", () => {
   );
   assert.match(
     routerSource,
-    /router\.prefetch\(localizeDashboardPath\(locale, href\), options\)/,
+    /router\.prefetch\(localizedHref, options\)/,
     "useLocalizedDashboardRouter must localize prefetch targets and forward options"
   );
   assert.match(

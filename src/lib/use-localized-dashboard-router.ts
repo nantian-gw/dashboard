@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -10,32 +9,23 @@ export function useLocalizedDashboardRouter() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const push = useCallback(
-    (href: string, options?: Parameters<typeof router.push>[1]) => {
-      const localizedHref = localizeDashboardPath(locale, href);
-      prewarmDashboardQueries(queryClient, localizedHref);
-      router.push(localizeDashboardPath(locale, href), options);
-    },
-    [locale, router, queryClient],
-  );
+  const push = (href: string, options?: Parameters<typeof router.push>[1]) => {
+    const localizedHref = localizeDashboardPath(locale, href);
+    prewarmDashboardQueries(queryClient, localizedHref);
+    router.push(localizeDashboardPath(locale, href), options);
+  };
 
-  const replace = useCallback(
-    (href: string, options?: Parameters<typeof router.replace>[1]) => {
-      const localizedHref = localizeDashboardPath(locale, href);
-      prewarmDashboardQueries(queryClient, localizedHref);
-      router.replace(localizeDashboardPath(locale, href), options);
-    },
-    [locale, router, queryClient],
-  );
+  const replace = (href: string, options?: Parameters<typeof router.replace>[1]) => {
+    const localizedHref = localizeDashboardPath(locale, href);
+    prewarmDashboardQueries(queryClient, localizedHref);
+    router.replace(localizeDashboardPath(locale, href), options);
+  };
 
-  const prefetch = useCallback(
-    (href: string, options?: Parameters<typeof router.prefetch>[1]) => {
-      const localizedHref = localizeDashboardPath(locale, href);
-      prewarmDashboardQueries(queryClient, localizedHref);
-      return router.prefetch(localizedHref, options);
-    },
-    [locale, router, queryClient],
-  );
+  const prefetch = (href: string, options?: Parameters<typeof router.prefetch>[1]) => {
+    const localizedHref = localizeDashboardPath(locale, href);
+    prewarmDashboardQueries(queryClient, localizedHref);
+    return router.prefetch(localizedHref, options);
+  };
 
   return { push, replace, prefetch };
 }
