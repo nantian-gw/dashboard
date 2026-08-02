@@ -68,7 +68,7 @@ jobs:
 
       - name: Scan image for vulnerabilities
         if: github.event_name == 'push'
-        uses: anchore/scan-action@b70e3dd11868f2baf8ba22cb1adcf5267618e415
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: ghcr.io/${{ github.repository }}:sha-${{ env.SHORT_SHA }}-${{ matrix.arch }}
           fail-build: false
