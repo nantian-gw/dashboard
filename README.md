@@ -1,6 +1,6 @@
 # Nantian Gateway Dashboard
 
-Next.js 16 + React 19 admin console for the Nantian Gateway.
+Next.js 16 + React 19 admin console for Nantian Gateway — manage gateways, routes, AI gateway services, Wasm plugins, and cluster observability from a single UI.
 
 ## Features
 
