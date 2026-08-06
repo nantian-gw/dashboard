@@ -1,16 +1,11 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import dynamic from "next/dynamic";
 import { Check, Copy, ZoomIn, ZoomOut, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTheme } from "next-themes";
-
-const Editor = dynamic(() => import("./monaco-editor"), {
-  ssr: false,
-  loading: () => <Skeleton className="h-full w-full" />,
-});
+import type { EditorProps } from "@monaco-editor/react";
 
 interface CodeBlockProps {
   code: string;
@@ -20,6 +15,7 @@ interface CodeBlockProps {
 
 export function CodeBlock({ code, language = "yaml", readOnly = true }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
+  const [EditorComponent, setEditorComponent] = useState<React.ComponentType<EditorProps> | null>(null);
   const [editorEnabled, setEditorEnabled] = useState(false);
   const [fontSize, setFontSize] = useState(13);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -61,6 +57,12 @@ export function CodeBlock({ code, language = "yaml", readOnly = true }: CodeBloc
     ? "fixed inset-0 z-50 bg-background/95 p-4"
     : "relative rounded-md overflow-hidden";
 
+  const handleOpenEditor = useCallback(async () => {
+    const mod = await import("./monaco-editor");
+    setEditorComponent(() => mod.default);
+    setEditorEnabled(true);
+  }, []);
+
   return (
     <div className={containerClass}>
       <div className="flex items-center gap-2 mb-2">
@@ -86,7 +88,7 @@ export function CodeBlock({ code, language = "yaml", readOnly = true }: CodeBloc
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setEditorEnabled(true)}
+            onClick={handleOpenEditor}
             className="h-8 ml-auto"
           >
             Open editor
@@ -127,8 +129,8 @@ export function CodeBlock({ code, language = "yaml", readOnly = true }: CodeBloc
       </div>
 
       <div className={isFullscreen ? "h-[calc(100%-60px)]" : "h-[400px]"}>
-        {editorEnabled ? (
-          <Editor
+        {editorEnabled && EditorComponent ? (
+          <EditorComponent
             height="100%"
             language={language}
             value={code}

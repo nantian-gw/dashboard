@@ -609,8 +609,8 @@ test("code block keeps Monaco behind explicit operator activation", () => {
   );
   assert.match(
     source,
-    /dynamic\(\(\) => import\("\.\/monaco-editor"\)/,
-    "CodeBlock must keep Monaco behind a dynamic client-only import"
+    new RegExp('import\("\\.\\/monaco-editor"\)'),
+    "CodeBlock must keep Monaco behind a lazy client-only import"
   );
   assert.match(
     source,

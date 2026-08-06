@@ -33,6 +33,7 @@ const nextConfig: NextConfig = {
   transpilePackages: ["recharts"],
   output: "standalone",
   poweredByHeader: false,
+  reactCompiler: true,
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
