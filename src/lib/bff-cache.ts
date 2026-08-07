@@ -18,7 +18,7 @@ export interface CachedResponse {
 }
 
 const cache = new Map<string, CacheEntry>();
-const DEFAULT_TTL = 30000; // 30 seconds
+const DEFAULT_TTL = 5000; // 5 seconds
 const MAX_ENTRIES = 100;
 
 export function getCached(key: string): CachedResponse | undefined {
