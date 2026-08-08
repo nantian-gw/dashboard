@@ -16,18 +16,14 @@ export {
   usePrometheusRangeQuery,
 } from "./use-api/use-resources";
 export { useAIOverview, useAIServices, useAITokenUsage, useAITraces, useAICost, useAITokenTrend, useAILatencyTrend } from "./use-api/use-ai";
-export { useWasmPlugins, useWasmPlugin } from "./use-api/use-wasm";
+export { useWasmPlugins } from "./use-api/use-wasm";
 export { useCircuitBreakerBackends } from "./use-api/use-circuit-breaker";
 export type { CircuitBreakerRow } from "./use-api/use-circuit-breaker";
 export type {
-  AIOverview,
   AIServiceSummary,
   AITokenUsage,
   AITraceSummary,
-  AICostSummary,
   AICostByModel,
   AICostTrend,
-  AITokenTrendDatum,
-  AILatencyTrendDatum,
 } from "./use-api/use-ai";
 export type { PrometheusResponse, PrometheusRangeResponse } from "./use-api/use-resources";
