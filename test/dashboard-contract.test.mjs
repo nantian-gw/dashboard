@@ -607,9 +607,8 @@ test("code block keeps Monaco behind explicit operator activation", () => {
     /editorEnabled/,
     "CodeBlock must use explicit activation state before mounting Monaco"
   );
-  assert.match(
-    source,
-    new RegExp('import\("\\.\\/monaco-editor"\)'),
+  assert.ok(
+    source.includes('import("./monaco-editor")'),
     "CodeBlock must keep Monaco behind a lazy client-only import"
   );
   assert.match(
